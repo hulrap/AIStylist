@@ -1,127 +1,127 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { SectionId, useOverlayStack } from './OverlayStackContext';
+import React, { useEffect, useRef, useState } from 'react';
+import { useOverlayStack, SectionId } from './OverlayStackContext';
+import { HiOutlinePaperAirplane } from 'react-icons/hi';
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface Size {
+  width: number;
+  height: number;
+}
+
+interface ChatMessage {
+  text: string;
+  type: 'user' | 'system';
+  email?: string;
+}
 
 interface TypewriterOverlayProps {
   id: SectionId;
   title: string;
-  lines: string[];
-  accentColor: string;
-  bgGradient: string;
-  borderColor: string;
-  stackIndex?: number;
-  isActive?: boolean;
+  content: string;
+  stackIndex: number;
+  isActive: boolean;
   forceVisible?: boolean;
-  children?: React.ReactNode;
+  initialPosition?: Position;
+  isMaximized?: boolean;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onUnmaximize?: () => void;
 }
 
 export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   id,
   title,
-  lines,
-  accentColor,
-  bgGradient,
-  borderColor,
-  stackIndex = 0,
-  isActive = false,
+  content,
+  stackIndex,
+  isActive,
   forceVisible = false,
-  children
+  initialPosition,
+  isMaximized = false,
+  onMinimize,
+  onMaximize,
+  onUnmaximize,
 }) => {
-  const { isOverlayOpen, closeOverlay, bringToFront, positions, updatePosition } = useOverlayStack();
-  const [currentLine, setCurrentLine] = useState(0);
-  const [typed, setTyped] = useState<string[]>(Array(lines.length).fill(''));
-  const [isTyping, setIsTyping] = useState(true);
-  const [started, setStarted] = useState(false);
+  const { closeOverlay, bringToFront, updatePosition, getPosition } = useOverlayStack();
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const contentRef = useRef<HTMLDivElement>(null);
-  const windowRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<Position>(initialPosition || { x: 32, y: 32 });
+  const [size, setSize] = useState<Size>({ width: 420, height: 540 });
+  const [message, setMessage] = useState('');
+  const [senderEmail, setSenderEmail] = useState('');
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [isSending, setIsSending] = useState(false);
+  const [showEmailInput, setShowEmailInput] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Start animation only when isActive is true
   useEffect(() => {
-    if (isActive && !started) {
-      setStarted(true);
+    const savedPosition = getPosition(id);
+    if (savedPosition) {
+      setPosition(savedPosition);
+    } else if (initialPosition) {
+      setPosition(initialPosition);
+      updatePosition(id, initialPosition);
     }
-    if (!isActive) {
-      setStarted(false);
-      setCurrentLine(0);
-      setTyped(Array(lines.length).fill(''));
-      setIsTyping(true);
-    }
-  }, [isActive, started, lines.length]);
+  }, [id, initialPosition, getPosition, updatePosition]);
 
-  // Auto-scroll to latest content
   useEffect(() => {
-    if (contentRef.current && isActive) {
-      const scrollContainer = contentRef.current;
-      scrollContainer.scrollTop = scrollContainer.scrollHeight;
-    }
-  }, [typed, isActive]);
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory]);
 
-  // Typewriter for lines
-  useEffect(() => {
-    if (!started || !isActive) return;
-    if (currentLine < lines.length) {
-      if (typed[currentLine].length < lines[currentLine].length) {
-        setIsTyping(true);
-        const timeout = setTimeout(() => {
-          setTyped(prev => {
-            const updated = [...prev];
-            updated[currentLine] = lines[currentLine].slice(0, prev[currentLine].length + 1);
-            return updated;
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isMaximized) return;
+    
+    if (e.target instanceof HTMLElement) {
+      const isResizeHandle = e.target.closest('.resize-handle');
+      const isTitlebar = e.target.closest('.window-titlebar');
+
+      if (isResizeHandle) {
+        setIsResizing(true);
+        e.preventDefault();
+      } else if (isTitlebar) {
+        setIsDragging(true);
+        const rect = overlayRef.current?.getBoundingClientRect();
+        if (rect) {
+          setDragOffset({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
           });
-        }, 32);
-        return () => clearTimeout(timeout);
-      } else {
-        setIsTyping(false);
-        if (currentLine < lines.length - 1) {
-          const nextTimeout = setTimeout(() => {
-            setCurrentLine(currentLine + 1);
-          }, 500);
-          return () => clearTimeout(nextTimeout);
         }
+        bringToFront(id);
       }
     }
-  }, [typed, currentLine, started, lines, isActive]);
-
-  // Drag handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.target instanceof HTMLButtonElement) return; // Don't start drag if clicking buttons
-    
-    const rect = windowRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
-    bringToFront(id);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging) return;
+    if (isMaximized) return;
 
-    const x = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - 420));
-    const y = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - 540));
-    
-    if (windowRef.current) {
-      windowRef.current.style.left = `${x}px`;
-      windowRef.current.style.top = `${y}px`;
+    if (isDragging && overlayRef.current) {
+      const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - overlayRef.current.offsetWidth));
+      const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - overlayRef.current.offsetHeight));
+      
+      setPosition({ x: newX, y: newY });
+      updatePosition(id, { x: newX, y: newY });
+    } else if (isResizing && overlayRef.current) {
+      const rect = overlayRef.current.getBoundingClientRect();
+      const newWidth = Math.max(320, Math.min(e.clientX - rect.left, window.innerWidth - rect.left));
+      const newHeight = Math.max(400, Math.min(e.clientY - rect.top, window.innerHeight - rect.top));
+      
+      setSize({ width: newWidth, height: newHeight });
     }
   };
 
   const handleMouseUp = () => {
-    if (!isDragging) return;
-    
     setIsDragging(false);
-    const rect = windowRef.current?.getBoundingClientRect();
-    if (rect) {
-      updatePosition(id, { x: rect.left, y: rect.top });
-    }
+    setIsResizing(false);
   };
 
   useEffect(() => {
-    if (isDragging) {
+    if (isDragging || isResizing) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -129,90 +129,167 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging]);
+  }, [isDragging, isResizing, dragOffset]);
 
-  // Handler wrappers
-  const handleClose = () => {
-    closeOverlay(id);
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+
+    // If we don't have the sender's email yet, show the email input
+    if (!senderEmail) {
+      setShowEmailInput(true);
+      setChatHistory(prev => [...prev, {
+        text: "Please enter your email address so I can get back to you!",
+        type: 'system'
+      }]);
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          senderEmail,
+          section: title,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      // Add message to chat history
+      setChatHistory(prev => [
+        ...prev,
+        { text: message, type: 'user' },
+        { text: "Message sent! I'll get back to you soon.", type: 'system' }
+      ]);
+
+      // Clear input
+      setMessage('');
+    } catch (error) {
+      setChatHistory(prev => [...prev, {
+        text: "Failed to send message. Please try again.",
+        type: 'system'
+      }]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
-  const handleBringToFront = () => {
-    bringToFront(id);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
-
-  if (!forceVisible && !isOverlayOpen(id)) return null;
 
   return (
     <div
-      ref={windowRef}
-      className={`w-full h-full flex flex-col rounded-2xl shadow-2xl border bg-white/5 backdrop-blur-lg relative overflow-hidden select-none ${bgGradient}`}
-      style={{ 
-        borderColor: borderColor,
-        position: 'absolute',
-        left: `${positions[id].x}px`,
-        top: `${positions[id].y}px`,
-        cursor: isDragging ? 'grabbing' : 'grab',
-        zIndex: isActive ? 999 : stackIndex + 10
+      ref={overlayRef}
+      className={`fixed bg-[#1a1a1a]/90 backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 ${
+        isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
+      } ${forceVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      style={{
+        left: isMaximized ? 0 : position.x,
+        top: isMaximized ? 0 : position.y,
+        width: isMaximized ? '100%' : size.width,
+        height: isMaximized ? '100%' : size.height,
       }}
       onMouseDown={handleMouseDown}
     >
-      {/* Window bar */}
-      <div
-        className="flex items-center h-10 px-4 bg-gradient-to-r from-[#23243a]/80 to-[#181926]/80 border-b"
-        style={{ borderColor: borderColor }}
-      >
-        <span className="flex items-center gap-1 mr-4">
-          <button
-            onClick={handleClose}
-            className="w-3 h-3 rounded-full bg-red-400/80 hover:bg-red-400 transition-colors"
-            aria-label="Close"
-          />
-          <button
-            onClick={handleBringToFront}
-            className="w-3 h-3 rounded-full bg-yellow-400/80 hover:bg-yellow-400 transition-colors"
-            aria-label="Minimize"
-          />
-          <span className="w-3 h-3 rounded-full bg-green-400/80" />
-        </span>
-        <span className="text-xs text-[#b0b0c3] tracking-widest font-mono uppercase">{title}</span>
+      {/* Window Title Bar */}
+      <div className="window-titlebar h-10 bg-[#1a1a1a]/80 backdrop-blur-sm flex items-center justify-between px-3 cursor-move">
+        <div className="flex items-center space-x-2">
+          <div className="flex space-x-1.5">
+            <button
+              onClick={() => closeOverlay(id)}
+              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
+            />
+            <button
+              onClick={onMinimize}
+              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
+            />
+            <button
+              onClick={isMaximized ? onUnmaximize : onMaximize}
+              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
+            />
+          </div>
+          <span className="text-sm font-medium text-white/80 ml-2">{title}</span>
+        </div>
       </div>
 
-      {/* Content area, scrollable, chat-like */}
-      <div 
-        ref={contentRef}
-        className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2 scroll-smooth"
-        style={{ scrollBehavior: 'smooth' }}
-      >
-        <div className="flex flex-col gap-2">
-          {lines.map((line, idx) => (
-            <div
-              key={idx}
-              className={`w-full flex items-start transition-all duration-300 ${
-                idx > currentLine ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+      {/* Window Content */}
+      <div className="flex flex-col h-[calc(100%-2.5rem)]">
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="prose prose-invert max-w-none">
+            {content}
+          </div>
+          <div className="mt-6 space-y-4">
+            {chatHistory.map((msg, i) => (
+              <div 
+                key={i} 
+                className={`rounded-lg p-3 chat-message ${
+                  msg.type === 'user' 
+                    ? 'bg-white/10 ml-8' 
+                    : 'bg-white/5 mr-8'
+                }`}
+              >
+                {msg.text}
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+        </div>
+
+        {/* Chat Input */}
+        <div className="p-4 border-t border-white/10 bg-[#1a1a1a]/50">
+          {showEmailInput && !senderEmail && (
+            <div className="mb-4">
+              <input
+                type="email"
+                value={senderEmail}
+                onChange={(e) => setSenderEmail(e.target.value)}
+                placeholder="Enter your email address..."
+                className="w-full bg-white/5 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-white/20"
+              />
+            </div>
+          )}
+          <div className="flex gap-2">
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={senderEmail ? "Type your message..." : "Send me a message..."}
+              className="flex-1 bg-white/5 rounded-lg px-3 py-2 resize-none h-10 focus:outline-none focus:ring-1 focus:ring-white/20"
+              style={{ minHeight: '40px' }}
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={isSending}
+              className={`w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors ${
+                isSending ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
-              <div
-                className={`inline-block px-3 py-2 rounded-lg bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border shadow-sm font-mono text-sm tracking-tight transition-all duration-200`}
-                style={{
-                  borderColor: borderColor,
-                  maxWidth: '85%',
-                }}
-              >
-                <span className="font-mono whitespace-pre-wrap break-words">
-                  {isActive ? typed[idx] : lines[idx]}
-                </span>
-                {idx === currentLine && isTyping && isActive && (
-                  <span
-                    className="inline-block align-middle ml-1 animate-cursor w-1.5 h-4 rounded-sm"
-                    style={{ backgroundColor: accentColor }}
-                  />
-                )}
-              </div>
-            </div>
-          ))}
+              {isSending ? (
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+              ) : (
+                <HiOutlinePaperAirplane className="w-5 h-5 text-white/80" />
+              )}
+            </button>
+          </div>
         </div>
-        {children && <div className="mt-2">{children}</div>}
       </div>
+
+      {/* Resize Handle */}
+      {!isMaximized && (
+        <div className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" />
+      )}
     </div>
   );
 }; 

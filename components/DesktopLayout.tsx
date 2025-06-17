@@ -1,16 +1,14 @@
-'use client';
-
 import React, { useEffect, useState } from 'react';
-import { Problem } from '@/components/Problem';
-import { Category } from '@/components/Category';
-import { Experience } from '@/components/Experience';
-import { Packages } from '@/components/Packages';
-import { Contact } from '@/components/Contact';
-import { Imprint } from '@/components/Imprint';
-import { Footer } from '@/components/Footer';
-import { Hero } from '@/components/Hero';
-import { OverlayStackProvider, useOverlayStack, SectionId } from '@/components/OverlayStackContext';
-import { DesktopIcon } from '@/components/DesktopIcon';
+import { useOverlayStack, SectionId } from './OverlayStackContext';
+import { Problem } from './Problem';
+import { Category } from './Category';
+import { Experience } from './Experience';
+import { Packages } from './Packages';
+import { Contact } from './Contact';
+import { Imprint } from './Imprint';
+import { Footer } from './Footer';
+import { Hero } from './Hero';
+import { DesktopIcon } from './DesktopIcon';
 import { HiOutlineSparkles, HiOutlineExclamation, HiOutlineUserGroup, 
          HiOutlineLightBulb, HiOutlineShoppingBag, HiOutlineMail, 
          HiOutlineInformationCircle, HiOutlineHeart } from 'react-icons/hi';
@@ -39,6 +37,12 @@ const initialSections: SectionId[] = [
   'footer'
 ];
 
+interface MinimizedWindow {
+  id: SectionId;
+  label: string;
+  icon: React.ComponentType;
+}
+
 const overlayComponentsMap = {
   problem: Problem,
   category: Category,
@@ -50,9 +54,11 @@ const overlayComponentsMap = {
   hero: Hero,
 };
 
-function DesktopLayout() {
-  const { overlayStack, openOverlay } = useOverlayStack();
+export const DesktopLayout: React.FC = () => {
+  const { overlayStack, openOverlay, bringToFront } = useOverlayStack();
   const [isInitializing, setIsInitializing] = useState(true);
+  const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
+  const [maximizedWindow, setMaximizedWindow] = useState<SectionId | null>(null);
 
   // Handle initial cascade animation
   useEffect(() => {
@@ -65,13 +71,33 @@ function DesktopLayout() {
         if (index === initialSections.length - 1) {
           setIsInitializing(false);
         }
-      }, index * 150); // Increased delay for better visual effect
+      }, index * 150);
     });
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [isInitializing, openOverlay]);
+
+  const handleMinimize = (id: SectionId) => {
+    const icon = desktopIcons.find(di => di.id === id);
+    if (icon) {
+      setMinimizedWindows(prev => [...prev, { id, label: icon.label, icon: icon.icon }]);
+    }
+  };
+
+  const handleMaximize = (id: SectionId) => {
+    setMaximizedWindow(id);
+  };
+
+  const handleRestore = (id: SectionId) => {
+    setMinimizedWindows(prev => prev.filter(w => w.id !== id));
+    bringToFront(id);
+  };
+
+  const handleUnmaximize = () => {
+    setMaximizedWindow(null);
+  };
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#181926]">
@@ -89,14 +115,14 @@ function DesktopLayout() {
       </div>
 
       {/* Windows */}
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-[calc(100%-48px)]">
         {overlayStack.map((id, i) => {
           const Component = overlayComponentsMap[id];
           if (!Component) return null;
 
           // Calculate cascade offset
           const baseOffset = 32;
-          const stackOffset = i * 24; // Increased offset for better visibility
+          const stackOffset = i * 24;
 
           return (
             <Component
@@ -108,20 +134,30 @@ function DesktopLayout() {
                 x: baseOffset + stackOffset,
                 y: baseOffset + stackOffset
               }}
+              isMaximized={maximizedWindow === id}
+              onMinimize={() => handleMinimize(id)}
+              onMaximize={() => handleMaximize(id)}
+              onUnmaximize={handleUnmaximize}
             />
           );
         })}
       </div>
+
+      {/* Taskbar */}
+      <div className="fixed bottom-0 left-0 right-0 h-12 bg-[#1a1a1a]/90 backdrop-blur-sm border-t border-white/10">
+        <div className="flex items-center h-full px-4 gap-2">
+          {minimizedWindows.map((window) => (
+            <button
+              key={window.id}
+              onClick={() => handleRestore(window.id)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-colors"
+            >
+              <window.icon className="w-4 h-4 text-white/80" />
+              <span className="text-sm text-white/80">{window.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
-}
-
-export default function Home() {
-  return (
-    <OverlayStackProvider>
-      <main className="min-h-screen bg-[#181926] text-[#f8f8f8] overflow-hidden">
-        <DesktopLayout />
-      </main>
-    </OverlayStackProvider>
-  );
-} 
+}; 

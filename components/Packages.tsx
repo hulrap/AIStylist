@@ -1,22 +1,42 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-const lines = [
-  'THE AWAKENING — One evening at your place (90m), Discover your AI potential. Price: €180',
-  'THE TRANSFORMATION — One week intensive (6x 90m), 2-3 days, Pizza, beer, and breakthroughs included. Price: €1,080',
-  'THE PARTNERSHIP — Text support, Your personal AI advisor, Forever. Price: €50/month'
-];
+export const Packages: React.FC<{
+  stackIndex: number;
+  isActive: boolean;
+  forceVisible?: boolean;
+  initialPosition?: { x: number; y: number };
+}> = ({ stackIndex, isActive, forceVisible, initialPosition }) => {
+  const content = `
+THREE WAYS TO TRANSFORM:
 
-export const Packages: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
+THE DISCOVERY
+90 minutes at your place
+We explore what AI can do for YOUR life
+€150
+
+THE IMMERSION  
+1 week intensive at your home
+Daily sessions, pizza included
+Complete AI transformation
+€1,200
+
+THE FRIENDSHIP
+Ongoing text support
+Questions answered immediately
+Your AI buddy for life
+€50/month
+  `.trim();
+
   return (
     <TypewriterOverlay
       id="packages"
-      title="Packages"
-      lines={lines}
-      accentColor="#fbbf24"
-      bgGradient="bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a]"
-      borderColor="#3a2d23"
-      {...props}
+      title="Three Ways"
+      content={content}
+      stackIndex={stackIndex}
+      isActive={isActive}
+      forceVisible={forceVisible}
+      initialPosition={initialPosition}
     />
   );
 }; 

@@ -7,18 +7,95 @@ interface Position {
   y: number;
 }
 
+interface WindowState {
+  id: SectionId;
+  position: Position;
+  isOpen: boolean;
+}
+
 interface OverlayStackContextType {
   overlayStack: SectionId[];
-  positions: Record<SectionId, Position>;
-  isOverlayOpen: (id: SectionId) => boolean;
-  isOverlayTop: (id: SectionId) => boolean;
   openOverlay: (id: SectionId) => void;
   closeOverlay: (id: SectionId) => void;
   bringToFront: (id: SectionId) => void;
   updatePosition: (id: SectionId, position: Position) => void;
+  getPosition: (id: SectionId) => Position | undefined;
 }
 
 const OverlayStackContext = createContext<OverlayStackContextType | undefined>(undefined);
+
+export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [overlayStack, setOverlayStack] = useState<SectionId[]>([]);
+  const [windowStates, setWindowStates] = useState<Map<SectionId, WindowState>>(new Map());
+
+  const openOverlay = useCallback((id: SectionId) => {
+    setOverlayStack(prev => {
+      if (!prev.includes(id)) {
+        return [...prev, id];
+      }
+      return prev;
+    });
+    setWindowStates(prev => {
+      const newMap = new Map(prev);
+      const existingState = newMap.get(id);
+      newMap.set(id, {
+        id,
+        position: existingState?.position || { x: 32, y: 32 },
+        isOpen: true
+      });
+      return newMap;
+    });
+  }, []);
+
+  const closeOverlay = useCallback((id: SectionId) => {
+    setOverlayStack(prev => prev.filter(item => item !== id));
+    setWindowStates(prev => {
+      const newMap = new Map(prev);
+      const state = newMap.get(id);
+      if (state) {
+        newMap.set(id, { ...state, isOpen: false });
+      }
+      return newMap;
+    });
+  }, []);
+
+  const bringToFront = useCallback((id: SectionId) => {
+    setOverlayStack(prev => {
+      const filtered = prev.filter(item => item !== id);
+      return [...filtered, id];
+    });
+  }, []);
+
+  const updatePosition = useCallback((id: SectionId, position: Position) => {
+    setWindowStates(prev => {
+      const newMap = new Map(prev);
+      const state = newMap.get(id);
+      if (state) {
+        newMap.set(id, { ...state, position });
+      } else {
+        newMap.set(id, { id, position, isOpen: true });
+      }
+      return newMap;
+    });
+  }, []);
+
+  const getPosition = useCallback((id: SectionId) => {
+    return windowStates.get(id)?.position;
+  }, [windowStates]);
+
+  return (
+    <OverlayStackContext.Provider value={{
+      overlayStack,
+      openOverlay,
+      closeOverlay,
+      bringToFront,
+      updatePosition,
+      getPosition,
+    }}>
+      {children}
+    </OverlayStackContext.Provider>
+  );
+};
 
 export const useOverlayStack = () => {
   const context = useContext(OverlayStackContext);
@@ -26,68 +103,4 @@ export const useOverlayStack = () => {
     throw new Error('useOverlayStack must be used within an OverlayStackProvider');
   }
   return context;
-};
-
-export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [overlayStack, setOverlayStack] = useState<SectionId[]>(['hero']);
-  const [positions, setPositions] = useState<Record<SectionId, Position>>({
-    hero: { x: 32, y: 32 },
-    problem: { x: 32, y: 32 },
-    category: { x: 32, y: 32 },
-    experience: { x: 32, y: 32 },
-    packages: { x: 32, y: 32 },
-    contact: { x: 32, y: 32 },
-    imprint: { x: 32, y: 32 },
-    footer: { x: 32, y: 32 },
-  });
-
-  const isOverlayOpen = useCallback((id: SectionId) => {
-    return overlayStack.includes(id);
-  }, [overlayStack]);
-
-  const isOverlayTop = useCallback((id: SectionId) => {
-    return overlayStack[overlayStack.length - 1] === id;
-  }, [overlayStack]);
-
-  const openOverlay = useCallback((id: SectionId) => {
-    setOverlayStack(prev => {
-      if (prev.includes(id)) return prev;
-      return [...prev, id];
-    });
-  }, []);
-
-  const closeOverlay = useCallback((id: SectionId) => {
-    setOverlayStack(prev => prev.filter(overlayId => overlayId !== id));
-  }, []);
-
-  const bringToFront = useCallback((id: SectionId) => {
-    setOverlayStack(prev => {
-      if (!prev.includes(id)) return [...prev, id];
-      return [...prev.filter(overlayId => overlayId !== id), id];
-    });
-  }, []);
-
-  const updatePosition = useCallback((id: SectionId, position: Position) => {
-    setPositions(prev => ({
-      ...prev,
-      [id]: position
-    }));
-  }, []);
-
-  return (
-    <OverlayStackContext.Provider
-      value={{
-        overlayStack,
-        positions,
-        isOverlayOpen,
-        isOverlayTop,
-        openOverlay,
-        closeOverlay,
-        bringToFront,
-        updatePosition,
-      }}
-    >
-      {children}
-    </OverlayStackContext.Provider>
-  );
 }; 

@@ -1,47 +1,15 @@
 'use client';
 
 import React from 'react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { Hero } from '@/components/Hero';
-import { Problem } from '@/components/Problem';
-import { Category } from '@/components/Category';
-import { Experience } from '@/components/Experience';
-import { Packages } from '@/components/Packages';
-import { Imprint } from '@/components/Imprint';
-import { Contact } from '@/components/Contact';
+import { OverlayStackProvider } from '@/components/OverlayStackContext';
+import { DesktopLayout } from '@/components/DesktopLayout';
 
 export default function ClientWrapper() {
-  // Only for Hero CTA scroll
-  const scrollToSection = (index: number) => {
-    const sectionIds = [
-      'hero',
-      'problem',
-      'category',
-      'experience',
-      'packages',
-      'manifesto',
-      'contact',
-    ];
-    const element = document.getElementById(sectionIds[index]);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
-    <main className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-fg)] antialiased">
-      <Header />
-      <div className="pt-16">
-        <Hero />
-        <Problem />
-        <Category />
-        <Experience />
-        <Packages />
-        <Contact />
-        <Imprint />
-      </div>
-      <Footer />
-    </main>
+    <OverlayStackProvider>
+      <main className="min-h-screen bg-[#181926] text-[#f8f8f8] overflow-hidden">
+        <DesktopLayout />
+      </main>
+    </OverlayStackProvider>
   );
 } 

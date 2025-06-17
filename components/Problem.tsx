@@ -1,24 +1,40 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-const lines = [
-  'Transform your business processes.',
-  'Revolutionize your company workflows.',
-  'Maximize your organizational efficiency.',
-  'Schedule you into conference room hell.',
-  'Sell you software that nobody understands.'
-];
+export const Problem: React.FC<{
+  stackIndex: number;
+  isActive: boolean;
+  forceVisible?: boolean;
+  initialPosition?: { x: number; y: number };
+}> = ({ stackIndex, isActive, forceVisible, initialPosition }) => {
+  const content = `
+EVERY AI 'CONSULTANT' IN AUSTRIA WANTS TO:
+- Optimize your business processes
+- Increase your company efficiency  
+- Save your organization money
+- Schedule meetings in conference rooms
+- Sell you enterprise solutions
 
-export const Problem: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
+I WANT TO:
+- Make you personally more powerful
+- Help you work fewer hours for same results
+- Keep you human in an AI world
+- Sit on your couch and actually help YOU
+- Give you superpowers, not software
+
+This is the difference between a corporate consultant
+and a personal mentor.
+  `.trim();
+
   return (
     <TypewriterOverlay
       id="problem"
       title="The Problem"
-      lines={lines}
-      accentColor="#fbbf24"
-      bgGradient="bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a]"
-      borderColor="#3a2d23"
-      {...props}
+      content={content}
+      stackIndex={stackIndex}
+      isActive={isActive}
+      forceVisible={forceVisible}
+      initialPosition={initialPosition}
     />
   );
 }; 

@@ -1,26 +1,36 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-const lines = [
-  'Personal Stylist — Your appearance.',
-  'Personal Trainer — Your fitness.',
-  'Life Coach — Your mindset.',
-  'Therapist — Your emotional health.',
-  'Financial Advisor — Your money.',
-  'Language Tutor — Your communication.',
-  'AI Stylist — Your digital superpowers.'
-];
+export const Category: React.FC<{
+  stackIndex: number;
+  isActive: boolean;
+  forceVisible?: boolean;
+  initialPosition?: { x: number; y: number };
+}> = ({ stackIndex, isActive, forceVisible, initialPosition }) => {
+  const content = `
+PERSONAL SERVICES THAT ALREADY EXIST:
 
-export const Category: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
+Personal Stylist → Makes you look amazing
+Personal Trainer → Makes you physically strong  
+Life Coach → Makes you mentally resilient
+Singing Teacher → Makes you musically gifted
+Language Tutor → Makes you multilingual
+
+AI Stylist → Makes you technologically powerful
+
+YOU ARE LOOKING AT THE FIRST PERSONAL AI MENTOR.
+Not for your company. For YOU.
+  `.trim();
+
   return (
     <TypewriterOverlay
       id="category"
-      title="Personal Services"
-      lines={lines}
-      accentColor="#fbbf24"
-      bgGradient="bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a]"
-      borderColor="#3a2d23"
-      {...props}
+      title="The First"
+      content={content}
+      stackIndex={stackIndex}
+      isActive={isActive}
+      forceVisible={forceVisible}
+      initialPosition={initialPosition}
     />
   );
 }; 

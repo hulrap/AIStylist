@@ -1,32 +1,41 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-const lines = [
-  'FORGET EVERYTHING YOU KNOW ABOUT AI CONSULTING.',
-  "This isn't a meeting. It's a mentoring session.",
-  "This isn't your office. It's your living room.",
-  "This isn't PowerPoint. It's pizza and conversation.",
-  "This isn't corporate training. It's personal transformation.",
-  "I don't present to you.",
-  "I sit with you.",
-  "I don't sell you solutions.",
-  "I give you superpowers.",
-  "I don't leave you with a proposal.",
-  "I leave you with abilities.",
-  "And when you text me at 9 PM with a question?",
-  "I text back. Because that's what friends do."
-];
+export const Experience: React.FC<{
+  stackIndex: number;
+  isActive: boolean;
+  forceVisible?: boolean;
+  initialPosition?: { x: number; y: number };
+}> = ({ stackIndex, isActive, forceVisible, initialPosition }) => {
+  const content = `
+THIS IS NOT A BUSINESS MEETING.
+THIS IS PERSONAL MENTORING.
 
-export const Experience: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
+I come to your home.
+We order pizza.
+We open some beers.
+We sit comfortably.
+And I teach you to be an AI native.
+
+No PowerPoints.
+No corporate jargon.
+No 'solutions.'
+Just you, me, and the tools that will change your life.
+
+Text me when you have questions later.
+No invoice for a 2-minute answer.
+Because I'm your AI buddy, not your vendor.
+  `.trim();
+
   return (
     <TypewriterOverlay
       id="experience"
       title="The Experience"
-      lines={lines}
-      accentColor="#fbbf24"
-      bgGradient="bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a]"
-      borderColor="#3a2d23"
-      {...props}
+      content={content}
+      stackIndex={stackIndex}
+      isActive={isActive}
+      forceVisible={forceVisible}
+      initialPosition={initialPosition}
     />
   );
 }; 
