@@ -10,6 +10,11 @@ import { Contact } from './Contact';
 import { Imprint } from './Imprint';
 import { useOverlayStack, SectionId } from './OverlayStackContext';
 
+interface Position {
+  x: number;
+  y: number;
+}
+
 const INITIAL_CASCADE_OFFSET = 32;
 const WINDOW_APPEAR_DELAY = 200;
 
@@ -71,7 +76,7 @@ interface MinimizedWindow {
 }
 
 export const DesktopLayout: React.FC = () => {
-  const { openOverlay, closeOverlay, isOpen, activeOverlay, bringToFront } = useOverlayStack();
+  const { openOverlay, closeOverlay, isOpen, activeOverlay, bringToFront, updatePosition } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
   const [windowsVisible, setWindowsVisible] = useState<Record<SectionId, boolean>>(() => {
     const initial: Record<SectionId, boolean> = {
@@ -91,15 +96,24 @@ export const DesktopLayout: React.FC = () => {
   useEffect(() => {
     // Initial cascade animation
     if (!hasInitialized) {
+      // Pre-calculate all positions to ensure consistency
+      const positions = WINDOW_ORDER.reduce((acc, id) => {
+        acc[id] = getInitialPosition(id);
+        return acc;
+      }, {} as Record<SectionId, Position>);
+
+      // Open windows with pre-calculated positions
       WINDOW_ORDER.forEach((id, index) => {
         setTimeout(() => {
+          updatePosition(id, positions[id]);
           openOverlay(id);
           setWindowsVisible(prev => ({ ...prev, [id]: true }));
         }, index * WINDOW_APPEAR_DELAY);
       });
+      
       setHasInitialized(true);
     }
-  }, [hasInitialized, openOverlay]);
+  }, [hasInitialized, openOverlay, updatePosition]);
 
   const handleIconClick = (id: SectionId) => {
     if (isOpen(id)) {
