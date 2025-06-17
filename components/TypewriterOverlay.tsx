@@ -49,7 +49,16 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   onUnmaximize,
   showInitialContent = false,
 }) => {
-  const { closeOverlay, bringToFront, updatePosition, getPosition } = useOverlayStack();
+  const { 
+    closeOverlay, 
+    bringToFront, 
+    updatePosition, 
+    getPosition,
+    minimizeWindow,
+    maximizeWindow,
+    unmaximizeWindow,
+    getWindowState
+  } = useOverlayStack();
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -70,6 +79,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const dragRef = useRef<{ x: number; y: number } | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentLineRef = useRef<number>(0);
+
+  const windowState = getWindowState(id);
+  const isWindowMaximized = windowState?.isMaximized || false;
 
   // Clear typing timeout on unmount
   useEffect(() => {
@@ -162,7 +174,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isMaximized) return;
+    if (isWindowMaximized) return;
     
     if (e.target instanceof HTMLElement) {
       const isResizeHandle = e.target.closest('.resize-handle');
@@ -188,7 +200,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   useEffect(() => {
     if (isDragging || isResizing) {
       const handleGlobalMouseMove = (e: MouseEvent) => {
-        if (isMaximized) return;
+        if (isWindowMaximized) return;
 
         if (isDragging && overlayRef.current) {
           const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - overlayRef.current.offsetWidth));
@@ -235,7 +247,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         window.removeEventListener('mouseup', handleGlobalMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragOffset, isMaximized, id, updatePosition]);
+  }, [isDragging, isResizing, dragOffset, isWindowMaximized, id, updatePosition]);
 
   const handleLocalMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (overlayRef.current) {
@@ -306,8 +318,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   };
 
   const handleMaximize = () => {
-    if (!isMaximized) {
+    if (!isWindowMaximized) {
       setPreMaximizeState({ position, size });
+      maximizeWindow(id);
       if (onMaximize) onMaximize();
     } else {
       if (preMaximizeState) {
@@ -315,11 +328,13 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         setSize(preMaximizeState.size);
         updatePosition(id, preMaximizeState.position);
       }
+      unmaximizeWindow(id);
       if (onUnmaximize) onUnmaximize();
     }
   };
 
   const handleMinimize = () => {
+    minimizeWindow(id, title, '');
     if (onMinimize) onMinimize();
   };
 
@@ -334,11 +349,11 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
       } ${forceVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
       style={{
-        left: isMaximized ? 0 : position.x,
-        top: isMaximized ? 0 : position.y,
-        width: isMaximized ? '100%' : size.width,
-        height: isMaximized ? '100%' : size.height,
-        transform: `${isMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
+        left: isWindowMaximized ? 0 : position.x,
+        top: isWindowMaximized ? 0 : position.y,
+        width: isWindowMaximized ? '100%' : size.width,
+        height: isWindowMaximized ? '100%' : size.height,
+        transform: `${isWindowMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
         transition: isDragging ? 'none' : 'all 0.2s ease-out'
       }}
       onMouseMove={handleLocalMouseMove}
@@ -361,16 +376,22 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleClose}
-              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
-            />
+              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center group"
+            >
+              <span className="text-red-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">×</span>
+            </button>
             <button
               onClick={handleMinimize}
-              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
-            />
+              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors flex items-center justify-center group"
+            >
+              <span className="text-yellow-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">−</span>
+            </button>
             <button
               onClick={handleMaximize}
-              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
-            />
+              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group"
+            >
+              <span className="text-green-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">{isWindowMaximized ? '□' : '+'}</span>
+            </button>
           </div>
           <span className="text-sm text-white/80 ml-2">{title}</span>
         </div>
@@ -430,7 +451,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       </div>
 
       {/* Resize Handle */}
-      {!isMaximized && (
+      {!isWindowMaximized && (
         <div className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" />
       )}
     </div>

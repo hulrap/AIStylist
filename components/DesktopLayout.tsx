@@ -79,23 +79,23 @@ interface MinimizedWindow {
 }
 
 export const DesktopLayout: React.FC = () => {
-  const { openOverlay, closeOverlay, isOpen, activeOverlay, bringToFront, updatePosition, overlayStack } = useOverlayStack();
+  const { 
+    openOverlay, 
+    closeOverlay, 
+    isOpen, 
+    activeOverlay, 
+    bringToFront, 
+    updatePosition, 
+    overlayStack,
+    minimizeWindow,
+    maximizeWindow,
+    unmaximizeWindow,
+    restoreWindow,
+    getWindowState,
+    minimizedWindows,
+    maximizedWindow
+  } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [windowsVisible, setWindowsVisible] = useState<Record<SectionId, boolean>>(() => {
-    const initial: Record<SectionId, boolean> = {
-      'ai-stylist': false,
-      'problem': false,
-      'first': false,
-      'experience': false,
-      'packages': false,
-      'contact': false,
-      'imprint': false,
-      'credits': false
-    };
-    return initial;
-  });
-  const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
-  const [maximizedWindow, setMaximizedWindow] = useState<SectionId | null>(null);
 
   useEffect(() => {
     // Initial cascade animation
@@ -111,7 +111,6 @@ export const DesktopLayout: React.FC = () => {
         setTimeout(() => {
           updatePosition(id, positions[id]);
           openOverlay(id);
-          setWindowsVisible(prev => ({ ...prev, [id]: true }));
         }, index * WINDOW_APPEAR_DELAY);
       });
       
@@ -121,51 +120,34 @@ export const DesktopLayout: React.FC = () => {
 
   const handleIconClick = (id: SectionId) => {
     if (isOpen(id)) {
+      const windowState = getWindowState(id);
       // If window is minimized, restore it
-      if (!windowsVisible[id]) {
-        handleRestore(id);
+      if (windowState?.isMinimized) {
+        restoreWindow(id);
       }
       bringToFront(id);
     } else {
       openOverlay(id);
-      setWindowsVisible(prev => ({ ...prev, [id]: true }));
     }
   };
 
   const handleMinimize = (id: SectionId, label: string, icon: string) => {
-    // First check if window is already minimized to prevent duplicates
-    if (!minimizedWindows.some(w => w.id === id)) {
-      setMinimizedWindows(prev => [...prev, { id, label, icon }]);
-      // Hide the window but keep it in overlay stack
-      setWindowsVisible(prev => ({ ...prev, [id]: false }));
-    }
+    minimizeWindow(id, label, icon);
   };
 
   const handleMaximize = (id: SectionId) => {
-    setMaximizedWindow(id);
-    bringToFront(id);
+    maximizeWindow(id);
   };
 
   const handleUnmaximize = (id: SectionId) => {
-    setMaximizedWindow(null);
+    unmaximizeWindow(id);
   };
 
   const handleRestore = (id: SectionId) => {
-    setMinimizedWindows(prev => prev.filter(w => w.id !== id));
-    setWindowsVisible(prev => ({ ...prev, [id]: true }));
-    bringToFront(id);
+    restoreWindow(id);
   };
 
   const handleClose = (id: SectionId) => {
-    // Remove from minimized windows if it was minimized
-    setMinimizedWindows(prev => prev.filter(w => w.id !== id));
-    // Hide the window
-    setWindowsVisible(prev => ({ ...prev, [id]: false }));
-    // Remove from maximized if it was maximized
-    if (maximizedWindow === id) {
-      setMaximizedWindow(null);
-    }
-    // Close the overlay
     closeOverlay(id);
   };
 
@@ -248,7 +230,8 @@ export const DesktopLayout: React.FC = () => {
 
       {/* Windows */}
       {WINDOW_ORDER.map((id) => {
-        const isVisible = windowsVisible[id];
+        const windowState = getWindowState(id);
+        const isVisible = windowState?.isVisible ?? false;
         const isActive = activeOverlay === id;
         const isMaximized = maximizedWindow === id;
         const stackIndex = overlayStack.indexOf(id);
