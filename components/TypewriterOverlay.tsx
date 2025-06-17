@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SectionId, useOverlayStack } from './OverlayStackContext';
 
 interface TypewriterOverlayProps {
@@ -33,6 +33,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [typed, setTyped] = useState<string[]>(Array(lines.length).fill(''));
   const [isTyping, setIsTyping] = useState(true);
   const [started, setStarted] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Start animation only when isActive is true
   useEffect(() => {
@@ -46,6 +47,14 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       setIsTyping(true);
     }
   }, [isActive, started, lines.length]);
+
+  // Auto-scroll to latest content
+  useEffect(() => {
+    if (contentRef.current && isActive) {
+      const scrollContainer = contentRef.current;
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    }
+  }, [typed, isActive]);
 
   // Typewriter for lines
   useEffect(() => {
@@ -132,33 +141,40 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         </div>
 
         {/* Content area, scrollable, chat-like */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-2" style={{ alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-          {lines.map((line, idx) => (
-            <div
-              key={idx}
-              className={`w-full flex items-start mb-1 transition-all duration-500 ${
-                idx > currentLine ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
-              }`}
-            >
+        <div 
+          ref={contentRef}
+          className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2 scroll-smooth"
+          style={{ scrollBehavior: 'smooth' }}
+        >
+          <div className="flex flex-col gap-2">
+            {lines.map((line, idx) => (
               <div
-                className={`flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border shadow-md font-mono text-base tracking-tight transition-all duration-200 hover:scale-[1.03] cursor-default select-none`}
-                style={{
-                  borderColor: borderColor,
-                  '--hover-border-color': `${accentColor}60`,
-                  '--hover-shadow-color': `${accentColor}10`,
-                } as React.CSSProperties}
+                key={idx}
+                className={`w-full flex items-start transition-all duration-300 ${
+                  idx > currentLine ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+                }`}
               >
-                <span className="font-mono">{isActive ? typed[idx] : lines[idx]}</span>
-                {idx === currentLine && isTyping && isActive && (
-                  <span
-                    className="inline-block align-middle ml-1 animate-cursor w-2 h-6 rounded-sm"
-                    style={{ backgroundColor: accentColor }}
-                  />
-                )}
+                <div
+                  className={`inline-block px-3 py-2 rounded-lg bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border shadow-sm font-mono text-sm tracking-tight transition-all duration-200`}
+                  style={{
+                    borderColor: borderColor,
+                    maxWidth: '85%',
+                  }}
+                >
+                  <span className="font-mono whitespace-pre-wrap break-words">
+                    {isActive ? typed[idx] : lines[idx]}
+                  </span>
+                  {idx === currentLine && isTyping && isActive && (
+                    <span
+                      className="inline-block align-middle ml-1 animate-cursor w-1.5 h-4 rounded-sm"
+                      style={{ backgroundColor: accentColor }}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-          {children}
+            ))}
+          </div>
+          {children && <div className="mt-2">{children}</div>}
         </div>
       </div>
     </div>

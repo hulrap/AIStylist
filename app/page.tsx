@@ -10,7 +10,19 @@ import { Contact } from '@/components/Contact';
 import { Imprint } from '@/components/Imprint';
 import { Footer } from '@/components/Footer';
 import { Hero } from '@/components/Hero';
-import { OverlayStackProvider, useOverlayStack } from '@/components/OverlayStackContext';
+import { OverlayStackProvider, useOverlayStack, SectionId } from '@/components/OverlayStackContext';
+
+// Order of sections for initial cascade
+const initialSections: SectionId[] = [
+  'problem',
+  'category',
+  'experience',
+  'packages',
+  'contact',
+  'imprint',
+  'footer',
+  'hero'
+];
 
 const overlayComponentsMap = {
   problem: Problem,
@@ -24,37 +36,66 @@ const overlayComponentsMap = {
 };
 
 function OverlayStackRenderer() {
-  const { overlayStack } = useOverlayStack();
+  const { overlayStack, openOverlay } = useOverlayStack();
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // Handle initial cascade animation
+  useEffect(() => {
+    if (!isInitializing) return;
+
+    let timeoutId: NodeJS.Timeout;
+    initialSections.forEach((section, index) => {
+      timeoutId = setTimeout(() => {
+        openOverlay(section);
+        if (index === initialSections.length - 1) {
+          setIsInitializing(false);
+        }
+      }, index * 100);
+    });
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isInitializing, openOverlay]);
+
   return (
-    <div className="relative w-full min-h-screen">
-      {overlayStack.map((id, i) => {
-        const Component = overlayComponentsMap[id];
-        if (!Component) return null;
-        return (
-          <div
-            key={id}
-            style={{
-              position: 'absolute',
-              left: `${32 + i * 16}px`,
-              top: `${32 + i * 16}px`,
-              zIndex: 10 + i,
-              width: 420,
-              height: 540,
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              pointerEvents: i === overlayStack.length - 1 ? 'auto' : 'none',
-              transition: 'box-shadow 0.3s',
-              boxShadow: i === overlayStack.length - 1 ? '0 8px 32px 0 rgba(0,0,0,0.25)' : '0 2px 8px 0 rgba(0,0,0,0.10)',
-            }}
-          >
-            <Component
-              stackIndex={i}
-              isActive={i === overlayStack.length - 1}
-              forceVisible={true}
-            />
-          </div>
-        );
-      })}
+    <div className="fixed inset-0 pt-16 pb-4 px-4 overflow-hidden">
+      <div className="relative w-full h-full max-w-screen-xl mx-auto">
+        {overlayStack.map((id, i) => {
+          const Component = overlayComponentsMap[id];
+          if (!Component) return null;
+          
+          // Calculate position for cascading effect
+          const baseOffset = 32;
+          const stackOffset = Math.min(i * 16, 120); // Cap the maximum offset
+
+          return (
+            <div
+              key={id}
+              style={{
+                position: 'absolute',
+                left: `${baseOffset + stackOffset}px`,
+                top: `${baseOffset}px`,
+                width: '420px',
+                height: '540px',
+                maxWidth: 'calc(100vw - 64px)',
+                maxHeight: 'calc(100vh - 96px)',
+                zIndex: 10 + i,
+                pointerEvents: i === overlayStack.length - 1 ? 'auto' : 'none',
+                transition: 'all 0.3s ease-out',
+                opacity: isInitializing ? 0.85 : (i === overlayStack.length - 1 ? 1 : 0.85),
+                transform: `scale(${isInitializing ? 0.95 : 1})`,
+              }}
+            >
+              <Component
+                stackIndex={i}
+                isActive={!isInitializing && i === overlayStack.length - 1}
+                forceVisible={true}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -62,7 +103,7 @@ function OverlayStackRenderer() {
 export default function Home() {
   return (
     <OverlayStackProvider>
-      <main className="min-h-screen bg-[#181926] text-[#f8f8f8]">
+      <main className="min-h-screen bg-[#181926] text-[#f8f8f8] overflow-hidden">
         <Header />
         <OverlayStackRenderer />
       </main>
