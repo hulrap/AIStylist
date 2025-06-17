@@ -10,7 +10,7 @@ const lines = [
   'Sell you software that nobody understands.'
 ];
 
-export const Problem: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
+export const Problem: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean; onUserInteraction?: () => void }> = (props) => {
   return (
     <TypewriterOverlay
       id="problem"

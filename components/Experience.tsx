@@ -18,7 +18,7 @@ const lines = [
   "I text back. Because that's what friends do."
 ];
 
-export const Experience: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
+export const Experience: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean; onUserInteraction?: () => void }> = (props) => {
   return (
     <TypewriterOverlay
       id="experience"

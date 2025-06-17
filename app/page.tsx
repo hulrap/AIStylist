@@ -25,6 +25,7 @@ const overlayComponents = [
 
 export default function Home() {
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [userHasInteracted, setUserHasInteracted] = useState(false);
 
   useEffect(() => {
     if (activeIndex < overlayComponents.length - 1) {
@@ -32,6 +33,10 @@ export default function Home() {
       return () => clearTimeout(timeout);
     }
   }, [activeIndex]);
+
+  const handleUserInteraction = () => {
+    if (!userHasInteracted) setUserHasInteracted(true);
+  };
 
   return (
     <OverlayStackProvider>
@@ -55,7 +60,12 @@ export default function Home() {
                   boxShadow: i === activeIndex ? '0 8px 32px 0 rgba(0,0,0,0.25)' : '0 2px 8px 0 rgba(0,0,0,0.10)',
                 }}
               >
-                <Component stackIndex={i} isActive={i === activeIndex} forceVisible={true} />
+                <Component
+                  stackIndex={i}
+                  isActive={i === activeIndex}
+                  forceVisible={!userHasInteracted}
+                  onUserInteraction={handleUserInteraction}
+                />
               </div>
             ) : null
           )}

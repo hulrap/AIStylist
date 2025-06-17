@@ -12,7 +12,7 @@ const lines = [
   'not your quarterly targets.'
 ];
 
-export const Hero: React.FC<{ stackIndex?: number; isActive?: boolean }> = (props) => {
+export const Hero: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean; onUserInteraction?: () => void }> = (props) => {
   const { bringToFront } = useOverlayStack();
 
   return (

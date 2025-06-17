@@ -14,7 +14,7 @@ const lines = [
   'All rights reserved.'
 ];
 
-export const Imprint: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
+export const Imprint: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean; onUserInteraction?: () => void }> = (props) => {
   return (
     <TypewriterOverlay
       id="imprint"

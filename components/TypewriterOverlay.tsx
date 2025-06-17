@@ -11,6 +11,7 @@ interface TypewriterOverlayProps {
   stackIndex?: number;
   isActive?: boolean;
   forceVisible?: boolean;
+  onUserInteraction?: () => void;
   children?: React.ReactNode;
 }
 
@@ -24,6 +25,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   stackIndex = 0,
   isActive = false,
   forceVisible = false,
+  onUserInteraction,
   children
 }) => {
   const { isOverlayOpen, closeOverlay, bringToFront } = useOverlayStack();
@@ -80,6 +82,16 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     }
   }, [typed, currentLine, titleDone, started, lines, isActive]);
 
+  // Handler wrappers to notify parent
+  const handleClose = () => {
+    if (onUserInteraction) onUserInteraction();
+    closeOverlay(id);
+  };
+  const handleBringToFront = () => {
+    if (onUserInteraction) onUserInteraction();
+    bringToFront(id);
+  };
+
   if (!forceVisible && !isOverlayOpen(id)) return null;
 
   // Offset for cascading effect
@@ -115,12 +127,12 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         >
           <span className="flex items-center gap-1 mr-4">
             <button
-              onClick={() => closeOverlay(id)}
+              onClick={handleClose}
               className="w-3 h-3 rounded-full bg-red-400/80 hover:bg-red-400 transition-colors"
               aria-label="Close"
             />
             <button
-              onClick={() => bringToFront(id)}
+              onClick={handleBringToFront}
               className="w-3 h-3 rounded-full bg-yellow-400/80 hover:bg-yellow-400 transition-colors"
               aria-label="Minimize"
             />

@@ -13,7 +13,7 @@ const lines = [
   "I'll come to you."
 ];
 
-export const Contact: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
+export const Contact: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean; onUserInteraction?: () => void }> = (props) => {
   return (
     <TypewriterOverlay
       id="contact"
