@@ -56,11 +56,12 @@
   }
   .text-glass {
     background: rgba(255,255,255,0.08);
+    background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
   }
   .text-muted {
-    @apply text-[var(--brand-fg)]/70;
+    color: rgba(248, 248, 248, 0.7);
   }
   .text-underline-animated {
     position: relative;
@@ -201,7 +202,7 @@
 /* === BACKGROUNDS & OVERLAYS === */
 @layer components {
   .bg-radial {
-    background: radial-gradient(ellipse at center, var(--brand-accent)/10 0%, transparent 80%);
+    background: radial-gradient(ellipse at center, rgba(255,179,102,0.10) 0%, transparent 80%);
   }
   .bg-glass {
     @apply bg-[var(--brand-glass)] backdrop-blur-md;
