@@ -59,14 +59,14 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [positions, setPositions] = useState<Record<SectionId, Position>>(initialPositions);
   const [windowStates, setWindowStates] = useState<Record<SectionId, WindowState>>(() => {
     const initial: Record<SectionId, WindowState> = {
-      'ai-stylist': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: '' },
-      'problem': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: '' },
-      'first': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: '' },
-      'experience': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: '' },
-      'packages': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: '' },
-      'contact': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: '' },
-      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: '' },
-      'credits': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: '' }
+      'ai-stylist': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'ai-stylist' },
+      'problem': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'problem' },
+      'first': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'first' },
+      'experience': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'experience' },
+      'packages': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'packages' },
+      'contact': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'contact' },
+      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'imprint' },
+      'credits': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'credits' }
     };
     return initial;
   });
@@ -83,7 +83,7 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
           isMaximized: false,
           isVisible: true,
           label: '',
-          icon: ''
+          icon: 'ai-stylist'
         }
       }));
     }

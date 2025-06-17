@@ -11,6 +11,7 @@ import { Imprint } from './Imprint';
 import { useOverlayStack, SectionId } from './OverlayStackContext';
 import { Hero } from './Hero';
 import { Credits } from './Credits';
+import { getIconForSection } from './Icons';
 
 interface Position {
   x: number;
@@ -133,8 +134,8 @@ export const DesktopLayout: React.FC = () => {
     }
   };
 
-  const handleMinimize = (id: SectionId, label: string, icon: string) => {
-    minimizeWindow(id, label, icon);
+  const handleMinimize = (id: SectionId) => {
+    minimizeWindow(id, getLabelForSection(id), id);
   };
 
   const handleMaximize = (id: SectionId) => {
@@ -250,7 +251,7 @@ export const DesktopLayout: React.FC = () => {
                 forceVisible={isVisible}
                 initialPosition={getInitialPosition(id)}
                 isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id, getLabelForSection(id), getIconForSection(id))}
+                onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
               />
@@ -344,7 +345,7 @@ export const DesktopLayout: React.FC = () => {
                 initialPosition={getInitialPosition(id)}
                 initialSize={getInitialSize(id)}
                 isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id, getLabelForSection(id), getIconForSection(id))}
+                onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
               />
@@ -361,21 +362,6 @@ export const DesktopLayout: React.FC = () => {
       />
     </div>
   );
-};
-
-// Helper function to get icon for each section
-const getIconForSection = (id: SectionId): string => {
-  switch (id) {
-    case 'ai-stylist': return '✨';
-    case 'problem': return '⚠️';
-    case 'first': return '👥';
-    case 'experience': return '💡';
-    case 'packages': return '🛍️';
-    case 'contact': return '✉️';
-    case 'imprint': return 'ℹ️';
-    case 'credits': return '❤️';
-    default: return '📄';
-  }
 };
 
 // Helper function to get label for each section
