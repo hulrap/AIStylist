@@ -32,7 +32,7 @@ export const Imprint: React.FC<ImprintProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
-    if (showContent && !displayedContent) {
+    if (showContent && isActive && !displayedContent) {
       const content = `Raw Fiction e.U.
 An Austrian company registered in Vienna
 Founded: 03.10.2019
@@ -54,7 +54,7 @@ Contact: hulanraphael@gmail.com`;
 
       typeNextCharacter();
     }
-  }, [showContent, displayedContent]);
+  }, [showContent, isActive, displayedContent]);
 
   return (
     <TypewriterOverlay

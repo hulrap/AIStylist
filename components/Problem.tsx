@@ -32,7 +32,7 @@ export const Problem: React.FC<ProblemProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
-    if (showContent && !displayedContent) {
+    if (showContent && isActive && !displayedContent) {
       const content = `Every AI consultant wants to optimize your business processes
 Increase your company efficiency, save your organization money
 Schedule meetings in conference rooms, or sell you enterprise solutions
@@ -56,7 +56,7 @@ I style your skills in the age of AI, while a consultant maximizes profit`.trim(
 
       typeNextCharacter();
     }
-  }, [showContent, displayedContent]);
+  }, [showContent, isActive, displayedContent]);
 
   return (
     <TypewriterOverlay

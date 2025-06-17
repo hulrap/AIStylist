@@ -32,7 +32,7 @@ export const Category: React.FC<CategoryProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
-    if (showContent && !displayedContent) {
+    if (showContent && isActive && !displayedContent) {
       const content = `Personal Stylist → Makes you look amazing
 Personal Trainer → Makes you physically strong
 Life Coach → Makes you mentally resilient
@@ -56,7 +56,7 @@ Not for your company. Mentorship for YOU.`;
 
       typeNextCharacter();
     }
-  }, [showContent, displayedContent]);
+  }, [showContent, isActive, displayedContent]);
 
   return (
     <TypewriterOverlay

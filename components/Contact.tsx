@@ -32,7 +32,7 @@ export const Contact: React.FC<ContactProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
-    if (showContent && !displayedContent) {
+    if (showContent && isActive && !displayedContent) {
       const content = `READY TO BECOME AN AI NATIVE?
 
 You can reply to any window and send me a message to my email or you can directly text me on +43 670 606 6149 via whatsapp.
@@ -57,7 +57,7 @@ I'll come to you.`;
 
       typeNextCharacter();
     }
-  }, [showContent, displayedContent]);
+  }, [showContent, isActive, displayedContent]);
 
   return (
     <TypewriterOverlay

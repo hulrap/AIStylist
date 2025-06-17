@@ -32,7 +32,7 @@ export const Experience: React.FC<ExperienceProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
-    if (showContent && !displayedContent) {
+    if (showContent && isActive && !displayedContent) {
       const content = `This is not a business meeting.
 This is personal mentoring and learning experience.
 I come to your home.
@@ -63,7 +63,7 @@ Because I'm your AI stylist, not your vendor.`;
 
       typeNextCharacter();
     }
-  }, [showContent, displayedContent]);
+  }, [showContent, isActive, displayedContent]);
 
   return (
     <TypewriterOverlay

@@ -32,7 +32,7 @@ export const Packages: React.FC<PackagesProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
-    if (showContent && !displayedContent) {
+    if (showContent && isActive && !displayedContent) {
       const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
 
 THE DISCOVERY:
@@ -56,7 +56,7 @@ Ongoing text support, questions answered immediately, your AI stylist for as lon
 
       typeNextCharacter();
     }
-  }, [showContent, displayedContent]);
+  }, [showContent, isActive, displayedContent]);
 
   return (
     <TypewriterOverlay

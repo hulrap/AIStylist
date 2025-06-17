@@ -22,7 +22,7 @@ export const Footer: React.FC<FooterProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
-    if (showContent && !displayedContent) {
+    if (showContent && isActive && !displayedContent) {
       const content = `Made with ❤️ by:
 
 Raphael Hulan
@@ -45,7 +45,7 @@ All rights reserved.`;
 
       typeNextCharacter();
     }
-  }, [showContent, displayedContent]);
+  }, [showContent, isActive, displayedContent]);
 
   return (
     <TypewriterOverlay
