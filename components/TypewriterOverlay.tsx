@@ -51,6 +51,8 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState<Position>(initialPosition || { x: 32, y: 32 });
   const [size, setSize] = useState<Size>({ width: 420, height: 540 });
+  const [displayedContent, setDisplayedContent] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const [message, setMessage] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -58,6 +60,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [showEmailInput, setShowEmailInput] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const savedPosition = getPosition(id);
@@ -72,6 +75,27 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
+
+  // Typewriter effect
+  useEffect(() => {
+    if (!forceVisible || isTyping) return;
+
+    setIsTyping(true);
+    setDisplayedContent('');
+
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      if (currentIndex < content.length) {
+        setDisplayedContent(prev => prev + content[currentIndex]);
+        currentIndex++;
+      } else {
+        clearInterval(interval);
+        setIsTyping(false);
+      }
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, [content, forceVisible]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isMaximized) return;
@@ -104,8 +128,16 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - overlayRef.current.offsetWidth));
       const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - overlayRef.current.offsetHeight));
       
-      setPosition({ x: newX, y: newY });
-      updatePosition(id, { x: newX, y: newY });
+      // Use requestAnimationFrame for smoother dragging
+      if (!dragRef.current || 
+          Math.abs(dragRef.current.x - newX) > 1 || 
+          Math.abs(dragRef.current.y - newY) > 1) {
+        dragRef.current = { x: newX, y: newY };
+        requestAnimationFrame(() => {
+          setPosition({ x: newX, y: newY });
+          updatePosition(id, { x: newX, y: newY });
+        });
+      }
     } else if (isResizing && overlayRef.current) {
       const rect = overlayRef.current.getBoundingClientRect();
       const newWidth = Math.max(320, Math.min(e.clientX - rect.left, window.innerWidth - rect.left));
@@ -118,6 +150,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const handleMouseUp = () => {
     setIsDragging(false);
     setIsResizing(false);
+    dragRef.current = null;
   };
 
   useEffect(() => {
@@ -200,13 +233,14 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         top: isMaximized ? 0 : position.y,
         width: isMaximized ? '100%' : size.width,
         height: isMaximized ? '100%' : size.height,
+        transform: `scale(${forceVisible ? 1 : 0.95})`,
       }}
       onMouseDown={handleMouseDown}
     >
-      {/* Window Title Bar */}
-      <div className="window-titlebar h-10 bg-[#1a1a1a]/80 backdrop-blur-sm flex items-center justify-between px-3 cursor-move">
-        <div className="flex items-center space-x-2">
-          <div className="flex space-x-1.5">
+      {/* Window Titlebar */}
+      <div className="window-titlebar flex items-center justify-between h-10 px-4 bg-white/5 border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => closeOverlay(id)}
               className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
@@ -220,66 +254,70 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
               className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
             />
           </div>
-          <span className="text-sm font-medium text-white/80 ml-2">{title}</span>
+          <span className="text-sm text-white/80 ml-2">{title}</span>
         </div>
       </div>
 
       {/* Window Content */}
-      <div className="flex flex-col h-[calc(100%-2.5rem)]">
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="prose prose-invert max-w-none">
-            {content}
-          </div>
-          <div className="mt-6 space-y-4">
+      <div className="p-6 text-white/90 whitespace-pre-wrap font-mono text-sm leading-relaxed">
+        {displayedContent}
+      </div>
+
+      {/* Chat Interface */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/20 border-t border-white/10">
+        <div className="flex flex-col gap-4">
+          {/* Chat History */}
+          <div className="max-h-32 overflow-y-auto">
             {chatHistory.map((msg, i) => (
-              <div 
-                key={i} 
-                className={`rounded-lg p-3 chat-message ${
-                  msg.type === 'user' 
-                    ? 'bg-white/10 ml-8' 
-                    : 'bg-white/5 mr-8'
+              <div
+                key={i}
+                className={`mb-2 ${
+                  msg.type === 'user' ? 'text-right' : 'text-left'
                 }`}
               >
-                {msg.text}
+                <span
+                  className={`inline-block px-3 py-1.5 rounded-lg ${
+                    msg.type === 'user'
+                      ? 'bg-purple-500/20 text-purple-200'
+                      : 'bg-white/10 text-white/80'
+                  }`}
+                >
+                  {msg.text}
+                </span>
               </div>
             ))}
             <div ref={chatEndRef} />
           </div>
-        </div>
 
-        {/* Chat Input */}
-        <div className="p-4 border-t border-white/10 bg-[#1a1a1a]/50">
+          {/* Email Input */}
           {showEmailInput && !senderEmail && (
-            <div className="mb-4">
-              <input
-                type="email"
-                value={senderEmail}
-                onChange={(e) => setSenderEmail(e.target.value)}
-                placeholder="Enter your email address..."
-                className="w-full bg-white/5 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-white/20"
-              />
-            </div>
+            <input
+              type="email"
+              value={senderEmail}
+              onChange={(e) => setSenderEmail(e.target.value)}
+              placeholder="Enter your email..."
+              className="w-full px-4 py-2 bg-white/5 rounded-lg text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            />
           )}
-          <div className="flex gap-2">
+
+          {/* Message Input */}
+          <div className="flex items-center gap-2">
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder={senderEmail ? "Type your message..." : "Send me a message..."}
-              className="flex-1 bg-white/5 rounded-lg px-3 py-2 resize-none h-10 focus:outline-none focus:ring-1 focus:ring-white/20"
-              style={{ minHeight: '40px' }}
+              placeholder="Type a message..."
+              className="flex-1 px-4 py-2 bg-white/5 rounded-lg text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-10 leading-relaxed"
             />
             <button
               onClick={handleSendMessage}
               disabled={isSending}
-              className={`w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors ${
-                isSending ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
             >
               {isSending ? (
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
               ) : (
-                <HiOutlinePaperAirplane className="w-5 h-5 text-white/80" />
+                <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
               )}
             </button>
           </div>

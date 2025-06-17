@@ -61,6 +61,7 @@ export const DesktopLayout: React.FC = () => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
   const [maximizedWindow, setMaximizedWindow] = useState<SectionId | null>(null);
+  const [visibleWindows, setVisibleWindows] = useState<Set<SectionId>>(new Set());
 
   // Handle initial cascade animation
   useEffect(() => {
@@ -68,10 +69,10 @@ export const DesktopLayout: React.FC = () => {
 
     let timeoutId: NodeJS.Timeout;
     initialSections.forEach((section, index) => {
-      timeoutId = setTimeout(() => {
-        openOverlay(section);
+      timeoutId = setTimeout(() => {        openOverlay(section);
+        setVisibleWindows(prev => new Set([...prev, section]));
         if (index === initialSections.length - 1) {
-          setIsInitializing(false);
+          setTimeout(() => setIsInitializing(false), 500);
         }
       }, index * 150);
     });
@@ -80,6 +81,17 @@ export const DesktopLayout: React.FC = () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [isInitializing, openOverlay]);
+
+  const handleIconClick = (id: SectionId) => {
+    if (minimizedWindows.find(w => w.id === id)) {
+      handleRestore(id);
+    } else if (!overlayStack.includes(id)) {
+      openOverlay(id);
+      setVisibleWindows(prev => new Set([...prev, id]));
+    } else {
+      bringToFront(id);
+    }
+  };
 
   const handleMinimize = (id: SectionId) => {
     const icon = desktopIcons.find(di => di.id === id);
@@ -112,6 +124,7 @@ export const DesktopLayout: React.FC = () => {
             Icon={icon.icon}
             label={icon.label}
             position={icon.position}
+            onClick={() => handleIconClick(icon.id)}
           />
         ))}
       </div>
@@ -131,7 +144,7 @@ export const DesktopLayout: React.FC = () => {
               key={id}
               stackIndex={i}
               isActive={!isInitializing && i === overlayStack.length - 1}
-              forceVisible={true}
+              forceVisible={visibleWindows.has(id)}
               initialPosition={{ 
                 x: baseOffset + stackOffset,
                 y: baseOffset + stackOffset

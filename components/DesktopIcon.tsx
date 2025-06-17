@@ -7,19 +7,13 @@ interface DesktopIconProps {
   Icon: IconType;
   label: string;
   position: { x: number; y: number };
+  onClick: () => void;
 }
 
-export const DesktopIcon: React.FC<DesktopIconProps> = ({ id, Icon, label, position }) => {
-  const { openOverlay, bringToFront } = useOverlayStack();
-
-  const handleClick = () => {
-    openOverlay(id);
-    bringToFront(id);
-  };
-
+export const DesktopIcon: React.FC<DesktopIconProps> = ({ id, Icon, label, position, onClick }) => {
   return (
     <button
-      onClick={handleClick}
+      onClick={onClick}
       className="absolute flex flex-col items-center group"
       style={{
         left: position.x,

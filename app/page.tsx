@@ -11,9 +11,11 @@ import { Footer } from '@/components/Footer';
 import { Hero } from '@/components/Hero';
 import { OverlayStackProvider, useOverlayStack, SectionId } from '@/components/OverlayStackContext';
 import { DesktopIcon } from '@/components/DesktopIcon';
+import { TaskBar } from '@/components/TaskBar';
 import { HiOutlineSparkles, HiOutlineExclamation, HiOutlineUserGroup, 
          HiOutlineLightBulb, HiOutlineShoppingBag, HiOutlineMail, 
          HiOutlineInformationCircle, HiOutlineHeart } from 'react-icons/hi';
+import { IconType } from 'react-icons';
 
 // Desktop icons configuration
 const desktopIcons = [
@@ -39,6 +41,12 @@ const initialSections: SectionId[] = [
   'footer'
 ];
 
+interface MinimizedWindow {
+  id: SectionId;
+  label: string;
+  icon: IconType;
+}
+
 const overlayComponentsMap = {
   problem: Problem,
   category: Category,
@@ -51,8 +59,11 @@ const overlayComponentsMap = {
 };
 
 function DesktopLayout() {
-  const { overlayStack, openOverlay } = useOverlayStack();
+  const { overlayStack, openOverlay, bringToFront } = useOverlayStack();
   const [isInitializing, setIsInitializing] = useState(true);
+  const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
+  const [maximizedWindow, setMaximizedWindow] = useState<SectionId | null>(null);
+  const [visibleWindows, setVisibleWindows] = useState<Set<SectionId>>(new Set());
 
   // Handle initial cascade animation
   useEffect(() => {
@@ -62,16 +73,48 @@ function DesktopLayout() {
     initialSections.forEach((section, index) => {
       timeoutId = setTimeout(() => {
         openOverlay(section);
+        setVisibleWindows(prev => new Set([...prev, section]));
         if (index === initialSections.length - 1) {
-          setIsInitializing(false);
+          setTimeout(() => setIsInitializing(false), 500);
         }
-      }, index * 150); // Increased delay for better visual effect
+      }, index * 150);
     });
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [isInitializing, openOverlay]);
+
+  const handleIconClick = (id: SectionId) => {
+    if (minimizedWindows.find(w => w.id === id)) {
+      handleRestore(id);
+    } else if (!overlayStack.includes(id)) {
+      openOverlay(id);
+      setVisibleWindows(prev => new Set([...prev, id]));
+    } else {
+      bringToFront(id);
+    }
+  };
+
+  const handleMinimize = (id: SectionId) => {
+    const icon = desktopIcons.find(di => di.id === id);
+    if (icon) {
+      setMinimizedWindows(prev => [...prev, { id, label: icon.label, icon: icon.icon }]);
+    }
+  };
+
+  const handleMaximize = (id: SectionId) => {
+    setMaximizedWindow(id);
+  };
+
+  const handleRestore = (id: SectionId) => {
+    setMinimizedWindows(prev => prev.filter(w => w.id !== id));
+    bringToFront(id);
+  };
+
+  const handleUnmaximize = () => {
+    setMaximizedWindow(null);
+  };
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#181926]">
@@ -84,34 +127,42 @@ function DesktopLayout() {
             Icon={icon.icon}
             label={icon.label}
             position={icon.position}
+            onClick={() => handleIconClick(icon.id)}
           />
         ))}
       </div>
 
       {/* Windows */}
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-[calc(100%-48px)]">
         {overlayStack.map((id, i) => {
           const Component = overlayComponentsMap[id];
           if (!Component) return null;
 
           // Calculate cascade offset
           const baseOffset = 32;
-          const stackOffset = i * 24; // Increased offset for better visibility
+          const stackOffset = i * 24;
 
           return (
             <Component
               key={id}
               stackIndex={i}
               isActive={!isInitializing && i === overlayStack.length - 1}
-              forceVisible={true}
+              forceVisible={visibleWindows.has(id)}
               initialPosition={{ 
                 x: baseOffset + stackOffset,
                 y: baseOffset + stackOffset
               }}
+              isMaximized={maximizedWindow === id}
+              onMinimize={() => handleMinimize(id)}
+              onMaximize={() => handleMaximize(id)}
+              onUnmaximize={handleUnmaximize}
             />
           );
         })}
       </div>
+
+      {/* Taskbar */}
+      <TaskBar minimizedWindows={minimizedWindows} onRestore={handleRestore} />
     </div>
   );
 }
