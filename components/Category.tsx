@@ -12,7 +12,7 @@ const lines = [
   'AI Stylist — Your digital superpowers.'
 ];
 
-export const Category: React.FC = () => {
+export const Category: React.FC<{ stackIndex?: number; isActive?: boolean }> = (props) => {
   return (
     <TypewriterOverlay
       id="category"
@@ -21,6 +21,7 @@ export const Category: React.FC = () => {
       accentColor="#fbbf24"
       bgGradient="bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a]"
       borderColor="#3a2d23"
+      {...props}
     />
   );
 }; 

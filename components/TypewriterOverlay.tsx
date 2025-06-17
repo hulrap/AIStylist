@@ -8,6 +8,8 @@ interface TypewriterOverlayProps {
   accentColor: string;
   bgGradient: string;
   borderColor: string;
+  stackIndex?: number;
+  isActive?: boolean;
   children?: React.ReactNode;
 }
 
@@ -18,9 +20,11 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   accentColor,
   bgGradient,
   borderColor,
+  stackIndex = 0,
+  isActive = false,
   children
 }) => {
-  const { isOverlayOpen, isOverlayTop, closeOverlay, bringToFront } = useOverlayStack();
+  const { isOverlayOpen, closeOverlay, bringToFront } = useOverlayStack();
   const [currentLine, setCurrentLine] = useState(0);
   const [typed, setTyped] = useState<string[]>(Array(lines.length).fill(''));
   const [isTyping, setIsTyping] = useState(true);
@@ -28,12 +32,12 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [titleDone, setTitleDone] = useState(false);
   const [started, setStarted] = useState(false);
 
-  // Start animation when overlay becomes top
+  // Start animation when isActive becomes true
   useEffect(() => {
-    if (isOverlayTop && !started) {
+    if (isActive && !started) {
       setStarted(true);
     }
-  }, [isOverlayTop, started]);
+  }, [isActive, started]);
 
   // Typewriter for title
   useEffect(() => {
@@ -76,25 +80,44 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
   if (!isOverlayOpen(id)) return null;
 
+  // Offset for cascading effect
+  const offset = stackIndex * 16;
+
   return (
-    <div 
-      className={`fixed inset-0 flex items-center justify-center z-50 transition-all duration-500 ${
-        isOverlayTop ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-      }`}
-      style={{ zIndex: isOverlayTop ? 50 : 40 }}
+    <div
+      className={`fixed flex items-center justify-center transition-all duration-500`}
+      style={{
+        left: `${32 + offset}px`,
+        top: `${32 + offset}px`,
+        zIndex: 50 + stackIndex,
+        width: 'calc(100% - 64px)',
+        maxWidth: 900,
+        margin: '0 auto',
+        pointerEvents: isActive ? 'auto' : 'none',
+        opacity: isActive ? 1 : 0.85,
+        boxShadow: isActive
+          ? '0 8px 32px 0 rgba(0,0,0,0.25)'
+          : '0 2px 8px 0 rgba(0,0,0,0.10)',
+        position: 'absolute',
+        transition: 'box-shadow 0.3s, opacity 0.3s',
+      }}
     >
-      <div className="w-full max-w-3xl mx-auto rounded-2xl shadow-2xl border bg-white/5 backdrop-blur-lg relative overflow-hidden"
-           style={{ borderColor: borderColor }}>
+      <div
+        className={`w-full max-w-3xl mx-auto rounded-2xl shadow-2xl border bg-white/5 backdrop-blur-lg relative overflow-hidden ${bgGradient}`}
+        style={{ borderColor: borderColor }}
+      >
         {/* Window bar */}
-        <div className="flex items-center h-10 px-4 bg-gradient-to-r from-[#23243a]/80 to-[#181926]/80 border-b"
-             style={{ borderColor: borderColor }}>
+        <div
+          className="flex items-center h-10 px-4 bg-gradient-to-r from-[#23243a]/80 to-[#181926]/80 border-b"
+          style={{ borderColor: borderColor }}
+        >
           <span className="flex items-center gap-1 mr-4">
-            <button 
+            <button
               onClick={() => closeOverlay(id)}
               className="w-3 h-3 rounded-full bg-red-400/80 hover:bg-red-400 transition-colors"
               aria-label="Close"
             />
-            <button 
+            <button
               onClick={() => bringToFront(id)}
               className="w-3 h-3 rounded-full bg-yellow-400/80 hover:bg-yellow-400 transition-colors"
               aria-label="Minimize"
@@ -105,40 +128,47 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         </div>
 
         {/* Content */}
-        <div className={`flex flex-col items-center justify-center py-12 px-6 md:px-12 gap-4 ${bgGradient}`}>
-          <h2 className="font-mono text-2xl md:text-3xl font-bold tracking-wide text-center mb-8"
-              style={{ color: accentColor }}>
+        <div className="flex flex-col items-center justify-center py-12 px-6 md:px-12 gap-4">
+          <h2
+            className="font-mono text-2xl md:text-3xl font-bold tracking-wide text-center mb-8"
+            style={{ color: accentColor }}
+          >
             {titleTyped}
             {!titleDone && started && (
-              <span className="inline-block align-middle ml-1 animate-cursor w-2 h-6 rounded-sm"
-                    style={{ backgroundColor: accentColor }} />
+              <span
+                className="inline-block align-middle ml-1 animate-cursor w-2 h-6 rounded-sm"
+                style={{ backgroundColor: accentColor }}
+              />
             )}
           </h2>
-          
-          {titleDone && lines.map((line, idx) => (
-            <div
-              key={idx}
-              className={`w-full max-w-xl flex items-center justify-center mb-2 transition-all duration-500 ${
-                idx > currentLine ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
-              }`}
-            >
+
+          {titleDone &&
+            lines.map((line, idx) => (
               <div
-                className={`flex items-center px-5 py-3 rounded-xl bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border shadow-md font-mono text-lg md:text-xl tracking-tight transition-all duration-200 hover:scale-[1.03] cursor-default select-none`}
-                style={{ 
-                  borderColor: borderColor,
-                  '--hover-border-color': `${accentColor}60`,
-                  '--hover-shadow-color': `${accentColor}10`
-                } as React.CSSProperties}
+                key={idx}
+                className={`w-full max-w-xl flex items-center justify-center mb-2 transition-all duration-500 ${
+                  idx > currentLine ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
+                }`}
               >
-                <span className="font-mono">{typed[idx]}</span>
-                {idx === currentLine && isTyping && started && (
-                  <span className="inline-block align-middle ml-1 animate-cursor w-2 h-6 rounded-sm"
-                        style={{ backgroundColor: accentColor }} />
-                )}
+                <div
+                  className={`flex items-center px-5 py-3 rounded-xl bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border shadow-md font-mono text-lg md:text-xl tracking-tight transition-all duration-200 hover:scale-[1.03] cursor-default select-none`}
+                  style={{
+                    borderColor: borderColor,
+                    '--hover-border-color': `${accentColor}60`,
+                    '--hover-shadow-color': `${accentColor}10`,
+                  } as React.CSSProperties}
+                >
+                  <span className="font-mono">{typed[idx]}</span>
+                  {idx === currentLine && isTyping && started && (
+                    <span
+                      className="inline-block align-middle ml-1 animate-cursor w-2 h-6 rounded-sm"
+                      style={{ backgroundColor: accentColor }}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-          
+            ))}
+
           {children}
         </div>
       </div>

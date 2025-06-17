@@ -14,7 +14,7 @@ const lines = [
   'All rights reserved.'
 ];
 
-export const Imprint: React.FC = () => {
+export const Imprint: React.FC<{ stackIndex?: number; isActive?: boolean }> = (props) => {
   return (
     <TypewriterOverlay
       id="imprint"
@@ -23,6 +23,7 @@ export const Imprint: React.FC = () => {
       accentColor="#fbbf24"
       bgGradient="bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a]"
       borderColor="#3a2d23"
+      {...props}
     />
   );
 }; 
