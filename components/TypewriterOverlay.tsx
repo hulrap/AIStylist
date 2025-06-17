@@ -108,9 +108,12 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   useEffect(() => {
     if ((isActive || showInitialContent) && !hasStartedTyping && content) {
       setHasStartedTyping(true);
+      // Clear any existing history before starting
+      setChatHistory([]);
+      currentLineRef.current = 0;
       startTyping();
     }
-  }, [isActive, showInitialContent, content, hasStartedTyping]);
+  }, [isActive, showInitialContent, content]);
 
   const startTyping = () => {
     if (!content) return;
@@ -131,28 +134,24 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       
       if (currentCharIndex < currentLine.length) {
         // Still typing current line
-        currentText += currentLine[currentCharIndex];
-        currentCharIndex++;
-        // Faster typing speed (25ms instead of 50ms)
-        typingTimeoutRef.current = setTimeout(typeNextCharacter, 25);
-      } else {
-        // Line is complete, add it to chat history
+        currentText = currentLine.substring(0, currentCharIndex + 1);
         setChatHistory(prev => {
-          // Check if this line is already in the history to prevent duplicates
-          if (prev.some(msg => msg.text === currentLine)) {
-            return prev;
+          const newHistory = [...prev];
+          if (newHistory.length <= currentLineRef.current) {
+            newHistory.push({ text: currentText, type: 'system' });
+          } else {
+            newHistory[currentLineRef.current] = { text: currentText, type: 'system' };
           }
-          return [...prev, {
-            text: currentLine,
-            type: 'system'
-          }];
+          return newHistory;
         });
         
+        currentCharIndex++;
+        typingTimeoutRef.current = setTimeout(typeNextCharacter, 25);
+      } else {
         // Move to next line
         currentLineRef.current++;
         currentCharIndex = 0;
         currentText = '';
-        // Shorter delay between messages (250ms instead of 500ms)
         typingTimeoutRef.current = setTimeout(typeNextCharacter, 250);
       }
     };

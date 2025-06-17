@@ -7,7 +7,7 @@ export const Background: React.FC = () => {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-fixed"
         style={{
-          backgroundImage: 'url(/background.png)',
+          backgroundImage: 'url(/images/background.png)',
           filter: 'grayscale(100%) contrast(120%)'
         }}
       />
