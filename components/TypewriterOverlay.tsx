@@ -67,6 +67,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const chatEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentLineRef = useRef<number>(0);
 
   // Clear typing timeout on unmount
   useEffect(() => {
@@ -91,41 +92,45 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
-  // Reset typing state when window becomes active
+  // Reset state when window becomes inactive
   useEffect(() => {
-    if (isActive && !hasStartedTyping) {
+    if (!isActive && !showInitialContent) {
+      setHasStartedTyping(false);
       setChatHistory([]);
-      setHasStartedTyping(true);
-      startTyping();
+      currentLineRef.current = 0;
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     }
-  }, [isActive]);
+  }, [isActive, showInitialContent]);
 
-  // Start typing when window becomes visible initially
+  // Start typing when window becomes active or initially visible
   useEffect(() => {
-    if (showInitialContent && !hasStartedTyping) {
+    if ((isActive || showInitialContent) && !hasStartedTyping && content) {
       setHasStartedTyping(true);
       startTyping();
     }
-  }, [showInitialContent]);
+  }, [isActive, showInitialContent, content]);
 
   const startTyping = () => {
     if (!content) return;
     
     setIsTyping(true);
     const lines = content.split('\n').filter(line => line.trim());
-    let currentLineIndex = 0;
     let currentCharIndex = 0;
     let currentText = '';
-
+    
     const typeNextCharacter = () => {
-      if (currentLineIndex >= lines.length) {
+      // If we've finished all lines, stop typing
+      if (currentLineRef.current >= lines.length) {
         setIsTyping(false);
         return;
       }
 
-      const currentLine = lines[currentLineIndex];
+      const currentLine = lines[currentLineRef.current];
       
       if (currentCharIndex < currentLine.length) {
+        // Still typing current line
         currentText += currentLine[currentCharIndex];
         currentCharIndex++;
         typingTimeoutRef.current = setTimeout(typeNextCharacter, 50);
@@ -137,7 +142,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         }]);
         
         // Move to next line
-        currentLineIndex++;
+        currentLineRef.current++;
         currentCharIndex = 0;
         currentText = '';
         typingTimeoutRef.current = setTimeout(typeNextCharacter, 500); // Longer delay between messages

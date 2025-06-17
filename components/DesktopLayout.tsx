@@ -128,11 +128,17 @@ export const DesktopLayout: React.FC = () => {
   };
 
   const handleMinimize = (id: SectionId, label: string, icon: string) => {
-    setMinimizedWindows(prev => [...prev, { id, label, icon }]);
+    // First check if window is already minimized to prevent duplicates
+    if (!minimizedWindows.some(w => w.id === id)) {
+      setMinimizedWindows(prev => [...prev, { id, label, icon }]);
+      // Hide the window but keep it in overlay stack
+      setWindowsVisible(prev => ({ ...prev, [id]: false }));
+    }
   };
 
   const handleRestore = (id: SectionId) => {
     setMinimizedWindows(prev => prev.filter(w => w.id !== id));
+    setWindowsVisible(prev => ({ ...prev, [id]: true }));
     bringToFront(id);
   };
 
