@@ -63,6 +63,8 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [preMaximizeState, setPreMaximizeState] = useState<{ position: Position; size: Size } | null>(null);
+  
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
@@ -303,6 +305,28 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     }
   };
 
+  const handleMaximize = () => {
+    if (!isMaximized) {
+      setPreMaximizeState({ position, size });
+      if (onMaximize) onMaximize();
+    } else {
+      if (preMaximizeState) {
+        setPosition(preMaximizeState.position);
+        setSize(preMaximizeState.size);
+        updatePosition(id, preMaximizeState.position);
+      }
+      if (onUnmaximize) onUnmaximize();
+    }
+  };
+
+  const handleMinimize = () => {
+    if (onMinimize) onMinimize();
+  };
+
+  const handleClose = () => {
+    closeOverlay(id);
+  };
+
   return (
     <div
       ref={overlayRef}
@@ -336,15 +360,15 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() => closeOverlay(id)}
+              onClick={handleClose}
               className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
             />
             <button
-              onClick={onMinimize}
+              onClick={handleMinimize}
               className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
             />
             <button
-              onClick={isMaximized ? onUnmaximize : onMaximize}
+              onClick={handleMaximize}
               className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
             />
           </div>

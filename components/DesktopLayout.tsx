@@ -79,7 +79,7 @@ interface MinimizedWindow {
 }
 
 export const DesktopLayout: React.FC = () => {
-  const { openOverlay, closeOverlay, isOpen, activeOverlay, bringToFront, updatePosition } = useOverlayStack();
+  const { openOverlay, closeOverlay, isOpen, activeOverlay, bringToFront, updatePosition, overlayStack } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
   const [windowsVisible, setWindowsVisible] = useState<Record<SectionId, boolean>>(() => {
     const initial: Record<SectionId, boolean> = {
@@ -95,6 +95,7 @@ export const DesktopLayout: React.FC = () => {
     return initial;
   });
   const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
+  const [maximizedWindow, setMaximizedWindow] = useState<SectionId | null>(null);
 
   useEffect(() => {
     // Initial cascade animation
@@ -120,6 +121,10 @@ export const DesktopLayout: React.FC = () => {
 
   const handleIconClick = (id: SectionId) => {
     if (isOpen(id)) {
+      // If window is minimized, restore it
+      if (!windowsVisible[id]) {
+        handleRestore(id);
+      }
       bringToFront(id);
     } else {
       openOverlay(id);
@@ -136,10 +141,32 @@ export const DesktopLayout: React.FC = () => {
     }
   };
 
+  const handleMaximize = (id: SectionId) => {
+    setMaximizedWindow(id);
+    bringToFront(id);
+  };
+
+  const handleUnmaximize = (id: SectionId) => {
+    setMaximizedWindow(null);
+  };
+
   const handleRestore = (id: SectionId) => {
     setMinimizedWindows(prev => prev.filter(w => w.id !== id));
     setWindowsVisible(prev => ({ ...prev, [id]: true }));
     bringToFront(id);
+  };
+
+  const handleClose = (id: SectionId) => {
+    // Remove from minimized windows if it was minimized
+    setMinimizedWindows(prev => prev.filter(w => w.id !== id));
+    // Hide the window
+    setWindowsVisible(prev => ({ ...prev, [id]: false }));
+    // Remove from maximized if it was maximized
+    if (maximizedWindow === id) {
+      setMaximizedWindow(null);
+    }
+    // Close the overlay
+    closeOverlay(id);
   };
 
   const getInitialPosition = (id: SectionId) => {
@@ -205,129 +232,186 @@ export const DesktopLayout: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-transparent">
+    <div className="relative w-full h-screen overflow-hidden">
       {/* Desktop Icons */}
-      <div className="fixed left-8 top-8 space-y-6">
-        <DesktopIcon
-          id="ai-stylist"
-          icon="✨"
-          label="AI Stylist"
-          onClick={() => handleIconClick('ai-stylist')}
-        />
-        <DesktopIcon
-          id="problem"
-          icon="⚠️"
-          label="The Problem"
-          onClick={() => handleIconClick('problem')}
-        />
-        <DesktopIcon
-          id="first"
-          icon="👥"
-          label="The First"
-          onClick={() => handleIconClick('first')}
-        />
-        <DesktopIcon
-          id="experience"
-          icon="💡"
-          label="The Experience"
-          onClick={() => handleIconClick('experience')}
-        />
-        <DesktopIcon
-          id="packages"
-          icon="🛍️"
-          label="Three Ways"
-          onClick={() => handleIconClick('packages')}
-        />
-        <DesktopIcon
-          id="contact"
-          icon="✉️"
-          label="Start Now"
-          onClick={() => handleIconClick('contact')}
-        />
-        <DesktopIcon
-          id="imprint"
-          icon="ℹ️"
-          label="Imprint"
-          onClick={() => handleIconClick('imprint')}
-        />
-        <DesktopIcon
-          id="credits"
-          icon="❤️"
-          label="Credits"
-          onClick={() => handleIconClick('credits')}
-        />
+      <div className="absolute top-0 left-0 p-4 space-y-4">
+        {WINDOW_ORDER.map((id) => (
+          <DesktopIcon
+            key={id}
+            id={id}
+            icon={getIconForSection(id)}
+            label={getLabelForSection(id)}
+            onClick={() => handleIconClick(id)}
+          />
+        ))}
       </div>
 
       {/* Windows */}
-      <TypewriterOverlay
-        id="ai-stylist"
-        title="AI Stylist"
-        content="Finally.\nAn AI expert who comes to YOUR place.\nNot your office. Your home.\nWith pizza. And beer.\nAnd zero corporate bullshit."
-        stackIndex={WINDOW_ORDER.indexOf('ai-stylist')}
-        isActive={activeOverlay === 'ai-stylist'}
-        forceVisible={windowsVisible['ai-stylist']}
-        initialPosition={getInitialPosition('ai-stylist')}
-        initialSize={getInitialSize('ai-stylist')}
-        showInitialContent={true}
-        onMinimize={() => handleMinimize('ai-stylist', 'AI Stylist', '✨')}
-      />
-      <Problem
-        id="problem"
-        stackIndex={WINDOW_ORDER.indexOf('problem')}
-        isActive={activeOverlay === 'problem'}
-        forceVisible={windowsVisible['problem']}
-        initialPosition={getInitialPosition('problem')}
-        initialSize={getInitialSize('problem')}
-        showContent={activeOverlay === 'problem'}
-      />
-      <Category
-        id="first"
-        stackIndex={WINDOW_ORDER.indexOf('first')}
-        isActive={activeOverlay === 'first'}
-        forceVisible={windowsVisible['first']}
-        initialPosition={getInitialPosition('first')}
-        initialSize={getInitialSize('first')}
-        showContent={activeOverlay === 'first'}
-      />
-      <Experience
-        id="experience"
-        stackIndex={WINDOW_ORDER.indexOf('experience')}
-        isActive={activeOverlay === 'experience'}
-        forceVisible={windowsVisible['experience']}
-        initialPosition={getInitialPosition('experience')}
-        initialSize={getInitialSize('experience')}
-        showContent={activeOverlay === 'experience'}
-      />
-      <Packages
-        id="packages"
-        stackIndex={WINDOW_ORDER.indexOf('packages')}
-        isActive={activeOverlay === 'packages'}
-        forceVisible={windowsVisible['packages']}
-        initialPosition={getInitialPosition('packages')}
-        initialSize={getInitialSize('packages')}
-        showContent={activeOverlay === 'packages'}
-      />
-      <Contact
-        id="contact"
-        stackIndex={WINDOW_ORDER.indexOf('contact')}
-        isActive={activeOverlay === 'contact'}
-        forceVisible={windowsVisible['contact']}
-        initialPosition={getInitialPosition('contact')}
-        initialSize={getInitialSize('contact')}
-        showContent={activeOverlay === 'contact'}
-      />
-      <Imprint
-        id="imprint"
-        stackIndex={WINDOW_ORDER.indexOf('imprint')}
-        isActive={activeOverlay === 'imprint'}
-        forceVisible={windowsVisible['imprint']}
-        initialPosition={getInitialPosition('imprint')}
-        initialSize={getInitialSize('imprint')}
-        showContent={activeOverlay === 'imprint'}
-      />
+      {WINDOW_ORDER.map((id) => {
+        const isVisible = windowsVisible[id];
+        const isActive = activeOverlay === id;
+        const isMaximized = maximizedWindow === id;
+        const stackIndex = overlayStack.indexOf(id);
+
+        if (!isOpen(id)) return null;
+
+        switch (id) {
+          case 'ai-stylist':
+            return (
+              <TypewriterOverlay
+                key={id}
+                id={id}
+                title={getLabelForSection(id)}
+                content="Finally.\nAn AI expert who comes to YOUR place.\nNot your office. Your home.\nWith pizza. And beer.\nAnd zero corporate bullshit."
+                stackIndex={stackIndex}
+                isActive={isActive}
+                forceVisible={isVisible}
+                initialPosition={getInitialPosition(id)}
+                initialSize={getInitialSize(id)}
+                isMaximized={isMaximized}
+                onMinimize={() => handleMinimize(id, getLabelForSection(id), getIconForSection(id))}
+                onMaximize={() => handleMaximize(id)}
+                onUnmaximize={() => handleUnmaximize(id)}
+                showInitialContent={true}
+              />
+            );
+          case 'problem':
+            return (
+              <Problem
+                key={id}
+                id={id}
+                stackIndex={stackIndex}
+                isActive={isActive}
+                forceVisible={isVisible}
+                initialPosition={getInitialPosition(id)}
+                initialSize={getInitialSize(id)}
+                showContent={isActive}
+              />
+            );
+          case 'first':
+            return (
+              <Category
+                key={id}
+                id={id}
+                stackIndex={stackIndex}
+                isActive={isActive}
+                forceVisible={isVisible}
+                initialPosition={getInitialPosition(id)}
+                initialSize={getInitialSize(id)}
+                showContent={isActive}
+              />
+            );
+          case 'experience':
+            return (
+              <Experience
+                key={id}
+                id={id}
+                stackIndex={stackIndex}
+                isActive={isActive}
+                forceVisible={isVisible}
+                initialPosition={getInitialPosition(id)}
+                initialSize={getInitialSize(id)}
+                showContent={isActive}
+              />
+            );
+          case 'packages':
+            return (
+              <Packages
+                key={id}
+                id={id}
+                stackIndex={stackIndex}
+                isActive={isActive}
+                forceVisible={isVisible}
+                initialPosition={getInitialPosition(id)}
+                initialSize={getInitialSize(id)}
+                showContent={isActive}
+              />
+            );
+          case 'contact':
+            return (
+              <Contact
+                key={id}
+                id={id}
+                stackIndex={stackIndex}
+                isActive={isActive}
+                forceVisible={isVisible}
+                initialPosition={getInitialPosition(id)}
+                initialSize={getInitialSize(id)}
+                showContent={isActive}
+              />
+            );
+          case 'imprint':
+            return (
+              <Imprint
+                key={id}
+                id={id}
+                stackIndex={stackIndex}
+                isActive={isActive}
+                forceVisible={isVisible}
+                initialPosition={getInitialPosition(id)}
+                initialSize={getInitialSize(id)}
+                showContent={isActive}
+              />
+            );
+          case 'credits':
+            return (
+              <TypewriterOverlay
+                key={id}
+                id={id}
+                title={getLabelForSection(id)}
+                content="Created with ♥ by AI Stylist\nPowered by Next.js and Tailwind CSS"
+                stackIndex={stackIndex}
+                isActive={isActive}
+                forceVisible={isVisible}
+                initialPosition={getInitialPosition(id)}
+                initialSize={getInitialSize(id)}
+                isMaximized={isMaximized}
+                onMinimize={() => handleMinimize(id, getLabelForSection(id), getIconForSection(id))}
+                onMaximize={() => handleMaximize(id)}
+                onUnmaximize={() => handleUnmaximize(id)}
+                showInitialContent={true}
+              />
+            );
+          default:
+            return null;
+        }
+      })}
 
       {/* Taskbar */}
-      <TaskBar minimizedWindows={minimizedWindows} onRestore={handleRestore} />
+      <TaskBar
+        minimizedWindows={minimizedWindows}
+        onRestore={handleRestore}
+      />
     </div>
   );
+};
+
+// Helper function to get icon for each section
+const getIconForSection = (id: SectionId): string => {
+  switch (id) {
+    case 'ai-stylist': return '✨';
+    case 'problem': return '⚠️';
+    case 'first': return '👥';
+    case 'experience': return '💡';
+    case 'packages': return '🛍️';
+    case 'contact': return '✉️';
+    case 'imprint': return 'ℹ️';
+    case 'credits': return '❤️';
+    default: return '📄';
+  }
+};
+
+// Helper function to get label for each section
+const getLabelForSection = (id: SectionId): string => {
+  switch (id) {
+    case 'ai-stylist': return 'AI Stylist';
+    case 'problem': return 'The Problem';
+    case 'first': return 'The First';
+    case 'experience': return 'The Experience';
+    case 'packages': return 'Three Ways';
+    case 'contact': return 'Start Now';
+    case 'imprint': return 'Imprint';
+    case 'credits': return 'Credits';
+    default: return id;
+  }
 }; 
