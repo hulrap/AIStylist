@@ -1,66 +1,89 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
+const title = 'IMPRINT';
+const lines = [
+  'AI Stylist is operated by QUEER MEDIA LITERACY e.V.',
+  'Austrian association registered in Vienna.',
+  'ZVR Number: 1689372191',
+  'Founded: 21.09.2024',
+  'Address: c/o 1060 Wien, Mariahilfer Straße 49/15',
+  'Jurisdiction: Landespolizeidirektion Wien',
+  'Contact: admin@queer-alliance.com',
+  'No phone number displayed.',
+  'All rights reserved.'
+];
 
 export const Imprint: React.FC = () => {
+  const [currentLine, setCurrentLine] = useState(0);
+  const [typed, setTyped] = useState<string[]>(Array(lines.length).fill(''));
+  const [isTyping, setIsTyping] = useState(true);
+  const [titleTyped, setTitleTyped] = useState('');
+  const [titleDone, setTitleDone] = useState(false);
+
+  // Typewriter for title
+  useEffect(() => {
+    if (!titleDone && titleTyped.length < title.length) {
+      const timeout = setTimeout(() => {
+        setTitleTyped(title.slice(0, titleTyped.length + 1));
+      }, 24);
+      return () => clearTimeout(timeout);
+    } else if (!titleDone) {
+      setTitleDone(true);
+    }
+  }, [titleTyped, titleDone]);
+
+  // Typewriter for lines
+  useEffect(() => {
+    if (titleDone && currentLine < lines.length) {
+      if (typed[currentLine].length < lines[currentLine].length) {
+        setIsTyping(true);
+        const timeout = setTimeout(() => {
+          setTyped(prev => {
+            const updated = [...prev];
+            updated[currentLine] = lines[currentLine].slice(0, prev[currentLine].length + 1);
+            return updated;
+          });
+        }, 32);
+        return () => clearTimeout(timeout);
+      } else {
+        setIsTyping(false);
+        if (currentLine < lines.length - 1) {
+          const nextTimeout = setTimeout(() => {
+            setCurrentLine(currentLine + 1);
+          }, 500);
+          return () => clearTimeout(nextTimeout);
+        }
+      }
+    }
+  }, [typed, currentLine, titleDone]);
+
   return (
-    <>
-      <section id="manifesto" className="relative section-padding section-narrow flex flex-col justify-center items-center bg-[var(--brand-bg)] text-[var(--brand-fg)] overflow-hidden">
-        {/* Top blurred divider */}
-        <div className="divider-blur absolute top-0 left-0 w-full z-10" />
-        {/* Soft radial background for depth */}
-        <div className="bg-radial absolute inset-0 pointer-events-none z-0" />
-        <h2 className="heading-section z-20">
-          THE HUMAN IMPERATIVE
-          <div className="divider-gradient mx-auto mt-4 animate-shimmer" />
-        </h2>
-        <div className="mb-8 space-y-2 text-lg md:text-xl relative z-20">
-          <p className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>I DON'T CARE ABOUT YOUR COMPANY'S BOTTOM LINE.</p>
-          <p className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>I CARE ABOUT YOUR LIFE'S BOTTOM LINE.</p>
-          <p className="mt-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>AI is the most important revolution in human history.</p>
-          <p className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>But it's being sold to you like accounting software.</p>
-          <p className="animate-fade-in-up" style={{ animationDelay: '0.5s' }}>Boring. Corporate. Inhuman.</p>
-          <p className="mt-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>I believe AI should feel like magic, not work.</p>
-          <p className="animate-fade-in-up" style={{ animationDelay: '0.7s' }}>I believe learning should happen in comfort, not conference rooms.</p>
-          <p className="animate-fade-in-up" style={{ animationDelay: '0.8s' }}>I believe technology should amplify your humanity, not replace it.</p>
-          <p className="animate-fade-in-up" style={{ animationDelay: '0.9s' }}>I believe you deserve a personal guide through this revolution.</p>
-          <p className="mt-4 animate-fade-in-up" style={{ animationDelay: '1.0s' }}>Everyone else is trying to make AI more corporate.</p>
-          <p className="animate-fade-in-up" style={{ animationDelay: '1.1s' }}>I'm trying to make it more human.</p>
-          <p className="mt-4 animate-fade-in-up" style={{ animationDelay: '1.2s' }}>This is why I exist.</p>
-          <p className="animate-fade-in-up" style={{ animationDelay: '1.3s' }}>To keep you human while giving you superpowers.</p>
+    <section id="imprint" className="relative min-h-screen flex flex-col justify-center items-center section-padding bg-gradient-to-br from-[#23243a] via-[#1a1a1a] to-[#23243a] text-[#e0e6f7] overflow-hidden">
+      <div className="w-full max-w-3xl mx-auto rounded-2xl shadow-2xl border border-[#2d2e3e] bg-white/5 backdrop-blur-lg relative z-20 overflow-hidden">
+        {/* Typewriter Title */}
+        <div className="flex flex-col items-center justify-center py-12 px-6 md:px-12 gap-4">
+          <h2 className="font-mono text-2xl md:text-3xl font-bold tracking-wide text-blue-200 text-center mb-8">
+            {titleTyped}
+            {!titleDone && <span className="inline-block align-middle ml-1 animate-cursor bg-blue-200 w-2 h-6 rounded-sm" />}
+          </h2>
+          {titleDone && lines.map((line, idx) => (
+            <div
+              key={idx}
+              className={`w-full max-w-xl flex items-center justify-center mb-2 transition-all duration-500 ${idx > currentLine ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}
+            >
+              <div
+                className={`flex items-center px-5 py-3 rounded-xl bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border border-[#2d2e3e] shadow-md font-mono text-lg md:text-xl tracking-tight transition-all duration-200 hover:scale-[1.03] hover:border-blue-200/60 hover:shadow-blue-200/10 cursor-default select-none`}
+              >
+                <span className="font-mono">{typed[idx]}</span>
+                {idx === currentLine && isTyping && (
+                  <span className="inline-block align-middle ml-1 animate-cursor bg-blue-200 w-2 h-6 rounded-sm" />
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="mt-8 relative z-20">
-          <button className="btn-primary btn-animated animate-fade-in-up" style={{ animationDelay: '1.4s' }}>
-            This is exactly what I need
-          </button>
-        </div>
-        {/* Bottom blurred divider */}
-        <div className="divider-blur absolute bottom-0 left-0 w-full z-10" />
-      </section>
-      
-      <section id="imprint" className="relative section-padding section-narrow flex flex-col justify-center items-center bg-[var(--brand-bg)] text-[var(--brand-fg)] overflow-hidden border-t border-[var(--brand-accent)]/20">
-        {/* Soft radial background for depth */}
-        <div className="bg-radial absolute inset-0 pointer-events-none z-0" />
-        <h2 className="heading-section z-20">
-          Imprint
-          <div className="divider-gradient mx-auto mt-4 animate-shimmer" />
-        </h2>
-        <div className="mb-4 text-lg md:text-xl relative z-20 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <span className="font-semibold text-gradient">Raw Fiction e.U.</span><br />
-          Austrian corporation registered in Vienna<br />
-          Address: Gusenleithnergasse 28/18, 1140 Wien, Österreich<br />
-          Company Register Number: FN 519455f<br />
-          Commercial Court: Handelsgericht Wien<br />
-          Chamber Membership: Wirtschaftskammer Wien
-        </div>
-        <div className="mb-4 text-lg md:text-xl relative z-20 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <span className="font-semibold text-gradient">Contact:</span><br />
-          office@rawfiction.xyz
-        </div>
-        <div className="text-sm text-muted mt-8 relative z-20 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-          This website is operated by Raw Fiction e.U. All rights reserved.
-        </div>
-        {/* Bottom blurred divider */}
-        <div className="divider-blur absolute bottom-0 left-0 w-full z-10" />
-      </section>
-    </>
+      </div>
+      <div className="absolute inset-0 pointer-events-none z-10 rounded-2xl border-4 border-transparent bg-gradient-to-r from-blue-200/20 via-gray-300/10 to-purple-400/20 blur-[2px]" />
+    </section>
   );
 }; 
