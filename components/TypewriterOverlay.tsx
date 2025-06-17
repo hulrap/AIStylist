@@ -18,6 +18,11 @@ interface ChatMessage {
   email?: string;
 }
 
+interface WindowDimensions {
+  width: number;
+  height: number;
+}
+
 export interface TypewriterOverlayProps {
   id: SectionId;
   title: string;
@@ -63,21 +68,51 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [windowDimensions, setWindowDimensions] = useState<WindowDimensions>({ width: 1024, height: 768 });
+  const [isClient, setIsClient] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Position | null>(null);
   const previousSize = useRef<Size | null>(null);
   const previousPosition = useRef<Position | null>(null);
 
+  // Mark when component is mounted on client
   useEffect(() => {
-    const savedPosition = getPosition(id);
-    if (savedPosition) {
-      setPosition(savedPosition);
-    } else if (initialPosition) {
-      setPosition(initialPosition);
-      updatePosition(id, initialPosition);
+    setIsClient(true);
+  }, []);
+
+  // Initialize window dimensions on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const updateWindowDimensions = () => {
+        setWindowDimensions({
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+      };
+
+      // Set initial dimensions
+      updateWindowDimensions();
+
+      // Add event listener
+      window.addEventListener('resize', updateWindowDimensions);
+
+      // Cleanup
+      return () => window.removeEventListener('resize', updateWindowDimensions);
     }
-  }, [id, initialPosition, getPosition, updatePosition]);
+  }, []);
+
+  useEffect(() => {
+    if (isClient) {
+      const savedPosition = getPosition(id);
+      if (savedPosition) {
+        setPosition(savedPosition);
+      } else if (initialPosition) {
+        setPosition(initialPosition);
+        updatePosition(id, initialPosition);
+      }
+    }
+  }, [id, initialPosition, getPosition, updatePosition, isClient]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -146,8 +181,8 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     if (isDragging || isResizing) {
       const handleGlobalMouseMove = (e: MouseEvent) => {
         if (isDragging && overlayRef.current) {
-          const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - overlayRef.current.offsetWidth));
-          const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - overlayRef.current.offsetHeight));
+          const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, windowDimensions.width - overlayRef.current.offsetWidth));
+          const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, windowDimensions.height - overlayRef.current.offsetHeight));
           
           if (!dragRef.current || 
               Math.abs(dragRef.current.x - newX) > 1 || 
@@ -168,8 +203,8 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
           }
         } else if (isResizing && overlayRef.current) {
           const rect = overlayRef.current.getBoundingClientRect();
-          const newWidth = Math.max(320, Math.min(e.clientX - rect.left, window.innerWidth - rect.left));
-          const newHeight = Math.max(400, Math.min(e.clientY - rect.top, window.innerHeight - rect.top));
+          const newWidth = Math.max(320, Math.min(e.clientX - rect.left, windowDimensions.width - rect.left));
+          const newHeight = Math.max(400, Math.min(e.clientY - rect.top, windowDimensions.height - rect.top));
           
           setSize({ width: newWidth, height: newHeight });
         }
@@ -188,7 +223,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         window.removeEventListener('mouseup', handleGlobalMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragOffset, id, updatePosition]);
+  }, [isDragging, isResizing, dragOffset, id, updatePosition, windowDimensions]);
 
   const handleLocalMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (overlayRef.current) {
@@ -204,7 +239,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     if (!isMaximized) {
       previousSize.current = size;
       previousPosition.current = position;
-      setSize({ width: window.innerWidth, height: window.innerHeight });
+      setSize({ width: windowDimensions.width, height: windowDimensions.height });
       setPosition({ x: 0, y: 0 });
     } else {
       if (previousSize.current && previousPosition.current) {
@@ -276,6 +311,11 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       }
     }
   };
+
+  // Don't render anything until we're on the client
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div

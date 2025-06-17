@@ -40,6 +40,7 @@ export const DesktopLayout: React.FC = () => {
   const { openOverlay, closeOverlay, isOpen, activeOverlay, bringToFront } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState<WindowDimensions>({ width: 1024, height: 768 });
+  const [isClient, setIsClient] = useState(false);
   const [windowsVisible, setWindowsVisible] = useState<Record<SectionId, boolean>>(() => {
     const initial: Record<SectionId, boolean> = {
       'ai-stylist': false,
@@ -55,28 +56,35 @@ export const DesktopLayout: React.FC = () => {
   });
   const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
 
+  // Mark when component is mounted on client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Initialize window dimensions on client side
   useEffect(() => {
-    const updateWindowDimensions = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
+    if (typeof window !== 'undefined') {
+      const updateWindowDimensions = () => {
+        setWindowDimensions({
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+      };
 
-    // Set initial dimensions
-    updateWindowDimensions();
+      // Set initial dimensions
+      updateWindowDimensions();
 
-    // Add event listener
-    window.addEventListener('resize', updateWindowDimensions);
+      // Add event listener
+      window.addEventListener('resize', updateWindowDimensions);
 
-    // Cleanup
-    return () => window.removeEventListener('resize', updateWindowDimensions);
+      // Cleanup
+      return () => window.removeEventListener('resize', updateWindowDimensions);
+    }
   }, []);
 
   useEffect(() => {
     // Initial cascade animation
-    if (!hasInitialized) {
+    if (!hasInitialized && isClient) {
       WINDOW_ORDER.forEach((id, index) => {
         setTimeout(() => {
           openOverlay(id);
@@ -85,7 +93,7 @@ export const DesktopLayout: React.FC = () => {
       });
       setHasInitialized(true);
     }
-  }, [hasInitialized, openOverlay]);
+  }, [hasInitialized, openOverlay, isClient]);
 
   const handleIconClick = (id: SectionId) => {
     if (isOpen(id)) {
@@ -115,6 +123,11 @@ export const DesktopLayout: React.FC = () => {
       y: baseY + (INITIAL_CASCADE_OFFSET * index)
     };
   };
+
+  // Don't render anything until we're on the client
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-transparent">
