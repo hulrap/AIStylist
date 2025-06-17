@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useOverlayStack, SectionId } from './OverlayStackContext';
 import { HiOutlinePaperAirplane } from 'react-icons/hi';
-import { useSound } from '../lib/useSound';
 
 interface Position {
   x: number;
@@ -60,7 +59,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     unmaximizeWindow,
     getWindowState
   } = useOverlayStack();
-  const { play: playTypeSound } = useSound('/sounds/type.mp3');
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -157,9 +155,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
           }
           return newHistory;
         });
-        
-        // Play typewriter sound for each character
-        playTypeSound();
         
         currentCharIndex++;
         typingTimeoutRef.current = setTimeout(typeNextCharacter, 25);
