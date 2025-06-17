@@ -27,14 +27,12 @@ export const Contact: React.FC<ContactProps> = ({
     if (showContent && !displayedContent) {
       const content = `READY TO BECOME AN AI NATIVE?
 
-Text me: +43 670 606 6149
-Email me: hulanraphael@gmail.com
-
-No forms.
-No 'business inquiries.'
-No corporate bullshit.
+You can reply to any window and send me a message to my email or you can directly text me on +43 670 606 6149 via whatsapp.
+You can also directly email me: hulanraphael@gmail.com
 
 No need for formal greetings, no need for video calls, no need for any sort of work related stress.
+
+No forms. No 'business inquiries.' No corporate bullshit.
 
 Just message me like you'd message a friend, English or German:
 'I think I need an AI Stylist.'
