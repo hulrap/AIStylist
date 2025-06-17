@@ -7,8 +7,7 @@ export type SectionId =
   | 'experience'
   | 'packages'
   | 'contact'
-  | 'imprint'
-  | 'credits';
+  | 'imprint';
 
 interface Position {
   x: number;
@@ -52,8 +51,7 @@ const initialPositions: Record<SectionId, Position> = {
   'experience': { x: 0, y: 0 },
   'packages': { x: 0, y: 0 },
   'contact': { x: 0, y: 0 },
-  'imprint': { x: 0, y: 0 },
-  'credits': { x: 0, y: 0 }
+  'imprint': { x: 0, y: 0 }
 };
 
 export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -67,8 +65,7 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
       'experience': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'experience' },
       'packages': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'packages' },
       'contact': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'contact' },
-      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'imprint' },
-      'credits': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'credits' }
+      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'imprint' }
     };
     return initial;
   });

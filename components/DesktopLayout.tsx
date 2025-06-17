@@ -10,7 +10,6 @@ import { Contact } from './Contact';
 import { Imprint } from './Imprint';
 import { useOverlayStack, SectionId, WindowState } from './OverlayStackContext';
 import { Hero } from './Hero';
-import { Credits } from './Credits';
 import { getIconForSection } from './Icons';
 
 interface Position {
@@ -48,8 +47,7 @@ const WINDOW_SIZE_MULTIPLIERS: Record<SectionId, { width: number; height: number
   'experience': { width: 1, height: 1 },
   'packages': { width: 1.1, height: 1.1 },
   'contact': { width: 1, height: 1 },
-  'imprint': { width: 0.9, height: 0.9 },
-  'credits': { width: 0.8, height: 0.8 }
+  'imprint': { width: 0.9, height: 0.9 }
 };
 
 // Window positions mapping
@@ -60,12 +58,10 @@ const WINDOW_POSITIONS: Record<SectionId, { x: number; y: number }> = {
   'experience': SCREEN_SECTIONS.centerLeft,
   'packages': SCREEN_SECTIONS.centerRight,
   'contact': SCREEN_SECTIONS.bottomLeft,
-  'imprint': SCREEN_SECTIONS.bottomRight,
-  'credits': SCREEN_SECTIONS.topCenter
+  'imprint': SCREEN_SECTIONS.bottomRight
 };
 
 const WINDOW_ORDER: SectionId[] = [
-  'credits',
   'imprint',
   'contact',
   'packages',
@@ -240,13 +236,13 @@ export const DesktopLayout: React.FC = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* Desktop Icons */}
-      <div className="absolute top-0 left-12 p-4 grid grid-cols-1 gap-3 auto-rows-min">
+      <div className="absolute inset-0 p-4 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] gap-1 pointer-events-none">
         {WINDOW_ORDER.map((id) => (
           <DesktopIcon
             key={id}
             id={id}
-            icon={id}
             label={getLabelForSection(id)}
+            icon={id}
             onClick={() => handleIconClick(id)}
           />
         ))}
@@ -254,10 +250,10 @@ export const DesktopLayout: React.FC = () => {
 
       {/* Windows */}
       {WINDOW_ORDER.map((id) => {
+        const isActive = id === activeOverlay;
         const windowState = getWindowState(id);
         const isVisible = windowState?.isVisible ?? false;
-        const isActive = activeOverlay === id;
-        const isMaximized = maximizedWindow === id;
+        const isMaximized = windowState?.isMaximized ?? false;
         const stackIndex = overlayStack.indexOf(id);
 
         if (!isOpen(id)) return null;
@@ -379,22 +375,6 @@ export const DesktopLayout: React.FC = () => {
                 onUnmaximize={() => handleUnmaximize(id)}
               />
             );
-          case 'credits':
-            return (
-              <Credits
-                key={id}
-                id={id}
-                stackIndex={stackIndex}
-                isActive={isActive}
-                forceVisible={isVisible}
-                initialPosition={getInitialPosition(id)}
-                initialSize={getInitialSize(id)}
-                isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id)}
-                onMaximize={() => handleMaximize(id)}
-                onUnmaximize={() => handleUnmaximize(id)}
-              />
-            );
           default:
             return null;
         }
@@ -419,7 +399,6 @@ const getLabelForSection = (id: SectionId): string => {
     case 'packages': return 'Three Ways';
     case 'contact': return 'Start Now';
     case 'imprint': return 'Imprint';
-    case 'credits': return 'Credits';
     default: return id;
   }
 }; 
