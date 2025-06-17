@@ -1,66 +1,57 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
-interface ImprintProps {}
-
-export const Imprint: React.FC<ImprintProps> = () => {
+export const Imprint: React.FC = () => {
   return (
-    <section id="imprint" className="relative min-h-screen flex items-center px-6 py-20 overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-primary-950/20 to-background" />
-      
-      <div className="relative max-w-4xl mx-auto">
-        <motion.h1
-          className="heading-1 text-center mb-16 text-primary-500"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          Imprint
-        </motion.h1>
-
-        <motion.div
-          className="card space-y-8"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <div>
-            <h2 className="text-2xl font-medium mb-4 text-primary-500">Company Information</h2>
-            <p className="text-text/70">
-              Raw Fiction e.U.<br />
-              Owner: Raphael Hulan<br />
-              Address: Gusenleithnergasse 28/18, 1140 Wien, Österreich<br />
-              Company Register Number: FN 519455f<br />
-              Commercial Court: Handelsgericht Wien<br />
-              Chamber Membership: Wirtschaftskammer Wien
-            </p>
+    <>
+      <section id="manifesto" className="w-full flex flex-col justify-center items-center px-4 py-24 bg-[#1a1a1a] text-[#f8f8f8] border-t border-[#ffb366]/20">
+        <div className="w-full max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-[#ffb366]" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+            THE HUMAN IMPERATIVE
+          </h2>
+          <div className="mb-8 space-y-2 text-lg md:text-xl text-[#f8f8f8]/90">
+            <p>I DON'T CARE ABOUT YOUR COMPANY'S BOTTOM LINE.</p>
+            <p>I CARE ABOUT YOUR LIFE'S BOTTOM LINE.</p>
+            <p className="mt-4">AI is the most important revolution in human history.</p>
+            <p>But it's being sold to you like accounting software.</p>
+            <p>Boring. Corporate. Inhuman.</p>
+            <p className="mt-4">I believe AI should feel like magic, not work.</p>
+            <p>I believe learning should happen in comfort, not conference rooms.</p>
+            <p>I believe technology should amplify your humanity, not replace it.</p>
+            <p>I believe you deserve a personal guide through this revolution.</p>
+            <p className="mt-4">Everyone else is trying to make AI more corporate.</p>
+            <p>I'm trying to make it more human.</p>
+            <p className="mt-4">This is why I exist.</p>
+            <p>To keep you human while giving you superpowers.</p>
           </div>
-
-          <div>
-            <h2 className="text-2xl font-medium mb-4 text-primary-500">Contact</h2>
-            <p className="text-text/70">
-              Phone: +43 670 6066149<br />
-              Email: office@rawfiction.xyz
-            </p>
+          <div className="mt-8">
+            <span className="inline-block bg-[#ffb366] text-[#1a1a1a] px-8 py-4 rounded-full text-lg font-semibold shadow hover:bg-[#ff9933] transition-all duration-200" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+              This is exactly what I need
+            </span>
           </div>
-
-          <div>
-            <h2 className="text-2xl font-medium mb-4 text-primary-500">Business Information</h2>
-            <p className="text-text/70">
-              Business License: Werbung und Marktkommunikation, Organisation von Veranstaltungen, Märkten und Messen (Eventmanagement)<br />
-              Supervisory Authority: Magistratisches Bezirksamt für den 14. Bezirk
-            </p>
+        </div>
+      </section>
+      <section id="imprint" className="w-full flex flex-col justify-center items-center px-4 py-24 bg-[#1a1a1a] text-[#f8f8f8] border-t border-[#ffb366]/20">
+        <div className="w-full max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-[#ffb366]" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+            Imprint
+          </h2>
+          <div className="mb-4">
+            <span className="font-semibold">Raw Fiction e.U.</span><br />
+            Austrian corporation registered in Vienna<br />
+            Address: Gusenleithnergasse 28/18, 1140 Wien, Österreich<br />
+            Company Register Number: FN 519455f<br />
+            Commercial Court: Handelsgericht Wien<br />
+            Chamber Membership: Wirtschaftskammer Wien
           </div>
-        </motion.div>
-      </div>
-
-      {/* Decorative elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl" />
-      </div>
-    </section>
+          <div className="mb-4">
+            <span className="font-semibold">Contact:</span><br />
+            office@rawfiction.xyz
+          </div>
+          <div className="text-sm text-[#f8f8f8]/60 mt-8">
+            This website is operated by Raw Fiction e.U. All rights reserved.
+          </div>
+        </div>
+      </section>
+    </>
   );
 }; 

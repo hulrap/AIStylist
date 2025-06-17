@@ -9,6 +9,11 @@
     --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
   }
+  html, body {
+    font-family: 'Inter', 'Poppins', sans-serif;
+    background: #1a1a1a;
+    color: #f8f8f8;
+  }
 }
 
 @layer base {
@@ -19,7 +24,7 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-md bg-primary-500 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200;
+    @apply inline-flex items-center justify-center rounded-md bg-[#ffb366] px-6 py-3 text-sm font-medium text-[#1a1a1a] shadow-sm hover:bg-[#ff9933] focus:outline-none focus:ring-2 focus:ring-[#ffb366] focus:ring-offset-2 transition-all duration-200;
   }
 
   .btn-secondary {

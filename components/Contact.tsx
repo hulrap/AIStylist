@@ -1,91 +1,34 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { MessageCircle, Mail, Phone } from 'lucide-react';
 
-export const Contact = () => {
+export const Contact: React.FC = () => {
   return (
-    <section id="contact" className="min-h-screen flex items-center px-6 py-20">
-      <div className="max-w-4xl mx-auto text-center">
-        <motion.h2
-          className="text-4xl md:text-6xl font-light mb-16 text-[#ffb366]"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          READY TO BECOME AN AI NATIVE?
-        </motion.h2>
-        
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {[
-            { 
-              icon: <MessageCircle className="w-12 h-12" />, 
-              method: "Text me", 
-              contact: "+43 XXX XXX XXXX",
-              description: "For quick questions and initial contact"
-            },
-            { 
-              icon: <Mail className="w-12 h-12" />, 
-              method: "Email me", 
-              contact: "hello@aistylist.at",
-              description: "For detailed inquiries and scheduling"
-            },
-            { 
-              icon: <Phone className="w-12 h-12" />, 
-              method: "WhatsApp me", 
-              contact: "[QR code]",
-              description: "For ongoing support and quick help"
-            }
-          ].map((item, index) => (
-            <motion.div
-              key={item.method}
-              className="p-8 rounded-3xl border-2 border-[#ffb366]/30 bg-[#ffb366]/5 hover:bg-[#ffb366]/10 transition-all duration-300"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.2 }}
-              whileHover={{ scale: 1.05, y: -10 }}
-              viewport={{ once: true }}
-            >
-              <div className="text-[#ffb366] mb-4 flex justify-center">{item.icon}</div>
-              <h3 className="text-xl font-medium mb-2">{item.method}</h3>
-              <p className="text-[#ffb366] mb-2">{item.contact}</p>
-              <p className="text-sm text-[#f8f8f8]/70">{item.description}</p>
-            </motion.div>
-          ))}
+    <section id="contact" className="w-full min-h-screen flex flex-col justify-center items-center px-4 py-24 bg-[#1a1a1a] text-[#f8f8f8]">
+      <div className="w-full max-w-2xl mx-auto text-center">
+        <h2 className="text-2xl md:text-4xl font-bold mb-10 text-[#ffb366]" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+          START YOUR REVOLUTION
+        </h2>
+        <div className="mb-10 space-y-4 text-lg md:text-xl text-[#f8f8f8]/90">
+          <p>READY TO JOIN THE PERSONAL AI REVOLUTION?</p>
+          <div><span className="font-semibold text-[#ffb366]">Text me:</span> +43 XXX XXX XXXX</div>
+          <div><span className="font-semibold text-[#ffb366]">Email me:</span> hello@aistylist.at</div>
+          <div><span className="font-semibold text-[#ffb366]">WhatsApp me:</span> [Personal QR code]</div>
         </div>
-        
-        <motion.div
-          className="space-y-6 text-xl mb-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <p className="text-red-400">
-            No forms.<br />
-            No 'business inquiries.'<br />
-            No corporate bullshit.
-          </p>
-          
-          <p>Just message me like you'd message a friend:</p>
-          
-          <p className="text-[#ffb366] text-2xl font-medium">
-            'I think I need an AI Stylist.'
-          </p>
-          
-          <p className="text-[#ffb366] text-2xl font-light">
-            I'll come to you.
-          </p>
-        </motion.div>
-        
-        <motion.div
-          className="text-sm text-[#f8f8f8]/50 mt-16"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          viewport={{ once: true }}
-        >
-          Vienna, Austria • The First Personal AI Mentor
-        </motion.div>
+        <div className="mb-8 space-y-2 text-lg md:text-xl text-[#f8f8f8]/90">
+          <p>No contact forms.</p>
+          <p>No 'discovery calls.'</p>
+          <p>No corporate theater.</p>
+        </div>
+        <div className="mb-8 text-lg md:text-xl text-[#f8f8f8]/90">
+          Just message me like you'd message any friend:
+        </div>
+        <div className="mb-8 text-2xl font-semibold text-[#ffb366]">
+          'I think I need an AI Stylist.'
+        </div>
+        <div className="text-xl text-[#ffb366] space-y-1">
+          <p>I'll bring the pizza.</p>
+          <p>You bring the curiosity.</p>
+          <p>We'll build your superpowers together.</p>
+        </div>
       </div>
     </section>
   );

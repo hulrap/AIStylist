@@ -1,87 +1,43 @@
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import React from 'react';
 
-export const Problem = () => {
+export const Problem: React.FC = () => {
   return (
-    <section id="problem" className="relative min-h-screen flex items-center px-6 py-20 overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary-950/20 via-background to-background" />
-      
-      <div className="relative max-w-6xl mx-auto">
-        <motion.div
-          className="grid md:grid-cols-2 gap-16 items-center"
-          initial={{ opacity: 0, y: 100 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <div className="card">
-            <h2 className="heading-2 mb-8 text-primary-500">
-              EVERY AI 'CONSULTANT' IN AUSTRIA WANTS TO:
-            </h2>
-            <ul className="space-y-4 text-xl text-red-400 mb-8">
-              {[
-                "Optimize your business processes",
-                "Increase your company efficiency",
-                "Save your organization money",
-                "Schedule meetings in conference rooms",
-                "Sell you enterprise solutions"
-              ].map((item, index) => (
-                <motion.li 
-                  key={index}
-                  whileHover={{ x: 10 }} 
-                  className="flex items-center"
-                >
-                  <span className="w-2 h-2 bg-red-400 rounded-full mr-4"></span>
-                  {item}
-                </motion.li>
-              ))}
-            </ul>
-          </div>
-          
-          <div className="card">
-            <h2 className="heading-2 mb-8 text-primary-500">
-              I WANT TO:
-            </h2>
-            <ul className="space-y-4 text-xl text-green-400 mb-8">
-              {[
-                "Make you personally more powerful",
-                "Help you work fewer hours for same results",
-                "Keep you human in an AI world",
-                "Sit on your couch and actually help YOU",
-                "Give you superpowers, not software"
-              ].map((item, index) => (
-                <motion.li 
-                  key={index}
-                  whileHover={{ x: 10 }} 
-                  className="flex items-center"
-                >
-                  <span className="w-2 h-2 bg-green-400 rounded-full mr-4"></span>
-                  {item}
-                </motion.li>
-              ))}
-            </ul>
-          </div>
-        </motion.div>
-        
-        <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          viewport={{ once: true }}
-        >
-          <p className="heading-3 text-primary-500">
-            This is the difference between a corporate consultant<br />
-            and a personal mentor.
-          </p>
-        </motion.div>
+    <section id="problem" className="w-full min-h-screen flex flex-col justify-center items-center px-4 py-24 bg-[#1a1a1a] text-[#f8f8f8]">
+      <h2 className="text-2xl md:text-4xl font-bold mb-12 text-[#ffb366] text-center" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+        THE GREAT DIVIDE
+      </h2>
+      <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 mb-16">
+        <div>
+          <h3 className="text-xl md:text-2xl font-semibold mb-6 text-red-400" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+            EVERY AI CONSULTANT IN AUSTRIA PROMISES TO:
+          </h3>
+          <ul className="space-y-4 text-lg md:text-xl text-red-300 pl-4">
+            <li>→ Transform your business processes</li>
+            <li>→ Revolutionize your company workflows</li>
+            <li>→ Maximize your organizational efficiency</li>
+            <li>→ Schedule you into conference room hell</li>
+            <li>→ Sell you software that nobody understands</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xl md:text-2xl font-semibold mb-6 text-green-400" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+            I PROMISE TO:
+          </h3>
+          <ul className="space-y-4 text-lg md:text-xl text-green-300 pl-4">
+            <li>→ Transform your daily life</li>
+            <li>→ Revolutionize your personal workflow</li>
+            <li>→ Maximize your human potential</li>
+            <li>→ Meet you where you're comfortable</li>
+            <li>→ Give you superpowers you'll actually use</li>
+          </ul>
+        </div>
       </div>
-
-      {/* Decorative elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 left-1/4 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl" />
+      <div className="w-full max-w-2xl mx-auto text-center mt-8">
+        <p className="text-xl md:text-2xl font-medium text-[#ffb366]" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+          The difference?<br />
+          They serve businesses that happen to employ humans.<br />
+          I serve humans who happen to work for businesses.
+        </p>
       </div>
     </section>
   );

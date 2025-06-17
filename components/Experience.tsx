@@ -1,96 +1,31 @@
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import React from 'react';
 
-export const Experience = () => {
-  const experiences = [
-    {
-      title: 'AI Stylist',
-      description: 'Your personal AI mentor for style and fashion',
-      icon: '👔',
-      features: [
-        'Personalized style recommendations',
-        'Outfit coordination',
-        'Trend analysis',
-        'Shopping guidance'
-      ]
-    },
-    {
-      title: 'AI Trainer',
-      description: 'Your personal AI fitness coach',
-      icon: '💪',
-      features: [
-        'Custom workout plans',
-        'Form correction',
-        'Progress tracking',
-        'Nutrition advice'
-      ]
-    },
-    {
-      title: 'AI Tutor',
-      description: 'Your personal AI language teacher',
-      icon: '🗣️',
-      features: [
-        'Personalized lessons',
-        'Pronunciation practice',
-        'Grammar correction',
-        'Cultural insights'
-      ]
-    }
-  ];
-
+export const Experience: React.FC = () => {
   return (
-    <section id="experience" className="relative min-h-screen flex items-center px-6 py-20 overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-primary-950/20 to-background" />
-      
-      <div className="relative max-w-6xl mx-auto">
-        <motion.h2
-          className="heading-2 text-center mb-16 text-primary-500"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          EXPERIENCE THE POWER OF AI
-        </motion.h2>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {experiences.map((exp, index) => (
-            <motion.div
-              key={exp.title}
-              className="card group"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.05, y: -10 }}
-              viewport={{ once: true }}
-            >
-              <div className="text-4xl mb-4">{exp.icon}</div>
-              <h3 className="text-xl font-medium mb-2 text-primary-500">{exp.title}</h3>
-              <p className="text-text/70 mb-6">{exp.description}</p>
-              <ul className="space-y-3">
-                {exp.features.map((feature, i) => (
-                  <motion.li
-                    key={i}
-                    className="flex items-center text-sm"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 + i * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary-500 mr-2" />
-                    {feature}
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
+    <section id="experience" className="w-full min-h-screen flex flex-col justify-center items-center px-4 py-24 bg-[#1a1a1a] text-[#f8f8f8]">
+      <div className="w-full max-w-3xl mx-auto text-center mb-12">
+        <h2 className="text-2xl md:text-4xl font-bold mb-8 text-[#ffb366]" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+          THE ANTI-MEETING
+        </h2>
+        <div className="space-y-4 text-lg md:text-xl text-[#f8f8f8]/90 mb-8">
+          <p>FORGET EVERYTHING YOU KNOW ABOUT AI CONSULTING.</p>
+          <p>This isn't a meeting. It's a mentoring session.</p>
+          <p>This isn't your office. It's your living room.</p>
+          <p>This isn't PowerPoint. It's pizza and conversation.</p>
+          <p>This isn't corporate training. It's personal transformation.</p>
         </div>
-      </div>
-
-      {/* Decorative elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl" />
+        <div className="space-y-2 text-base md:text-lg text-[#f8f8f8]/80 mb-8">
+          <p>I don't present to you.</p>
+          <p>I sit with you.</p>
+          <p>I don't sell you solutions.</p>
+          <p>I give you superpowers.</p>
+          <p>I don't leave you with a proposal.</p>
+          <p>I leave you with abilities.</p>
+        </div>
+        <div className="mt-10 space-y-3 text-lg md:text-xl text-[#ffb366]">
+          <p>And when you text me at 9 PM with a question?</p>
+          <p>I text back. Because that's what friends do.</p>
+        </div>
       </div>
     </section>
   );

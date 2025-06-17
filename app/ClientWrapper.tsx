@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Hero } from '@/components/Hero';
@@ -9,59 +9,30 @@ import { Category } from '@/components/Category';
 import { Experience } from '@/components/Experience';
 import { Packages } from '@/components/Packages';
 import { Imprint } from '@/components/Imprint';
-import { CustomCursor } from '@/components/CustomCursor';
 import { Contact } from '@/components/Contact';
-import { Navigation } from '@/components/Navigation';
-
-interface MousePosition {
-  x: number;
-  y: number;
-}
-
-interface Section {
-  id: string;
-  title: string;
-}
-
-const sections: Section[] = [
-  { id: 'hero', title: 'The Revelation' },
-  { id: 'problem', title: 'The Problem' },
-  { id: 'category', title: 'The First' },
-  { id: 'experience', title: 'The Experience' },
-  { id: 'packages', title: 'Three Ways' },
-  { id: 'manifesto', title: 'The Manifesto' },
-  { id: 'contact', title: 'Start Now' }
-];
 
 export default function ClientWrapper() {
-  const [mousePosition, setMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
-  const [currentSection, setCurrentSection] = useState<number>(0);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
+  // Only for Hero CTA scroll
   const scrollToSection = (index: number) => {
-    const element = document.getElementById(sections[index].id);
+    const sectionIds = [
+      'hero',
+      'problem',
+      'category',
+      'experience',
+      'packages',
+      'manifesto',
+      'contact',
+    ];
+    const element = document.getElementById(sectionIds[index]);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
-      setCurrentSection(index);
     }
   };
 
   return (
-    <main className="min-h-screen bg-background text-text antialiased">
+    <main className="min-h-screen bg-[#1a1a1a] text-[#f8f8f8] antialiased">
       <Header />
-      
-      {/* Add padding-top to account for fixed header */}
       <div className="pt-16">
-        <CustomCursor mousePosition={mousePosition} />
-        <Navigation currentSection={currentSection} scrollToSection={scrollToSection} sections={sections} />
         <Hero scrollToSection={scrollToSection} />
         <Problem />
         <Category />
@@ -70,7 +41,6 @@ export default function ClientWrapper() {
         <Contact />
         <Imprint />
       </div>
-
       <Footer />
     </main>
   );
