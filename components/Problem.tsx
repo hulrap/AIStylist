@@ -26,21 +26,20 @@ export const Problem: React.FC<ProblemProps> = ({
   useEffect(() => {
     if (showContent && !displayedContent) {
       const content = `EVERY AI 'CONSULTANT' IN AUSTRIA WANTS TO:
-- Optimize your business processes
-- Increase your company efficiency  
-- Save your organization money
-- Schedule meetings in conference rooms
-- Sell you enterprise solutions
+Optimize your business processes
+Increase your company efficiency  
+Save your organization money
+Schedule meetings in conference rooms
+Sell you enterprise solutions
 
 I WANT TO:
-- Make you personally more powerful
-- Help you work fewer hours for same results
-- Keep you human in an AI world
-- Sit on your couch and actually help YOU
-- Give you superpowers, not software
+Make you personally more powerful
+Help you work fewer hours for same results
+Keep you human in an AI world
+Sit on your couch and actually help YOU
+Give you superpowers, not software
 
-This is the difference between a corporate consultant
-and a personal mentor.`;
+This is the difference between a corporate consultant and a personal mentor.`;
 
       let currentText = '';
       let currentIndex = 0;
