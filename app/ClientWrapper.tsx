@@ -33,7 +33,7 @@ export default function ClientWrapper() {
     <main className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-fg)] antialiased">
       <Header />
       <div className="pt-16">
-        <Hero scrollToSection={scrollToSection} />
+        <Hero />
         <Problem />
         <Category />
         <Experience />

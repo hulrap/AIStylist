@@ -1,57 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useOverlayStack, SectionId } from './OverlayStackContext';
 
-const sections = [
+const sections: { id: SectionId; title: string }[] = [
   { id: 'hero', title: 'The Revelation' },
   { id: 'problem', title: 'The Problem' },
   { id: 'category', title: 'The First' },
   { id: 'experience', title: 'The Experience' },
   { id: 'packages', title: 'Three Ways' },
-  { id: 'manifesto', title: 'The Manifesto' },
-  { id: 'contact', title: 'Start Now' }
+  { id: 'contact', title: 'Start Now' },
+  { id: 'imprint', title: 'Imprint' }
 ];
 
 export const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [currentSection, setCurrentSection] = useState(0);
+  const { isOverlayOpen, bringToFront } = useOverlayStack();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 120;
-      let found = 0;
-      for (let i = 0; i < sections.length; i++) {
-        const el = document.getElementById(sections[i].id);
-        if (el && el.offsetTop <= scrollPosition) {
-          found = i;
-        }
-      }
-      setCurrentSection(found);
-    };
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToSection = (index: number) => {
-    const element = document.getElementById(sections[index].id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setCurrentSection(index);
-      setMenuOpen(false);
-    }
+  const handleNavigation = (id: SectionId) => {
+    bringToFront(id);
+    setMenuOpen(false);
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass-nav border-b border-accent shadow-lg">
+    <header className="fixed top-0 left-0 right-0 z-[60] glass-nav border-b border-accent shadow-lg">
       <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
         <span className="text-2xl md:text-3xl font-bold brand-gradient tracking-tight select-none font-brand">
           AI Stylist
         </span>
         <nav className="hidden md:flex space-x-8">
-          {sections.map((section, idx) => (
+          {sections.map((section) => (
             <button
               key={section.id}
-              onClick={() => scrollToSection(idx)}
-              className={`nav-link ${currentSection === idx ? 'nav-link-active' : ''}`}
+              onClick={() => handleNavigation(section.id)}
+              className={`nav-link ${isOverlayOpen(section.id) ? 'nav-link-active' : ''}`}
             >
               {section.title}
             </button>
@@ -70,16 +50,20 @@ export const Header: React.FC = () => {
       </div>
       {/* Mobile menu overlay */}
       {menuOpen && (
-        <div className="fixed inset-0 bg-[var(--brand-bg)]/95 flex flex-col items-center justify-center z-50 transition-all">
-          {sections.map((section, idx) => (
-            <button
-              key={section.id}
-              onClick={() => scrollToSection(idx)}
-              className={`text-2xl font-bold mb-8 tracking-tight nav-link px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] ${currentSection === idx ? 'nav-link-active' : ''}`}
-            >
-              {section.title}
-            </button>
-          ))}
+        <div className="md:hidden absolute top-full left-0 right-0 bg-[#23243a]/95 backdrop-blur-lg border-b border-accent">
+          <nav className="flex flex-col py-4">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => handleNavigation(section.id)}
+                className={`px-6 py-3 text-left hover:bg-white/5 transition-colors ${
+                  isOverlayOpen(section.id) ? 'text-[var(--brand-accent)]' : 'text-[#b0b0c3]'
+                }`}
+              >
+                {section.title}
+              </button>
+            ))}
+          </nav>
         </div>
       )}
     </header>
