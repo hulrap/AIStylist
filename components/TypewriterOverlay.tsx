@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useOverlayStack, SectionId } from './OverlayStackContext';
 import { HiOutlinePaperAirplane } from 'react-icons/hi';
+import { useSound } from '../lib/useSound';
 
 interface Position {
   x: number;
@@ -59,6 +60,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     unmaximizeWindow,
     getWindowState
   } = useOverlayStack();
+  const { play: playTypeSound } = useSound('/sounds/type.mp3');
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -106,25 +108,26 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
-  // Reset state when window becomes inactive
+  // Remove the reset effect when window becomes inactive
   useEffect(() => {
     if (!isActive) {
-      setHasStartedTyping(false);
-      setChatHistory([]);
-      currentLineRef.current = 0;
+      // Only clear typing timeout, don't reset content
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     }
   }, [isActive]);
 
-  // Start typing when window becomes active or initially visible
+  // Modify the typing start effect to preserve content
   useEffect(() => {
     if ((isActive || showInitialContent) && !hasStartedTyping && content) {
       setHasStartedTyping(true);
-      // Clear any existing history before starting
-      setChatHistory([]);
-      currentLineRef.current = 0;
-      startTyping();
+      // Only clear history if it's empty
+      if (chatHistory.length === 0) {
+        startTyping();
+      }
     }
-  }, [isActive, showInitialContent, content]);
+  }, [isActive, showInitialContent, content, chatHistory.length]);
 
   const startTyping = () => {
     if (!content) return;
@@ -156,24 +159,28 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
           return newHistory;
         });
         
+        // Play typewriter sound for each character
+        playTypeSound();
+        
         currentCharIndex++;
         typingTimeoutRef.current = setTimeout(typeNextCharacter, 25);
       } else {
-        // Move to next line and add it immediately if it's empty
+        // Move to next line
         currentLineRef.current++;
-        if (currentLineRef.current < lines.length) {
-          if (lines[currentLineRef.current].trim() === '') {
-            setChatHistory(prev => {
-              const newHistory = [...prev];
-              newHistory.push({ text: '', type: 'system' });
-              return newHistory;
-            });
-            currentLineRef.current++;
-          }
-        }
         currentCharIndex = 0;
         currentText = '';
-        typingTimeoutRef.current = setTimeout(typeNextCharacter, 250);
+        
+        // Add empty lines immediately
+        while (currentLineRef.current < lines.length && lines[currentLineRef.current].trim() === '') {
+          setChatHistory(prev => [...prev, { text: '', type: 'system' }]);
+          currentLineRef.current++;
+        }
+        
+        if (currentLineRef.current < lines.length) {
+          typingTimeoutRef.current = setTimeout(typeNextCharacter, 250);
+        } else {
+          setIsTyping(false);
+        }
       }
     };
 
@@ -351,19 +358,19 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   return (
     <div
       ref={overlayRef}
-      className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
-        isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
-      } ${forceVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+      className={`fixed bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${
+        isWindowMaximized ? 'w-full h-full left-0 top-0' : ''
+      }`}
       style={{
-        left: isWindowMaximized ? 0 : position.x,
-        top: isWindowMaximized ? 0 : position.y,
         width: isWindowMaximized ? '100%' : size.width,
         height: isWindowMaximized ? '100%' : size.height,
-        transform: `${isWindowMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
-        transition: isDragging ? 'none' : 'all 0.2s ease-out'
+        left: isWindowMaximized ? 0 : position.x,
+        top: isWindowMaximized ? 0 : position.y,
+        zIndex: stackIndex,
+        display: (isActive || forceVisible) && !windowState?.isMinimized ? 'block' : 'none',
       }}
-      onMouseMove={handleLocalMouseMove}
       onMouseDown={handleMouseDown}
+      onMouseMove={handleLocalMouseMove}
     >
       {/* Light Effect */}
       <div 
@@ -404,57 +411,46 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-col h-[calc(100%-2.5rem)]">
-        <div className="flex-1 p-6 overflow-y-auto">
-          {/* Chat Messages */}
-          <div className="space-y-4">
-            {chatHistory.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
-              >
-                <div
-                  className={`max-w-[80%] px-4 py-2 rounded-2xl ${
-                    msg.type === 'user'
-                      ? 'bg-purple-500/30 text-purple-100'
-                      : 'bg-white/10 text-white/90 font-mono text-sm leading-relaxed'
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {chatHistory.map((msg, index) => (
+          <div
+            key={index}
+            className={`whitespace-pre-wrap ${
+              msg.type === 'user' ? 'text-blue-600' : 'text-gray-800'
+            }`}
+          >
+            {msg.text}
+          </div>
+        ))}
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Chat Interface */}
+      {(isActive || showInitialContent) && (
+        <div className="p-4 bg-black/30 border-t border-white/20">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Send me a message..."
+              className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={isSending}
+              className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
+            >
+              {isSending ? (
+                <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
+              ) : (
+                <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
+              )}
+            </button>
           </div>
         </div>
-
-        {/* Chat Interface */}
-        {(isActive || showInitialContent) && (
-          <div className="p-4 bg-black/30 border-t border-white/20">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Send me a message..."
-                className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={isSending}
-                className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
-              >
-                {isSending ? (
-                  <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
-                ) : (
-                  <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Resize Handle */}
       {!isWindowMaximized && (
