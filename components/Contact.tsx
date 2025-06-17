@@ -1,7 +1,6 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-const title = 'START YOUR TRANSFORMATION';
 const lines = [
   'READY TO BECOME AN AI NATIVE?',
   'Text me: +43 XXX XXX XXXX',
@@ -13,11 +12,11 @@ const lines = [
   "I'll come to you."
 ];
 
-export const Contact: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean; onUserInteraction?: () => void }> = (props) => {
+export const Contact: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
   return (
     <TypewriterOverlay
       id="contact"
-      title={title}
+      title="Contact"
       lines={lines}
       accentColor="#fbbf24"
       bgGradient="bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a]"

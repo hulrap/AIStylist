@@ -1,7 +1,6 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-const title = 'THE ANTI-MEETING';
 const lines = [
   'FORGET EVERYTHING YOU KNOW ABOUT AI CONSULTING.',
   "This isn't a meeting. It's a mentoring session.",
@@ -18,11 +17,11 @@ const lines = [
   "I text back. Because that's what friends do."
 ];
 
-export const Experience: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean; onUserInteraction?: () => void }> = (props) => {
+export const Experience: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
   return (
     <TypewriterOverlay
       id="experience"
-      title={title}
+      title="The Experience"
       lines={lines}
       accentColor="#fbbf24"
       bgGradient="bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a]"

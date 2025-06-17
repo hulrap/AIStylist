@@ -1,7 +1,6 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-const title = 'IMPRINT';
 const lines = [
   'AI Stylist is operated by QUEER MEDIA LITERACY e.V.',
   'Austrian association registered in Vienna.',
@@ -14,11 +13,11 @@ const lines = [
   'All rights reserved.'
 ];
 
-export const Imprint: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean; onUserInteraction?: () => void }> = (props) => {
+export const Imprint: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
   return (
     <TypewriterOverlay
       id="imprint"
-      title={title}
+      title="Imprint"
       lines={lines}
       accentColor="#fbbf24"
       bgGradient="bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a]"
