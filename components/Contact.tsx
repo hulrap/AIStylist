@@ -9,7 +9,6 @@ interface ContactProps {
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
   showContent?: boolean;
-  className?: string;
 }
 
 export const Contact: React.FC<ContactProps> = ({
@@ -19,7 +18,6 @@ export const Contact: React.FC<ContactProps> = ({
   forceVisible = false,
   initialPosition,
   showContent = false,
-  className
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
 
@@ -36,7 +34,7 @@ No 'business inquiries.'
 No corporate bullshit.
 
 Just message me like you'd message a friend:
-"I think I need an AI Stylist."
+'I think I need an AI Stylist.'
 
 I'll come to you.`;
 
@@ -65,7 +63,6 @@ I'll come to you.`;
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
-      className={className}
     />
   );
 }; 

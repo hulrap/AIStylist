@@ -9,7 +9,6 @@ interface ExperienceProps {
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
   showContent?: boolean;
-  className?: string;
 }
 
 export const Experience: React.FC<ExperienceProps> = ({
@@ -19,7 +18,6 @@ export const Experience: React.FC<ExperienceProps> = ({
   forceVisible = false,
   initialPosition,
   showContent = false,
-  className
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
 
@@ -37,7 +35,6 @@ And I teach you to be an AI native.
 No PowerPoints.
 No corporate jargon.
 No 'solutions.'
-
 Just you, me, and the tools that will change your life.
 
 Text me when you have questions later.
@@ -69,7 +66,6 @@ Because I'm your AI buddy, not your vendor.`;
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
-      className={className}
     />
   );
 }; 

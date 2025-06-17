@@ -13,16 +13,15 @@ import { useOverlayStack, SectionId } from './OverlayStackContext';
 const INITIAL_CASCADE_OFFSET = 32;
 const WINDOW_APPEAR_DELAY = 200;
 
-// Reverse the order so ai-stylist appears last (on top)
 const WINDOW_ORDER: SectionId[] = [
-  'credits',
-  'imprint',
-  'contact',
-  'packages',
-  'experience',
-  'first',
+  'ai-stylist',
   'problem',
-  'ai-stylist'
+  'first',
+  'experience',
+  'packages',
+  'contact',
+  'imprint',
+  'credits'
 ];
 
 interface MinimizedWindow {
@@ -31,16 +30,9 @@ interface MinimizedWindow {
   icon: string;
 }
 
-interface WindowDimensions {
-  width: number;
-  height: number;
-}
-
 export const DesktopLayout: React.FC = () => {
   const { openOverlay, closeOverlay, isOpen, activeOverlay, bringToFront } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [windowDimensions, setWindowDimensions] = useState<WindowDimensions>({ width: 1024, height: 768 });
-  const [isClient, setIsClient] = useState(false);
   const [windowsVisible, setWindowsVisible] = useState<Record<SectionId, boolean>>(() => {
     const initial: Record<SectionId, boolean> = {
       'ai-stylist': false,
@@ -56,35 +48,9 @@ export const DesktopLayout: React.FC = () => {
   });
   const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
 
-  // Mark when component is mounted on client
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Initialize window dimensions on client side
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const updateWindowDimensions = () => {
-        setWindowDimensions({
-          width: window.innerWidth,
-          height: window.innerHeight
-        });
-      };
-
-      // Set initial dimensions
-      updateWindowDimensions();
-
-      // Add event listener
-      window.addEventListener('resize', updateWindowDimensions);
-
-      // Cleanup
-      return () => window.removeEventListener('resize', updateWindowDimensions);
-    }
-  }, []);
-
   useEffect(() => {
     // Initial cascade animation
-    if (!hasInitialized && isClient) {
+    if (!hasInitialized) {
       WINDOW_ORDER.forEach((id, index) => {
         setTimeout(() => {
           openOverlay(id);
@@ -93,7 +59,7 @@ export const DesktopLayout: React.FC = () => {
       });
       setHasInitialized(true);
     }
-  }, [hasInitialized, openOverlay, isClient]);
+  }, [hasInitialized, openOverlay]);
 
   const handleIconClick = (id: SectionId) => {
     if (isOpen(id)) {
@@ -114,20 +80,12 @@ export const DesktopLayout: React.FC = () => {
   };
 
   const getInitialPosition = (id: SectionId) => {
-    // Center all windows with cascade offset
-    const baseX = Math.max(0, (windowDimensions.width - (id === 'ai-stylist' ? 800 : 600)) / 2);
-    const baseY = Math.max(0, (windowDimensions.height - (id === 'ai-stylist' ? 600 : 400)) / 2);
     const index = WINDOW_ORDER.indexOf(id);
     return {
-      x: baseX + (INITIAL_CASCADE_OFFSET * index),
-      y: baseY + (INITIAL_CASCADE_OFFSET * index)
+      x: INITIAL_CASCADE_OFFSET * index,
+      y: INITIAL_CASCADE_OFFSET * index
     };
   };
-
-  // Don't render anything until we're on the client
-  if (!isClient) {
-    return null;
-  }
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-transparent">
@@ -187,24 +145,13 @@ export const DesktopLayout: React.FC = () => {
       <TypewriterOverlay
         id="ai-stylist"
         title="AI Stylist"
-        content={`Finally.
-An AI expert who comes to YOUR place.
-Not your office. Your home.
-With pizza. And beer.
-And zero corporate bullshit.
-
-In a world where AI consultants treat you like a company,
-I treat you like a human.
-
-Because AI isn't about making businesses more efficient.
-It's about making humans more powerful.`}
+        content="Finally.\nAn AI expert who comes to YOUR place.\nNot your office. Your home.\nWith pizza. And beer.\nAnd zero corporate bullshit."
         stackIndex={WINDOW_ORDER.indexOf('ai-stylist')}
         isActive={activeOverlay === 'ai-stylist'}
         forceVisible={windowsVisible['ai-stylist']}
         initialPosition={getInitialPosition('ai-stylist')}
         showInitialContent={true}
         onMinimize={() => handleMinimize('ai-stylist', 'AI Stylist', '✨')}
-        className="w-[800px] h-[600px]"
       />
       <Problem
         id="problem"
@@ -213,7 +160,6 @@ It's about making humans more powerful.`}
         forceVisible={windowsVisible['problem']}
         initialPosition={getInitialPosition('problem')}
         showContent={activeOverlay === 'problem'}
-        className="w-[600px] h-[400px]"
       />
       <Category
         id="first"
@@ -222,7 +168,6 @@ It's about making humans more powerful.`}
         forceVisible={windowsVisible['first']}
         initialPosition={getInitialPosition('first')}
         showContent={activeOverlay === 'first'}
-        className="w-[600px] h-[400px]"
       />
       <Experience
         id="experience"
@@ -231,7 +176,6 @@ It's about making humans more powerful.`}
         forceVisible={windowsVisible['experience']}
         initialPosition={getInitialPosition('experience')}
         showContent={activeOverlay === 'experience'}
-        className="w-[600px] h-[400px]"
       />
       <Packages
         id="packages"
@@ -240,7 +184,6 @@ It's about making humans more powerful.`}
         forceVisible={windowsVisible['packages']}
         initialPosition={getInitialPosition('packages')}
         showContent={activeOverlay === 'packages'}
-        className="w-[600px] h-[400px]"
       />
       <Contact
         id="contact"
@@ -249,7 +192,6 @@ It's about making humans more powerful.`}
         forceVisible={windowsVisible['contact']}
         initialPosition={getInitialPosition('contact')}
         showContent={activeOverlay === 'contact'}
-        className="w-[600px] h-[400px]"
       />
       <Imprint
         id="imprint"
@@ -258,7 +200,6 @@ It's about making humans more powerful.`}
         forceVisible={windowsVisible['imprint']}
         initialPosition={getInitialPosition('imprint')}
         showContent={activeOverlay === 'imprint'}
-        className="w-[600px] h-[400px]"
       />
 
       {/* Taskbar */}
