@@ -85,26 +85,26 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
   return (
     <div
-      className={`fixed flex items-center justify-center transition-all duration-500`}
+      className="fixed z-[60] transition-all duration-500"
       style={{
-        left: `${32 + offset}px`,
-        top: `${32 + offset}px`,
-        zIndex: 50 + stackIndex,
-        width: 'calc(100% - 64px)',
-        maxWidth: 900,
-        margin: '0 auto',
+        left: '50%',
+        top: '50%',
+        transform: `translate(-50%, -50%) translate(${offset}px, ${offset}px)`,
         pointerEvents: isActive ? 'auto' : 'none',
         opacity: isActive ? 1 : 0.85,
         boxShadow: isActive
           ? '0 8px 32px 0 rgba(0,0,0,0.25)'
           : '0 2px 8px 0 rgba(0,0,0,0.10)',
-        position: 'absolute',
         transition: 'box-shadow 0.3s, opacity 0.3s',
+        width: '100%',
+        maxWidth: 900,
+        maxHeight: '90vh',
+        overflow: 'visible',
       }}
     >
       <div
-        className={`w-full max-w-3xl mx-auto rounded-2xl shadow-2xl border bg-white/5 backdrop-blur-lg relative overflow-hidden ${bgGradient}`}
-        style={{ borderColor: borderColor }}
+        className={`w-full max-w-3xl mx-auto rounded-2xl shadow-2xl border bg-white/5 backdrop-blur-lg relative overflow-auto ${bgGradient}`}
+        style={{ borderColor: borderColor, maxHeight: '90vh' }}
       >
         {/* Window bar */}
         <div
