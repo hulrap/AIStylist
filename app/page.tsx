@@ -14,14 +14,14 @@ import { OverlayStackProvider, useOverlayStack, SectionId } from '@/components/O
 
 // Order of sections for initial cascade
 const initialSections: SectionId[] = [
-  'problem',
-  'category',
-  'experience',
-  'packages',
-  'contact',
-  'imprint',
+  'hero',
   'footer',
-  'hero'
+  'imprint',
+  'contact',
+  'packages',
+  'experience',
+  'category',
+  'problem'
 ];
 
 const overlayComponentsMap = {
@@ -64,35 +64,14 @@ function OverlayStackRenderer() {
         {overlayStack.map((id, i) => {
           const Component = overlayComponentsMap[id];
           if (!Component) return null;
-          
-          // Calculate position for cascading effect
-          const baseOffset = 32;
-          const stackOffset = Math.min(i * 16, 120); // Cap the maximum offset
 
           return (
-            <div
+            <Component
               key={id}
-              style={{
-                position: 'absolute',
-                left: `${baseOffset + stackOffset}px`,
-                top: `${baseOffset}px`,
-                width: '420px',
-                height: '540px',
-                maxWidth: 'calc(100vw - 64px)',
-                maxHeight: 'calc(100vh - 96px)',
-                zIndex: 10 + i,
-                pointerEvents: i === overlayStack.length - 1 ? 'auto' : 'none',
-                transition: 'all 0.3s ease-out',
-                opacity: isInitializing ? 0.85 : (i === overlayStack.length - 1 ? 1 : 0.85),
-                transform: `scale(${isInitializing ? 0.95 : 1})`,
-              }}
-            >
-              <Component
-                stackIndex={i}
-                isActive={!isInitializing && i === overlayStack.length - 1}
-                forceVisible={true}
-              />
-            </div>
+              stackIndex={i}
+              isActive={!isInitializing && i === overlayStack.length - 1}
+              forceVisible={true}
+            />
           );
         })}
       </div>
