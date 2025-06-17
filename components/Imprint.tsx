@@ -25,15 +25,14 @@ export const Imprint: React.FC<ImprintProps> = ({
 
   useEffect(() => {
     if (showContent && !displayedContent) {
-      const content = `QUEER MEDIA LITERACY e.V.
-An Austrian association registered in Vienna
+      const content = `Raw Fiction e.U.
+An Austrian company registered in Vienna
 
-ZVR Number: 1689372191
-Founded: 21.09.2024
-Address: c/o 1060 Wien, Mariahilfer Straße 49/15
+Founded: 03.10.2019
+Address: Gusenleithnergasse 28/18, 1140 Wien
 Jurisdiction: Landespolizeidirektion Wien
 
-Contact: admin@queer-alliance.com
+Contact: hulanraphael@gmail.com
 
 Privacy Policy:
 We collect only technical data necessary for security and functionality.
