@@ -32,6 +32,12 @@ export const Contact: React.FC<ContactProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
+    if (!isActive) {
+      setDisplayedContent('');
+    }
+  }, [isActive]);
+
+  useEffect(() => {
     if (showContent && isActive && !displayedContent) {
       const content = `READY TO BECOME AN AI NATIVE?
 

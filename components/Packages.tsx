@@ -32,6 +32,12 @@ export const Packages: React.FC<PackagesProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
+    if (!isActive) {
+      setDisplayedContent('');
+    }
+  }, [isActive]);
+
+  useEffect(() => {
     if (showContent && isActive && !displayedContent) {
       const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
 

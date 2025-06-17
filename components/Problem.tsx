@@ -32,6 +32,12 @@ export const Problem: React.FC<ProblemProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
+    if (!isActive) {
+      setDisplayedContent('');
+    }
+  }, [isActive]);
+
+  useEffect(() => {
     if (showContent && isActive && !displayedContent) {
       const content = `Every AI consultant wants to optimize your business processes
 Increase your company efficiency, save your organization money

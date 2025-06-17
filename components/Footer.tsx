@@ -22,6 +22,12 @@ export const Footer: React.FC<FooterProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
+    if (!isActive) {
+      setDisplayedContent('');
+    }
+  }, [isActive]);
+
+  useEffect(() => {
     if (showContent && isActive && !displayedContent) {
       const content = `Made with ❤️ by:
 

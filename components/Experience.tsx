@@ -32,6 +32,12 @@ export const Experience: React.FC<ExperienceProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
+    if (!isActive) {
+      setDisplayedContent('');
+    }
+  }, [isActive]);
+
+  useEffect(() => {
     if (showContent && isActive && !displayedContent) {
       const content = `This is not a business meeting.
 This is personal mentoring and learning experience.

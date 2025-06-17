@@ -32,6 +32,12 @@ export const Imprint: React.FC<ImprintProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
+    if (!isActive) {
+      setDisplayedContent('');
+    }
+  }, [isActive]);
+
+  useEffect(() => {
     if (showContent && isActive && !displayedContent) {
       const content = `Raw Fiction e.U.
 An Austrian company registered in Vienna

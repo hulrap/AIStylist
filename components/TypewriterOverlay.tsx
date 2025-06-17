@@ -106,25 +106,30 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
-  // Reset state when window becomes inactive
+  // Reset state when window becomes inactive or minimized
   useEffect(() => {
-    if (!isActive) {
+    const windowState = getWindowState(id);
+    if (!isActive || windowState?.isMinimized) {
       setHasStartedTyping(false);
       setChatHistory([]);
       currentLineRef.current = 0;
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     }
-  }, [isActive]);
+  }, [isActive, id, getWindowState]);
 
-  // Start typing when window becomes active or initially visible
+  // Start typing when window becomes active and visible
   useEffect(() => {
-    if ((isActive || showInitialContent) && !hasStartedTyping && content) {
+    const windowState = getWindowState(id);
+    if ((isActive || showInitialContent) && !hasStartedTyping && content && !windowState?.isMinimized) {
       setHasStartedTyping(true);
       // Clear any existing history before starting
       setChatHistory([]);
       currentLineRef.current = 0;
       startTyping();
     }
-  }, [isActive, showInitialContent, content]);
+  }, [isActive, showInitialContent, content, id, getWindowState]);
 
   const startTyping = () => {
     if (!content) return;
@@ -341,6 +346,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   };
 
   const handleMinimize = () => {
+    minimizeWindow(id, title, 'window');
     if (onMinimize) onMinimize();
   };
 
@@ -353,7 +359,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       ref={overlayRef}
       className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
         isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
-      } ${forceVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+      } ${forceVisible && !windowState?.isMinimized ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
       style={{
         left: isWindowMaximized ? 0 : position.x,
         top: isWindowMaximized ? 0 : position.y,

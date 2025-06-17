@@ -32,6 +32,12 @@ export const Category: React.FC<CategoryProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
+    if (!isActive) {
+      setDisplayedContent('');
+    }
+  }, [isActive]);
+
+  useEffect(() => {
     if (showContent && isActive && !displayedContent) {
       const content = `Personal Stylist → Makes you look amazing
 Personal Trainer → Makes you physically strong
