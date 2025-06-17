@@ -9,6 +9,8 @@ import { Packages } from './Packages';
 import { Contact } from './Contact';
 import { Imprint } from './Imprint';
 import { useOverlayStack, SectionId } from './OverlayStackContext';
+import { Hero } from './Hero';
+import { Credits } from './Credits';
 
 interface Position {
   x: number;
@@ -241,21 +243,16 @@ export const DesktopLayout: React.FC = () => {
         switch (id) {
           case 'ai-stylist':
             return (
-              <TypewriterOverlay
+              <Hero
                 key={id}
-                id={id}
-                title={getLabelForSection(id)}
-                content="Finally.\nAn AI expert who comes to YOUR place.\nNot your office. Your home.\nWith pizza. And beer.\nAnd zero corporate bullshit."
                 stackIndex={stackIndex}
                 isActive={isActive}
                 forceVisible={isVisible}
                 initialPosition={getInitialPosition(id)}
-                initialSize={getInitialSize(id)}
                 isMaximized={isMaximized}
                 onMinimize={() => handleMinimize(id, getLabelForSection(id), getIconForSection(id))}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
-                showInitialContent={true}
               />
             );
           case 'problem':
@@ -338,11 +335,9 @@ export const DesktopLayout: React.FC = () => {
             );
           case 'credits':
             return (
-              <TypewriterOverlay
+              <Credits
                 key={id}
                 id={id}
-                title={getLabelForSection(id)}
-                content="Created with ♥ by AI Stylist\nPowered by Next.js and Tailwind CSS"
                 stackIndex={stackIndex}
                 isActive={isActive}
                 forceVisible={isVisible}
@@ -352,7 +347,6 @@ export const DesktopLayout: React.FC = () => {
                 onMinimize={() => handleMinimize(id, getLabelForSection(id), getIconForSection(id))}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
-                showInitialContent={true}
               />
             );
           default:
