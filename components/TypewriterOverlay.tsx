@@ -94,7 +94,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
   // Reset state when window becomes inactive
   useEffect(() => {
-    if (!isActive && !showInitialContent) {
+    if (!isActive) {
       setHasStartedTyping(false);
       setChatHistory([]);
       currentLineRef.current = 0;
@@ -102,7 +102,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         clearTimeout(typingTimeoutRef.current);
       }
     }
-  }, [isActive, showInitialContent]);
+  }, [isActive]);
 
   // Start typing when window becomes active or initially visible
   useEffect(() => {
@@ -110,7 +110,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       setHasStartedTyping(true);
       startTyping();
     }
-  }, [isActive, showInitialContent, content]);
+  }, [isActive, showInitialContent, content, hasStartedTyping]);
 
   const startTyping = () => {
     if (!content) return;
@@ -133,19 +133,27 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         // Still typing current line
         currentText += currentLine[currentCharIndex];
         currentCharIndex++;
-        typingTimeoutRef.current = setTimeout(typeNextCharacter, 50);
+        // Faster typing speed (25ms instead of 50ms)
+        typingTimeoutRef.current = setTimeout(typeNextCharacter, 25);
       } else {
         // Line is complete, add it to chat history
-        setChatHistory(prev => [...prev, {
-          text: currentLine,
-          type: 'system'
-        }]);
+        setChatHistory(prev => {
+          // Check if this line is already in the history to prevent duplicates
+          if (prev.some(msg => msg.text === currentLine)) {
+            return prev;
+          }
+          return [...prev, {
+            text: currentLine,
+            type: 'system'
+          }];
+        });
         
         // Move to next line
         currentLineRef.current++;
         currentCharIndex = 0;
         currentText = '';
-        typingTimeoutRef.current = setTimeout(typeNextCharacter, 500); // Longer delay between messages
+        // Shorter delay between messages (250ms instead of 500ms)
+        typingTimeoutRef.current = setTimeout(typeNextCharacter, 250);
       }
     };
 

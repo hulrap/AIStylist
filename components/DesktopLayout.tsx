@@ -33,7 +33,7 @@ const SCREEN_SECTIONS = {
   centerRight: { x: 0.75, y: 0.5 },
   bottomLeft: { x: 0.25, y: 0.75 },
   bottomRight: { x: 0.75, y: 0.75 },
-  center: { x: 0.5, y: 0.5 },
+  center: { x: 0.5, y: 0.45 },
   topCenter: { x: 0.5, y: 0.3 }
 };
 
@@ -162,8 +162,8 @@ export const DesktopLayout: React.FC = () => {
     // Get position ratio for this window
     const position = WINDOW_POSITIONS[id];
     
-    // Add some randomness to the position (±5% of screen size)
-    const randomOffset = () => (Math.random() - 0.5) * 0.05;
+    // Reduced randomness for more consistent positioning (±2% of screen size)
+    const randomOffset = () => (Math.random() - 0.5) * 0.02;
 
     // Calculate position ensuring window is fully visible
     const x = Math.max(
