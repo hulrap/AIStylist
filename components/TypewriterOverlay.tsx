@@ -306,73 +306,109 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   return (
     <div
       ref={overlayRef}
-      className={`fixed rounded-xl overflow-hidden shadow-2xl transition-all duration-200 ${
-        isMaximized ? 'window-maximized' : ''
-      } ${isActive ? 'window-focused' : ''} window-transition window-appear`}
+      className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
+        isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
+      } ${forceVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
       style={{
-        width: isMaximized ? '100%' : size.width,
-        height: isMaximized ? '100%' : size.height,
         left: isMaximized ? 0 : position.x,
         top: isMaximized ? 0 : position.y,
-        zIndex: stackIndex,
-        display: !isActive && !forceVisible ? 'none' : 'block',
+        width: isMaximized ? '100%' : size.width,
+        height: isMaximized ? '100%' : size.height,
+        transform: `${isMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
+        transition: isDragging ? 'none' : 'all 0.2s ease-out'
       }}
-      onMouseDown={handleMouseDown}
       onMouseMove={handleLocalMouseMove}
+      onMouseDown={handleMouseDown}
     >
-      {/* Window Title Bar */}
-      <div className="window-titlebar bg-[#2a2a2a] text-white h-10 flex items-center justify-between px-4">
-        <div className="flex items-center space-x-2">
-          <div className="flex space-x-2">
-            <div className="w-3 h-3 rounded-full bg-red-500" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500" />
-            <div className="w-3 h-3 rounded-full bg-green-500" />
-          </div>
-          <span className="ml-4 text-sm">{title}</span>
-        </div>
-      </div>
+      {/* Light Effect */}
+      <div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.2), transparent 50%)`
+        }}
+      />
 
-      {/* Window Content */}
-      <div className="bg-[#1e1e1e] text-white p-6 h-[calc(100%-2.5rem)] overflow-y-auto">
-        <div className="flex flex-col space-y-4">
-          {chatHistory.map((msg, index) => (
-            <div
-              key={`${index}-${msg.text}`}
-              className={`message-bubble ${msg.type} max-w-[80%] ${
-                msg.type === 'user' ? 'ml-auto' : ''
-              }`}
-            >
-              {msg.text}
-            </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
+      {/* Glass Background */}
+      <div className="absolute inset-0 bg-white/10 backdrop-blur-md" />
 
-        {/* Input Area */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-[#2a2a2a]">
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Send me a message..."
-              className="flex-1 bg-[#3a3a3a] text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffb366]"
+      {/* Window Titlebar */}
+      <div className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-black/20 border-b border-white/20">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => closeOverlay(id)}
+              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
             />
             <button
-              onClick={handleSendMessage}
-              disabled={isSending}
-              className="bg-[#ffb366] text-black rounded-lg p-2 hover:bg-[#ff9933] transition-colors"
-            >
-              {isSending ? (
-                <div className="w-6 h-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              ) : (
-                <HiOutlinePaperAirplane className="w-6 h-6 transform rotate-90" />
-              )}
-            </button>
+              onClick={onMinimize}
+              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
+            />
+            <button
+              onClick={isMaximized ? onUnmaximize : onMaximize}
+              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
+            />
           </div>
+          <span className="text-sm text-white/80 ml-2">{title}</span>
         </div>
       </div>
+
+      {/* Content Area */}
+      <div className="flex flex-col h-[calc(100%-2.5rem)]">
+        <div className="flex-1 p-6 overflow-y-auto">
+          {/* Chat Messages */}
+          <div className="space-y-4">
+            {chatHistory.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
+              >
+                <div
+                  className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+                    msg.type === 'user'
+                      ? 'bg-purple-500/30 text-purple-100'
+                      : 'bg-white/10 text-white/90 font-mono text-sm leading-relaxed'
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+        </div>
+
+        {/* Chat Interface */}
+        {(isActive || showInitialContent) && (
+          <div className="p-4 bg-black/30 border-t border-white/20">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Send me a message..."
+                className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={isSending}
+                className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
+              >
+                {isSending ? (
+                  <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
+                ) : (
+                  <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Resize Handle */}
+      {!isMaximized && (
+        <div className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" />
+      )}
     </div>
   );
 }; 
