@@ -134,13 +134,14 @@ export const Problem: React.FC = () => {
         ref={sectionRef}
         className="relative min-h-[120vh] w-full flex flex-col justify-center items-center bg-gradient-to-b from-[#181926] via-[#181926] to-[#13131a] text-[#f8f8f8] overflow-visible py-32"
       >
+        <div className="absolute top-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(180deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
         <div className="w-full max-w-4xl mx-auto mb-20">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-left mb-12 px-2 md:px-0">
             <span className="text-[#f8f8f8]">EVERY AI CONSULTANT IN AUSTRIA PROMISES TO</span>
           </h2>
           <div className="relative flex flex-col gap-16 items-center min-h-[600px]">
             {/* SVG lines connecting cards */}
-            <svg className="absolute left-1/2 -translate-x-1/2 top-0 w-full h-full pointer-events-none z-0" width="100%" height="100%" fill="none" style={{ minHeight: 600 }}>
+            <svg className="absolute top-0 left-0 w-[100vw] h-full pointer-events-none z-0" width="100%" height="100%" fill="none" style={{ minHeight: 600 }}>
               {Array.from({ length: visibleCount - 1 }).map((_, i) => {
                 if (!consultantCardPositions[i] || !consultantCardPositions[i + 1]) return null;
                 const { x: x1, y: y1 } = consultantCardPositions[i];
@@ -178,6 +179,7 @@ export const Problem: React.FC = () => {
             })}
           </div>
         </div>
+        <div className="absolute bottom-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(0deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
       </section>
       {/* Second Section */}
       <section
@@ -185,13 +187,14 @@ export const Problem: React.FC = () => {
         ref={mentorSectionRef}
         className="relative min-h-[120vh] w-full flex flex-col justify-center items-center bg-gradient-to-b from-[#23243a] via-[#23243a] to-[#1a1a1a] text-[#f8f8f8] overflow-visible py-32"
       >
+        <div className="absolute top-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(180deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
         <div className="w-full max-w-4xl mx-auto mb-20">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-left mb-12 px-2 md:px-0">
             <span className="text-amber-200">I PROMISE TO</span>
           </h2>
           <div className="relative flex flex-col gap-16 items-center min-h-[600px]">
             {/* SVG lines connecting cards */}
-            <svg className="absolute left-1/2 -translate-x-1/2 top-0 w-full h-full pointer-events-none z-0" width="100%" height="100%" fill="none" style={{ minHeight: 600 }}>
+            <svg className="absolute top-0 left-0 w-[100vw] h-full pointer-events-none z-0" width="100%" height="100%" fill="none" style={{ minHeight: 600 }}>
               {Array.from({ length: visibleMentorCount - 1 }).map((_, i) => {
                 if (!mentorCardPositions[i] || !mentorCardPositions[i + 1]) return null;
                 const { x: x1, y: y1 } = mentorCardPositions[i];
@@ -229,6 +232,7 @@ export const Problem: React.FC = () => {
             })}
           </div>
         </div>
+        <div className="absolute bottom-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(0deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
       </section>
     </>
   );
