@@ -34,7 +34,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [titleDone, setTitleDone] = useState(false);
   const [started, setStarted] = useState(false);
 
-  // Start animation when isActive becomes true
+  // Start animation only when isActive is true
   useEffect(() => {
     if (isActive && !started) {
       setStarted(true);
@@ -43,7 +43,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
   // Typewriter for title
   useEffect(() => {
-    if (!started) return;
+    if (!started || !isActive) return;
     if (!titleDone && titleTyped.length < title.length) {
       const timeout = setTimeout(() => {
         setTitleTyped(title.slice(0, titleTyped.length + 1));
@@ -52,11 +52,11 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     } else if (!titleDone && started) {
       setTitleDone(true);
     }
-  }, [titleTyped, titleDone, started, title]);
+  }, [titleTyped, titleDone, started, title, isActive]);
 
   // Typewriter for lines
   useEffect(() => {
-    if (!started) return;
+    if (!started || !isActive) return;
     if (titleDone && currentLine < lines.length) {
       if (typed[currentLine].length < lines[currentLine].length) {
         setIsTyping(true);
@@ -78,7 +78,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         }
       }
     }
-  }, [typed, currentLine, titleDone, started, lines]);
+  }, [typed, currentLine, titleDone, started, lines, isActive]);
 
   if (!forceVisible && !isOverlayOpen(id)) return null;
 
