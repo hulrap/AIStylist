@@ -22,14 +22,17 @@ const WINDOW_APPEAR_DELAY = 200;
 const BASE_WINDOW_WIDTH = 420;
 const BASE_WINDOW_HEIGHT = 540;
 
-// Screen section divisions for scattering
+const TITLE_BAR_HEIGHT = 40; // Height of the window title bar
+const SCREEN_PADDING = 20; // Padding from screen edges
+
+// Screen section divisions for scattering - adjusted to ensure visibility
 const SCREEN_SECTIONS = {
-  topLeft: { x: 0.2, y: 0.2 },
-  topRight: { x: 0.7, y: 0.2 },
-  centerLeft: { x: 0.3, y: 0.4 },
-  centerRight: { x: 0.6, y: 0.4 },
-  bottomLeft: { x: 0.2, y: 0.6 },
-  bottomRight: { x: 0.7, y: 0.6 },
+  topLeft: { x: 0.25, y: 0.25 },
+  topRight: { x: 0.75, y: 0.25 },
+  centerLeft: { x: 0.25, y: 0.5 },
+  centerRight: { x: 0.75, y: 0.5 },
+  bottomLeft: { x: 0.25, y: 0.75 },
+  bottomRight: { x: 0.75, y: 0.75 },
   center: { x: 0.5, y: 0.5 },
   topCenter: { x: 0.5, y: 0.3 }
 };
@@ -155,11 +158,25 @@ export const DesktopLayout: React.FC = () => {
     
     // Add some randomness to the position (±5% of screen size)
     const randomOffset = () => (Math.random() - 0.5) * 0.05;
+
+    // Calculate position ensuring window is fully visible
+    const x = Math.max(
+      SCREEN_PADDING,
+      Math.min(
+        screenWidth - finalWidth - SCREEN_PADDING,
+        (screenWidth * position.x) - (finalWidth / 2) + (screenWidth * randomOffset())
+      )
+    );
+
+    const y = Math.max(
+      SCREEN_PADDING + TITLE_BAR_HEIGHT,
+      Math.min(
+        screenHeight - finalHeight - SCREEN_PADDING,
+        (screenHeight * position.y) - (finalHeight / 2) + (screenHeight * randomOffset())
+      )
+    );
     
-    return {
-      x: (screenWidth * position.x) - (finalWidth / 2) + (screenWidth * randomOffset()),
-      y: (screenHeight * position.y) - (finalHeight / 2) + (screenHeight * randomOffset())
-    };
+    return { x, y };
   };
 
   const getInitialSize = (id: SectionId) => {

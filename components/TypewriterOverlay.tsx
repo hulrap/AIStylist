@@ -55,7 +55,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState<Position>(initialPosition || { x: 32, y: 32 });
   const [size, setSize] = useState<Size>(initialSize || { width: 420, height: 540 });
-  const [displayedContent, setDisplayedContent] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [message, setMessage] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
@@ -63,9 +62,20 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [hasStartedTyping, setHasStartedTyping] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const savedPosition = getPosition(id);
@@ -81,41 +91,61 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
+  // Reset typing state when window becomes active
   useEffect(() => {
-    if ((isActive || showInitialContent) && content && !displayedContent) {
-      const lines = content.split('\n').filter(line => line.trim());
-      let currentLineIndex = 0;
-      let currentCharIndex = 0;
-      let currentText = '';
-
-      const typeNextCharacter = () => {
-        if (currentLineIndex < lines.length) {
-          const currentLine = lines[currentLineIndex];
-          
-          if (currentCharIndex < currentLine.length) {
-            currentText += currentLine[currentCharIndex];
-            setDisplayedContent(prev => prev + currentLine[currentCharIndex]);
-            currentCharIndex++;
-            setTimeout(typeNextCharacter, 50);
-          } else {
-            // Line is complete, add it to chat history
-            setChatHistory(prev => [...prev, {
-              text: currentLine,
-              type: 'system'
-            }]);
-            
-            // Move to next line
-            currentLineIndex++;
-            currentCharIndex = 0;
-            currentText = '';
-            setTimeout(typeNextCharacter, 500); // Longer delay between messages
-          }
-        }
-      };
-
-      typeNextCharacter();
+    if (isActive && !hasStartedTyping) {
+      setChatHistory([]);
+      setHasStartedTyping(true);
+      startTyping();
     }
-  }, [isActive, showInitialContent, content]);
+  }, [isActive]);
+
+  // Start typing when window becomes visible initially
+  useEffect(() => {
+    if (showInitialContent && !hasStartedTyping) {
+      setHasStartedTyping(true);
+      startTyping();
+    }
+  }, [showInitialContent]);
+
+  const startTyping = () => {
+    if (!content) return;
+    
+    setIsTyping(true);
+    const lines = content.split('\n').filter(line => line.trim());
+    let currentLineIndex = 0;
+    let currentCharIndex = 0;
+    let currentText = '';
+
+    const typeNextCharacter = () => {
+      if (currentLineIndex >= lines.length) {
+        setIsTyping(false);
+        return;
+      }
+
+      const currentLine = lines[currentLineIndex];
+      
+      if (currentCharIndex < currentLine.length) {
+        currentText += currentLine[currentCharIndex];
+        currentCharIndex++;
+        typingTimeoutRef.current = setTimeout(typeNextCharacter, 50);
+      } else {
+        // Line is complete, add it to chat history
+        setChatHistory(prev => [...prev, {
+          text: currentLine,
+          type: 'system'
+        }]);
+        
+        // Move to next line
+        currentLineIndex++;
+        currentCharIndex = 0;
+        currentText = '';
+        typingTimeoutRef.current = setTimeout(typeNextCharacter, 500); // Longer delay between messages
+      }
+    };
+
+    typeNextCharacter();
+  };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isMaximized) return;
@@ -318,7 +348,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
             {chatHistory.map((msg, i) => (
               <div
                 key={i}
-                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
                 <div
                   className={`max-w-[80%] px-4 py-2 rounded-2xl ${
