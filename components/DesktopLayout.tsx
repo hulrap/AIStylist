@@ -14,14 +14,14 @@ const INITIAL_CASCADE_OFFSET = 32;
 const WINDOW_APPEAR_DELAY = 200;
 
 const WINDOW_ORDER: SectionId[] = [
-  'ai-stylist',
-  'problem',
-  'first',
-  'experience',
-  'packages',
-  'contact',
+  'credits',
   'imprint',
-  'credits'
+  'contact',
+  'packages',
+  'experience',
+  'first',
+  'problem',
+  'ai-stylist'
 ];
 
 interface MinimizedWindow {
