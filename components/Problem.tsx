@@ -8,6 +8,7 @@ interface ProblemProps {
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
+  initialSize?: { width: number; height: number };
   showContent?: boolean;
 }
 
@@ -17,6 +18,7 @@ export const Problem: React.FC<ProblemProps> = ({
   isActive,
   forceVisible = false,
   initialPosition,
+  initialSize,
   showContent = false,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
@@ -65,6 +67,7 @@ and a personal mentor.`;
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      initialSize={initialSize}
     />
   );
 }; 

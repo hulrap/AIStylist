@@ -12,10 +12,46 @@ import { useOverlayStack, SectionId } from './OverlayStackContext';
 
 const INITIAL_CASCADE_OFFSET = 32;
 const WINDOW_APPEAR_DELAY = 200;
-const WINDOW_WIDTH = 420; // Default window width
-const WINDOW_HEIGHT = 540; // Default window height
-const INITIAL_X_OFFSET = 120; // Starting X position for cascade
-const INITIAL_Y_OFFSET = 60; // Starting Y position for cascade
+
+// Base window sizes (will be adjusted per window)
+const BASE_WINDOW_WIDTH = 420;
+const BASE_WINDOW_HEIGHT = 540;
+
+// Screen section divisions for scattering
+const SCREEN_SECTIONS = {
+  topLeft: { x: 0.2, y: 0.2 },
+  topRight: { x: 0.7, y: 0.2 },
+  centerLeft: { x: 0.3, y: 0.4 },
+  centerRight: { x: 0.6, y: 0.4 },
+  bottomLeft: { x: 0.2, y: 0.6 },
+  bottomRight: { x: 0.7, y: 0.6 },
+  center: { x: 0.5, y: 0.5 },
+  topCenter: { x: 0.5, y: 0.3 }
+};
+
+// Size multipliers for different windows (1 = base size)
+const WINDOW_SIZE_MULTIPLIERS: Record<SectionId, { width: number; height: number }> = {
+  'ai-stylist': { width: 1.5, height: 1.5 }, // Largest window
+  'problem': { width: 1.2, height: 1.2 },
+  'first': { width: 1.1, height: 1.1 },
+  'experience': { width: 1, height: 1 },
+  'packages': { width: 1.1, height: 1.1 },
+  'contact': { width: 1, height: 1 },
+  'imprint': { width: 0.9, height: 0.9 },
+  'credits': { width: 0.8, height: 0.8 }
+};
+
+// Window positions mapping
+const WINDOW_POSITIONS: Record<SectionId, { x: number; y: number }> = {
+  'ai-stylist': SCREEN_SECTIONS.center,
+  'problem': SCREEN_SECTIONS.topLeft,
+  'first': SCREEN_SECTIONS.topRight,
+  'experience': SCREEN_SECTIONS.centerLeft,
+  'packages': SCREEN_SECTIONS.centerRight,
+  'contact': SCREEN_SECTIONS.bottomLeft,
+  'imprint': SCREEN_SECTIONS.bottomRight,
+  'credits': SCREEN_SECTIONS.topCenter
+};
 
 const WINDOW_ORDER: SectionId[] = [
   'credits',
@@ -84,21 +120,51 @@ export const DesktopLayout: React.FC = () => {
   };
 
   const getInitialPosition = (id: SectionId) => {
-    const index = WINDOW_ORDER.indexOf(id);
+    // Get window dimensions with fallback
+    const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const screenHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
+
+    // Get size multiplier for this window
+    const sizeMultiplier = WINDOW_SIZE_MULTIPLIERS[id];
+    const windowWidth = BASE_WINDOW_WIDTH * sizeMultiplier.width;
+    const windowHeight = BASE_WINDOW_HEIGHT * sizeMultiplier.height;
+
+    // Ensure AI Stylist doesn't exceed 2/3 of screen size
+    const maxWidth = screenWidth * 0.66;
+    const maxHeight = screenHeight * 0.66;
     
-    // Get window dimensions
-    const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
-    const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
+    const finalWidth = id === 'ai-stylist' ? Math.min(windowWidth, maxWidth) : windowWidth;
+    const finalHeight = id === 'ai-stylist' ? Math.min(windowHeight, maxHeight) : windowHeight;
+
+    // Get position ratio for this window
+    const position = WINDOW_POSITIONS[id];
     
-    // Calculate center position
-    const centerX = (windowWidth - WINDOW_WIDTH) / 2;
-    const centerY = (windowHeight - WINDOW_HEIGHT) / 2;
+    // Add some randomness to the position (±5% of screen size)
+    const randomOffset = () => (Math.random() - 0.5) * 0.05;
     
-    // Apply cascade offset
     return {
-      x: centerX + (INITIAL_CASCADE_OFFSET * index) - (INITIAL_X_OFFSET * (WINDOW_ORDER.length - 1) / 2),
-      y: centerY + (INITIAL_CASCADE_OFFSET * index) - (INITIAL_Y_OFFSET * (WINDOW_ORDER.length - 1) / 2)
+      x: (screenWidth * position.x) - (finalWidth / 2) + (screenWidth * randomOffset()),
+      y: (screenHeight * position.y) - (finalHeight / 2) + (screenHeight * randomOffset())
     };
+  };
+
+  const getInitialSize = (id: SectionId) => {
+    const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const screenHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
+    
+    const sizeMultiplier = WINDOW_SIZE_MULTIPLIERS[id];
+    const width = BASE_WINDOW_WIDTH * sizeMultiplier.width;
+    const height = BASE_WINDOW_HEIGHT * sizeMultiplier.height;
+
+    // Ensure AI Stylist doesn't exceed 2/3 of screen size
+    if (id === 'ai-stylist') {
+      return {
+        width: Math.min(width, screenWidth * 0.66),
+        height: Math.min(height, screenHeight * 0.66)
+      };
+    }
+
+    return { width, height };
   };
 
   return (
@@ -164,6 +230,7 @@ export const DesktopLayout: React.FC = () => {
         isActive={activeOverlay === 'ai-stylist'}
         forceVisible={windowsVisible['ai-stylist']}
         initialPosition={getInitialPosition('ai-stylist')}
+        initialSize={getInitialSize('ai-stylist')}
         showInitialContent={true}
         onMinimize={() => handleMinimize('ai-stylist', 'AI Stylist', '✨')}
       />
@@ -173,6 +240,7 @@ export const DesktopLayout: React.FC = () => {
         isActive={activeOverlay === 'problem'}
         forceVisible={windowsVisible['problem']}
         initialPosition={getInitialPosition('problem')}
+        initialSize={getInitialSize('problem')}
         showContent={activeOverlay === 'problem'}
       />
       <Category
@@ -181,6 +249,7 @@ export const DesktopLayout: React.FC = () => {
         isActive={activeOverlay === 'first'}
         forceVisible={windowsVisible['first']}
         initialPosition={getInitialPosition('first')}
+        initialSize={getInitialSize('first')}
         showContent={activeOverlay === 'first'}
       />
       <Experience
@@ -189,6 +258,7 @@ export const DesktopLayout: React.FC = () => {
         isActive={activeOverlay === 'experience'}
         forceVisible={windowsVisible['experience']}
         initialPosition={getInitialPosition('experience')}
+        initialSize={getInitialSize('experience')}
         showContent={activeOverlay === 'experience'}
       />
       <Packages
@@ -197,6 +267,7 @@ export const DesktopLayout: React.FC = () => {
         isActive={activeOverlay === 'packages'}
         forceVisible={windowsVisible['packages']}
         initialPosition={getInitialPosition('packages')}
+        initialSize={getInitialSize('packages')}
         showContent={activeOverlay === 'packages'}
       />
       <Contact
@@ -205,6 +276,7 @@ export const DesktopLayout: React.FC = () => {
         isActive={activeOverlay === 'contact'}
         forceVisible={windowsVisible['contact']}
         initialPosition={getInitialPosition('contact')}
+        initialSize={getInitialSize('contact')}
         showContent={activeOverlay === 'contact'}
       />
       <Imprint
@@ -213,6 +285,7 @@ export const DesktopLayout: React.FC = () => {
         isActive={activeOverlay === 'imprint'}
         forceVisible={windowsVisible['imprint']}
         initialPosition={getInitialPosition('imprint')}
+        initialSize={getInitialSize('imprint')}
         showContent={activeOverlay === 'imprint'}
       />
 

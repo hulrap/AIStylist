@@ -8,6 +8,7 @@ interface ExperienceProps {
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
+  initialSize?: { width: number; height: number };
   showContent?: boolean;
 }
 
@@ -17,6 +18,7 @@ export const Experience: React.FC<ExperienceProps> = ({
   isActive,
   forceVisible = false,
   initialPosition,
+  initialSize,
   showContent = false,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
@@ -66,6 +68,7 @@ Because I'm your AI buddy, not your vendor.`;
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      initialSize={initialSize}
     />
   );
 }; 

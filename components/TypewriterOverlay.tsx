@@ -26,6 +26,7 @@ interface TypewriterOverlayProps {
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: Position;
+  initialSize?: Size;
   isMaximized?: boolean;
   onMinimize?: () => void;
   onMaximize?: () => void;
@@ -41,6 +42,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   isActive,
   forceVisible = false,
   initialPosition,
+  initialSize,
   isMaximized = false,
   onMinimize,
   onMaximize,
@@ -52,7 +54,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState<Position>(initialPosition || { x: 32, y: 32 });
-  const [size, setSize] = useState<Size>({ width: 420, height: 540 });
+  const [size, setSize] = useState<Size>(initialSize || { width: 420, height: 540 });
   const [displayedContent, setDisplayedContent] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [message, setMessage] = useState('');

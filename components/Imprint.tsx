@@ -8,6 +8,7 @@ interface ImprintProps {
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
+  initialSize?: { width: number; height: number };
   showContent?: boolean;
 }
 
@@ -17,6 +18,7 @@ export const Imprint: React.FC<ImprintProps> = ({
   isActive,
   forceVisible = false,
   initialPosition,
+  initialSize,
   showContent = false,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
@@ -68,6 +70,7 @@ Consent Collection:
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      initialSize={initialSize}
     />
   );
 }; 

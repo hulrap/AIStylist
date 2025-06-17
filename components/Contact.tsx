@@ -8,6 +8,7 @@ interface ContactProps {
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
+  initialSize?: { width: number; height: number };
   showContent?: boolean;
 }
 
@@ -17,6 +18,7 @@ export const Contact: React.FC<ContactProps> = ({
   isActive,
   forceVisible = false,
   initialPosition,
+  initialSize,
   showContent = false,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
@@ -63,6 +65,7 @@ I'll come to you.`;
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      initialSize={initialSize}
     />
   );
 }; 

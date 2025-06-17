@@ -8,6 +8,7 @@ interface CategoryProps {
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
+  initialSize?: { width: number; height: number };
   showContent?: boolean;
 }
 
@@ -17,6 +18,7 @@ export const Category: React.FC<CategoryProps> = ({
   isActive,
   forceVisible = false,
   initialPosition,
+  initialSize,
   showContent = false,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
@@ -61,6 +63,7 @@ Not for your company. For YOU.`;
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      initialSize={initialSize}
     />
   );
 }; 
