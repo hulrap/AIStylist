@@ -8,7 +8,7 @@ import { Experience } from './Experience';
 import { Packages } from './Packages';
 import { Contact } from './Contact';
 import { Imprint } from './Imprint';
-import { useOverlayStack, SectionId } from './OverlayStackContext';
+import { useOverlayStack, SectionId, WindowState } from './OverlayStackContext';
 import { Hero } from './Hero';
 import { Credits } from './Credits';
 import { getIconForSection } from './Icons';
@@ -97,7 +97,8 @@ export const DesktopLayout: React.FC = () => {
     getWindowState,
     minimizedWindows,
     maximizedWindow,
-    setOverlayStack
+    setOverlayStack,
+    setWindowStates
   } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -137,7 +138,24 @@ export const DesktopLayout: React.FC = () => {
 
   const handleMinimize = (id: SectionId) => {
     // Remove from overlay stack to make next window active
-    setOverlayStack((prev: SectionId[]) => prev.filter((windowId: SectionId) => windowId !== id));
+    setOverlayStack((prev: SectionId[]) => {
+      const newStack = prev.filter((windowId: SectionId) => windowId !== id);
+      // If there are windows left, make the last one active
+      if (newStack.length > 0) {
+        const lastWindow = newStack[newStack.length - 1];
+        const windowState = getWindowState(lastWindow);
+        if (windowState) {
+          setWindowStates((prevStates: Record<SectionId, WindowState>) => ({
+            ...prevStates,
+            [lastWindow]: {
+              ...windowState,
+              isVisible: true
+            }
+          }));
+        }
+      }
+      return newStack;
+    });
     minimizeWindow(id, getLabelForSection(id), getLabelForSection(id));
   };
 

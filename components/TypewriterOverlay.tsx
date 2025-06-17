@@ -334,7 +334,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   };
 
   const handleMinimize = () => {
-    minimizeWindow(id, title, '');
     if (onMinimize) onMinimize();
   };
 

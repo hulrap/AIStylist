@@ -15,7 +15,7 @@ interface Position {
   y: number;
 }
 
-interface WindowState {
+export interface WindowState {
   isMinimized: boolean;
   isMaximized: boolean;
   isVisible: boolean;
@@ -40,6 +40,7 @@ export interface OverlayStackContextType {
   minimizedWindows: { id: SectionId; label: string; icon: string }[];
   maximizedWindow: SectionId | null;
   setOverlayStack: (updater: (prev: SectionId[]) => SectionId[]) => void;
+  setWindowStates: (updater: (prev: Record<SectionId, WindowState>) => Record<SectionId, WindowState>) => void;
 }
 
 const OverlayStackContext = createContext<OverlayStackContextType | undefined>(undefined);
@@ -188,7 +189,8 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
     getWindowState,
     minimizedWindows,
     maximizedWindow,
-    setOverlayStack
+    setOverlayStack,
+    setWindowStates
   };
 
   return (
