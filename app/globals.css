@@ -61,7 +61,8 @@
     color: transparent;
   }
   .text-muted {
-    color: rgba(248, 248, 248, 0.7);
+    color: var(--brand-fg);
+    opacity: 0.7;
   }
   .text-underline-animated {
     position: relative;
@@ -168,10 +169,12 @@
 /* === SECTION DIVIDERS & LINES === */
 @layer components {
   .divider-gradient {
-    @apply w-full h-1 bg-gradient-to-r from-[var(--brand-accent)] via-white/0 to-[var(--brand-accent-dark)] rounded-full my-8;
+    @apply w-full h-1 bg-gradient-to-r rounded-full my-8;
+    background-image: linear-gradient(to right, var(--brand-accent), rgba(255,255,255,0), var(--brand-accent-dark));
   }
   .divider-blur {
-    @apply w-full h-8 bg-gradient-to-b from-[var(--brand-accent)]/30 to-transparent blur-lg;
+    @apply w-full h-8 bg-gradient-to-b to-transparent blur-lg;
+    background-image: linear-gradient(to bottom, rgba(255,179,102,0.3), transparent);
   }
   .divider-dashed {
     @apply w-full border-t-2 border-dashed border-[var(--brand-accent)] my-8;
@@ -180,10 +183,12 @@
     @apply w-full border-t-2 border-solid border-[var(--brand-accent)] my-8;
   }
   .divider-xl {
-    @apply w-full h-2 bg-gradient-to-r from-[var(--brand-accent)] via-white/0 to-[var(--brand-accent-dark)] rounded-full my-12;
+    @apply w-full h-2 bg-gradient-to-r rounded-full my-12;
+    background-image: linear-gradient(to right, var(--brand-accent), rgba(255,255,255,0), var(--brand-accent-dark));
   }
   .divider-fade {
-    @apply w-full h-1 bg-gradient-to-r from-transparent via-[var(--brand-accent)]/40 to-transparent my-8;
+    @apply w-full h-1 bg-gradient-to-r my-8;
+    background-image: linear-gradient(to right, transparent, rgba(255,179,102,0.4), transparent);
   }
   .divider-dot {
     @apply w-full flex justify-center items-center my-8;
@@ -208,7 +213,8 @@
     @apply bg-[var(--brand-glass)] backdrop-blur-md;
   }
   .bg-gradient-section {
-    @apply bg-gradient-to-b from-[var(--brand-accent)]/10 via-transparent to-[var(--brand-bg)];
+    @apply bg-gradient-to-b via-transparent to-[var(--brand-bg)];
+    background-image: linear-gradient(to bottom, rgba(255,179,102,0.1), transparent, var(--brand-bg));
   }
   .bg-noise {
     background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="white" fill-opacity="0.01"/><circle cx="10" cy="10" r="1.5" fill="%23ffb366" fill-opacity="0.08"/><circle cx="90" cy="90" r="1.5" fill="%23ffb366" fill-opacity="0.08"/><circle cx="50" cy="50" r="1.5" fill="%23ffb366" fill-opacity="0.08"/></svg>');
