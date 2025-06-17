@@ -85,15 +85,14 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const windowState = getWindowState(id);
   const isWindowMaximized = windowState?.isMaximized || false;
 
-  // Remove the reset effect when window becomes inactive
+  // Clear typing timeout on unmount
   useEffect(() => {
-    if (!isActive) {
-      // Only clear typing timeout, don't reset content
+    return () => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
-    }
-  }, [isActive]);
+    };
+  }, []);
 
   useEffect(() => {
     const savedPosition = getPosition(id);
@@ -109,17 +108,25 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
-  // Modify the typing start effect to preserve content
+  // Reset state when window becomes inactive
+  useEffect(() => {
+    if (!isActive) {
+      setHasStartedTyping(false);
+      setChatHistory([]);
+      currentLineRef.current = 0;
+    }
+  }, [isActive]);
+
+  // Start typing when window becomes active or initially visible
   useEffect(() => {
     if ((isActive || showInitialContent) && !hasStartedTyping && content) {
       setHasStartedTyping(true);
-      // Only clear history if it's empty
-      if (chatHistory.length === 0) {
-        currentLineRef.current = 0;
-        startTyping();
-      }
+      // Clear any existing history before starting
+      setChatHistory([]);
+      currentLineRef.current = 0;
+      startTyping();
     }
-  }, [isActive, showInitialContent, content, chatHistory.length]);
+  }, [isActive, showInitialContent, content]);
 
   const startTyping = () => {
     if (!content) return;
@@ -130,6 +137,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     let currentText = '';
     
     const typeNextCharacter = () => {
+      // If we've finished all lines, stop typing
       if (currentLineRef.current >= lines.length) {
         setIsTyping(false);
         return;
@@ -138,6 +146,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       const currentLine = lines[currentLineRef.current];
       
       if (currentCharIndex < currentLine.length) {
+        // Still typing current line
         currentText = currentLine.substring(0, currentCharIndex + 1);
         setChatHistory(prev => {
           const newHistory = [...prev];
@@ -149,34 +158,32 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
           return newHistory;
         });
         
+        // Play typewriter sound for each character
         playTypeSound();
         
         currentCharIndex++;
         typingTimeoutRef.current = setTimeout(typeNextCharacter, 25);
       } else {
+        // Move to next line and add it immediately if it's empty
         currentLineRef.current++;
-        // Add all empty lines at once to maintain proper spacing
-        while (currentLineRef.current < lines.length && lines[currentLineRef.current].trim() === '') {
-          setChatHistory(prev => [...prev, { text: '', type: 'system' }]);
-          currentLineRef.current++;
+        if (currentLineRef.current < lines.length) {
+          if (lines[currentLineRef.current].trim() === '') {
+            setChatHistory(prev => {
+              const newHistory = [...prev];
+              newHistory.push({ text: '', type: 'system' });
+              return newHistory;
+            });
+            currentLineRef.current++;
+          }
         }
         currentCharIndex = 0;
         currentText = '';
-        typingTimeoutRef.current = setTimeout(typeNextCharacter, 100);
+        typingTimeoutRef.current = setTimeout(typeNextCharacter, 250);
       }
     };
 
     typeNextCharacter();
   };
-
-  // Add a cleanup effect for component unmount
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isWindowMaximized) return;
