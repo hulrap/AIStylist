@@ -1,126 +1,87 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const professions = [
-  { name: 'Personal Stylist', result: 'Your appearance' },
-  { name: 'Personal Trainer', result: 'Your fitness' },
-  { name: 'Life Coach', result: 'Your mindset' },
-  { name: 'Therapist', result: 'Your emotional health' },
-  { name: 'Financial Advisor', result: 'Your money' },
-  { name: 'Language Tutor', result: 'Your communication' },
-  { name: 'AI Stylist', result: 'Your digital superpowers', highlight: true }
+const title = 'THE PERSONAL SERVICE ECONOMY';
+const lines = [
+  'Personal Stylist — Your appearance.',
+  'Personal Trainer — Your fitness.',
+  'Life Coach — Your mindset.',
+  'Therapist — Your emotional health.',
+  'Financial Advisor — Your money.',
+  'Language Tutor — Your communication.',
+  'AI Stylist — Your digital superpowers.'
 ];
 
-// Helper for SVG cubic Bezier path between two points
-function getCurvedBezierPath(x1: number, y1: number, x2: number, y2: number) {
-  const midX = (x1 + x2) / 2;
-  return `M${x1},${y1} C${midX},${y1} ${midX},${y2} ${x2},${y2}`;
-}
-
-function getCardOffset(i: number, maxOffset = 120, yJitter = 0) {
-  const sign = i % 2 === 0 ? 1 : -1;
-  const base = ((i * 73) % maxOffset) + 40;
-  const x = sign * base;
-  const y = yJitter ? ((i * 53) % yJitter) - yJitter / 2 : 0;
-  return { x, y };
-}
-
 export const Category: React.FC = () => {
-  const [visibleCount, setVisibleCount] = useState(1);
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [cardPositions, setCardPositions] = useState<{ x: number; y: number }[]>([]);
+  const [currentLine, setCurrentLine] = useState(0);
+  const [typed, setTyped] = useState<string[]>(Array(lines.length).fill(''));
+  const [isTyping, setIsTyping] = useState(true);
+  const [titleTyped, setTitleTyped] = useState('');
+  const [titleDone, setTitleDone] = useState(false);
 
+  // Typewriter for title
   useEffect(() => {
-    const handleScroll = () => {
-      if (!sectionRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      const progress = Math.min(1, Math.max(0, (windowHeight - rect.top) / (rect.height + windowHeight * 0.2)));
-      setVisibleCount(Math.max(1, Math.ceil(progress * professions.length)));
-    };
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (!titleDone && titleTyped.length < title.length) {
+      const timeout = setTimeout(() => {
+        setTitleTyped(title.slice(0, titleTyped.length + 1));
+      }, 24);
+      return () => clearTimeout(timeout);
+    } else if (!titleDone) {
+      setTitleDone(true);
+    }
+  }, [titleTyped, titleDone]);
 
+  // Typewriter for lines
   useEffect(() => {
-    setTimeout(() => {
-      setCardPositions(
-        cardRefs.current.map((ref, i) => {
-          if (!ref) return { x: 0, y: 0 };
-          const rect = ref.getBoundingClientRect();
-          const offset = getCardOffset(i, 120, 32);
-          return {
-            x: rect.left + rect.width / 2 + offset.x,
-            y: rect.top + rect.height / 2 + window.scrollY + offset.y,
-          };
-        })
-      );
-    }, 100);
-  }, [visibleCount]);
+    if (titleDone && currentLine < lines.length) {
+      if (typed[currentLine].length < lines[currentLine].length) {
+        setIsTyping(true);
+        const timeout = setTimeout(() => {
+          setTyped(prev => {
+            const updated = [...prev];
+            updated[currentLine] = lines[currentLine].slice(0, prev[currentLine].length + 1);
+            return updated;
+          });
+        }, 32);
+        return () => clearTimeout(timeout);
+      } else {
+        setIsTyping(false);
+        if (currentLine < lines.length - 1) {
+          const nextTimeout = setTimeout(() => {
+            setCurrentLine(currentLine + 1);
+          }, 500);
+          return () => clearTimeout(nextTimeout);
+        }
+      }
+    }
+  }, [typed, currentLine, titleDone]);
 
   return (
-    <section
-      id="category"
-      ref={sectionRef}
-      className="relative min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-[#181926] via-[#181926] to-[#13131a] text-[#f8f8f8] overflow-visible py-32"
-    >
-      <div className="absolute top-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(180deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
-      <div className="w-full max-w-4xl mx-auto mb-20">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-12 px-2 md:px-0">
-          <span className="text-[#f8f8f8]">THE PERSONAL SERVICE ECONOMY</span>
-        </h2>
-        <div className="relative flex flex-col gap-16 items-center min-h-[600px]">
-          {/* SVG lines connecting cards */}
-          <svg className="absolute top-0 left-0 w-[100vw] h-full pointer-events-none z-0" width="100%" height="100%" fill="none" style={{ minHeight: 600 }}>
-            {Array.from({ length: visibleCount - 1 }).map((_, i) => {
-              if (!cardPositions[i] || !cardPositions[i + 1]) return null;
-              const { x: x1, y: y1 } = cardPositions[i];
-              const { x: x2, y: y2 } = cardPositions[i + 1];
-              return (
-                <path
-                  key={i}
-                  d={getCurvedBezierPath(x1, y1, x2, y2)}
-                  stroke={professions[i + 1].highlight ? '#ffb366' : '#b6b6d6'}
-                  strokeWidth="3"
-                  strokeDasharray="6 8"
-                  fill="none"
-                  style={{ filter: professions[i + 1].highlight ? 'drop-shadow(0 0 8px #ffb366cc)' : 'drop-shadow(0 0 6px #b6b6d6cc)' }}
-                />
-              );
-            })}
-          </svg>
-          {/* Cards */}
-          {professions.map((prof, i) => {
-            const offset = getCardOffset(i, 120, 32);
-            return (
+    <section id="category" className="relative min-h-screen flex flex-col justify-center items-center section-padding bg-gradient-to-br from-[#1a1a2a] via-[#23243a] to-[#1a1a1a] text-[#b6e0fe] overflow-hidden">
+      <div className="w-full max-w-3xl mx-auto rounded-2xl shadow-2xl border border-[#1e293b] bg-white/5 backdrop-blur-lg relative z-20 overflow-hidden">
+        {/* Typewriter Title */}
+        <div className="flex flex-col items-center justify-center py-12 px-6 md:px-12 gap-4">
+          <h2 className="font-mono text-2xl md:text-3xl font-bold tracking-wide text-blue-300 text-center mb-8">
+            {titleTyped}
+            {!titleDone && <span className="inline-block align-middle ml-1 animate-cursor bg-blue-300 w-2 h-6 rounded-sm" />}
+          </h2>
+          {titleDone && lines.map((line, idx) => (
+            <div
+              key={idx}
+              className={`w-full max-w-xl flex items-center justify-center mb-2 transition-all duration-500 ${idx > currentLine ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}
+            >
               <div
-                key={prof.name}
-                ref={el => { cardRefs.current[i] = el; }}
-                className={`relative z-10 w-full max-w-xl mx-auto px-8 py-7 rounded-2xl ${prof.highlight ? 'bg-amber-100/10 border-amber-200/40 shadow-amber-400/30' : 'bg-white/5 border-white/10'} backdrop-blur-md border shadow-xl transition-all duration-500 ${i < visibleCount ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8 pointer-events-none'} font-mono text-lg md:text-xl tracking-tight flex flex-col items-center justify-center text-center`}
-                style={{
-                  transitionDelay: `${i * 0.08}s`,
-                  transform: `translateX(${offset.x}px) translateY(${offset.y}px)`
-                }}
+                className={`flex items-center px-5 py-3 rounded-xl bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border border-[#1e293b] shadow-md font-mono text-lg md:text-xl tracking-tight transition-all duration-200 hover:scale-[1.03] hover:border-blue-300/60 hover:shadow-blue-300/10 cursor-default select-none`}
               >
-                <span className={`inline-block w-3 h-3 rounded-full mb-2 ${prof.highlight ? 'bg-amber-400/80' : 'bg-amber-200/60'}`} />
-                <span className={`text-base font-semibold mb-1 ${prof.highlight ? 'text-amber-300' : 'text-[#f8f8f8]'}`}>{prof.name}</span>
-                <span className="text-sm text-[#b6b6d6] text-center font-mono">{prof.result}</span>
+                <span className="font-mono">{typed[idx]}</span>
+                {idx === currentLine && isTyping && (
+                  <span className="inline-block align-middle ml-1 animate-cursor bg-blue-300 w-2 h-6 rounded-sm" />
+                )}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
-      <div className="w-full max-w-2xl mx-auto text-center mt-8 space-y-2">
-        <p className="text-lg md:text-xl text-[#b6b6d6] animate-fade-in-up">
-          Every other aspect of your life has a personal expert.<br />Your relationship with AI shouldn't be different.
-        </p>
-        <p className="text-xl md:text-2xl font-medium text-amber-300 animate-fade-in-up">
-          YOU ARE WITNESSING THE BIRTH OF PERSONAL AI MENTORING.<br />
-          <span className="text-[#f8f8f8]">The last piece of the personal service puzzle.</span>
-        </p>
-      </div>
-      <div className="absolute bottom-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(0deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
+      <div className="absolute inset-0 pointer-events-none z-10 rounded-2xl border-4 border-transparent bg-gradient-to-r from-blue-300/20 via-purple-600/10 to-amber-400/20 blur-[2px]" />
     </section>
   );
 }; 

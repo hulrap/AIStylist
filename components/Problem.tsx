@@ -50,190 +50,86 @@ function getCardOffset(i: number, maxOffset = 120, yJitter = 0) {
   return { x, y };
 }
 
+const title = 'EVERY AI CONSULTANT IN AUSTRIA PROMISES TO';
+const lines = [
+  'Transform your business processes.',
+  'Revolutionize your company workflows.',
+  'Maximize your organizational efficiency.',
+  'Schedule you into conference room hell.',
+  'Sell you software that nobody understands.'
+];
+
 export const Problem: React.FC = () => {
-  // Track which cards are visible based on scroll
-  const [visibleCount, setVisibleCount] = useState(1);
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const [currentLine, setCurrentLine] = useState(0);
+  const [typed, setTyped] = useState<string[]>(Array(lines.length).fill(''));
+  const [isTyping, setIsTyping] = useState(true);
+  const [titleTyped, setTitleTyped] = useState('');
+  const [titleDone, setTitleDone] = useState(false);
 
+  // Typewriter for title
   useEffect(() => {
-    const handleScroll = () => {
-      if (!sectionRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      // Reveal next card every ~20% of section scrolled
-      const progress = Math.min(1, Math.max(0, (windowHeight - rect.top) / (rect.height + windowHeight * 0.2)));
-      setVisibleCount(Math.max(1, Math.ceil(progress * consultantPoints.length)));
-    };
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (!titleDone && titleTyped.length < title.length) {
+      const timeout = setTimeout(() => {
+        setTitleTyped(title.slice(0, titleTyped.length + 1));
+      }, 24);
+      return () => clearTimeout(timeout);
+    } else if (!titleDone) {
+      setTitleDone(true);
+    }
+  }, [titleTyped, titleDone]);
 
-  // Card vertical positions for SVG lines
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [consultantCardPositions, setConsultantCardPositions] = useState<{ x: number; y: number }[]>([]);
-
-  // Calculate positions after render
+  // Typewriter for lines
   useEffect(() => {
-    setTimeout(() => {
-      setConsultantCardPositions(
-        cardRefs.current.map((ref, i) => {
-          if (!ref) return { x: 0, y: 0 };
-          const rect = ref.getBoundingClientRect();
-          const offset = getCardOffset(i, 120, 32);
-          return {
-            x: rect.left + rect.width / 2 + offset.x,
-            y: rect.top + rect.height / 2 + window.scrollY + offset.y,
-          };
-        })
-      );
-    }, 100);
-  }, [visibleCount]);
-
-  // --- Second section state ---
-  const [visibleMentorCount, setVisibleMentorCount] = useState(1);
-  const mentorSectionRef = useRef<HTMLDivElement>(null);
-  const mentorCardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [mentorCardPositions, setMentorCardPositions] = useState<{ x: number; y: number }[]>([]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!mentorSectionRef.current) return;
-      const rect = mentorSectionRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      const progress = Math.min(1, Math.max(0, (windowHeight - rect.top) / (rect.height + windowHeight * 0.2)));
-      setVisibleMentorCount(Math.max(1, Math.ceil(progress * mentorPoints.length)));
-    };
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Calculate positions after render
-  useEffect(() => {
-    setTimeout(() => {
-      setMentorCardPositions(
-        mentorCardRefs.current.map((ref, i) => {
-          if (!ref) return { x: 0, y: 0 };
-          const rect = ref.getBoundingClientRect();
-          const offset = getCardOffset(i, 120, 32);
-          return {
-            x: rect.left + rect.width / 2 + offset.x,
-            y: rect.top + rect.height / 2 + window.scrollY + offset.y,
-          };
-        })
-      );
-    }, 100);
-  }, [visibleMentorCount]);
+    if (titleDone && currentLine < lines.length) {
+      if (typed[currentLine].length < lines[currentLine].length) {
+        setIsTyping(true);
+        const timeout = setTimeout(() => {
+          setTyped(prev => {
+            const updated = [...prev];
+            updated[currentLine] = lines[currentLine].slice(0, prev[currentLine].length + 1);
+            return updated;
+          });
+        }, 32);
+        return () => clearTimeout(timeout);
+      } else {
+        setIsTyping(false);
+        if (currentLine < lines.length - 1) {
+          const nextTimeout = setTimeout(() => {
+            setCurrentLine(currentLine + 1);
+          }, 500);
+          return () => clearTimeout(nextTimeout);
+        }
+      }
+    }
+  }, [typed, currentLine, titleDone]);
 
   return (
-    <>
-      {/* First Section */}
-      <section
-        id="problem"
-        ref={sectionRef}
-        className="relative min-h-[120vh] w-full flex flex-col justify-center items-center bg-gradient-to-b from-[#181926] via-[#181926] to-[#13131a] text-[#f8f8f8] overflow-visible py-32"
-      >
-        <div className="absolute top-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(180deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
-        <div className="w-full max-w-4xl mx-auto mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-left mb-12 px-2 md:px-0">
-            <span className="text-[#f8f8f8]">EVERY AI CONSULTANT IN AUSTRIA PROMISES TO</span>
+    <section id="problem" className="relative min-h-screen flex flex-col justify-center items-center section-padding bg-gradient-to-br from-[#23243a] via-[#181926] to-[#1a1a1a] text-[#ffe6c7] overflow-hidden">
+      <div className="w-full max-w-3xl mx-auto rounded-2xl shadow-2xl border border-[#3a2d23] bg-white/5 backdrop-blur-lg relative z-20 overflow-hidden">
+        {/* Typewriter Title */}
+        <div className="flex flex-col items-center justify-center py-12 px-6 md:px-12 gap-4">
+          <h2 className="font-mono text-2xl md:text-3xl font-bold tracking-wide text-amber-400 text-center mb-8">
+            {titleTyped}
+            {!titleDone && <span className="inline-block align-middle ml-1 animate-cursor bg-amber-400 w-2 h-6 rounded-sm" />}
           </h2>
-          <div className="relative flex flex-col gap-16 items-center min-h-[600px]">
-            {/* SVG lines connecting cards */}
-            <svg className="absolute top-0 left-0 w-[100vw] h-full pointer-events-none z-0" width="100%" height="100%" fill="none" style={{ minHeight: 600 }}>
-              {Array.from({ length: visibleCount - 1 }).map((_, i) => {
-                if (!consultantCardPositions[i] || !consultantCardPositions[i + 1]) return null;
-                const { x: x1, y: y1 } = consultantCardPositions[i];
-                const { x: x2, y: y2 } = consultantCardPositions[i + 1];
-                return (
-                  <path
-                    key={i}
-                    d={getCurvedBezierPath(x1, y1, x2, y2)}
-                    stroke="#b6b6d6"
-                    strokeWidth="3"
-                    strokeDasharray="6 8"
-                    fill="none"
-                    style={{ filter: 'drop-shadow(0 0 6px #b6b6d6cc)' }}
-                  />
-                );
-              })}
-            </svg>
-            {/* Cards */}
-            {consultantPoints.map((point, i) => {
-              const offset = getCardOffset(i, 120, 32);
-              return (
-                <div
-                  key={point}
-                  ref={el => { cardRefs.current[i] = el; }}
-                  className={`relative z-10 w-full max-w-xl mx-auto px-8 py-7 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-xl transition-all duration-500 ${i < visibleCount ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8 pointer-events-none'} font-mono text-lg md:text-xl tracking-tight flex items-center gap-4`}
-                  style={{
-                    transitionDelay: `${i * 0.08}s`,
-                    transform: `translateX(${offset.x}px) translateY(${offset.y}px)`
-                  }}
-                >
-                  <span className="inline-block w-3 h-3 rounded-full bg-amber-400/70 mr-2" />
-                  {point}
-                </div>
-              );
-            })}
-          </div>
+          {titleDone && lines.map((line, idx) => (
+            <div
+              key={idx}
+              className={`w-full max-w-xl flex items-center justify-center mb-2 transition-all duration-500 ${idx > currentLine ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}
+            >
+              <div
+                className={`flex items-center px-5 py-3 rounded-xl bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border border-[#3a2d23] shadow-md font-mono text-lg md:text-xl tracking-tight transition-all duration-200 hover:scale-[1.03] hover:border-amber-400/60 hover:shadow-amber-400/10 cursor-default select-none`}
+              >
+                <span className="font-mono">{typed[idx]}</span>
+                {idx === currentLine && isTyping && (
+                  <span className="inline-block align-middle ml-1 animate-cursor bg-amber-400 w-2 h-6 rounded-sm" />
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="absolute bottom-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(0deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
-      </section>
-      {/* Second Section */}
-      <section
-        id="promise"
-        ref={mentorSectionRef}
-        className="relative min-h-[120vh] w-full flex flex-col justify-center items-center bg-gradient-to-b from-[#23243a] via-[#23243a] to-[#1a1a1a] text-[#f8f8f8] overflow-visible py-32"
-      >
-        <div className="absolute top-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(180deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
-        <div className="w-full max-w-4xl mx-auto mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-left mb-12 px-2 md:px-0">
-            <span className="text-amber-200">I PROMISE TO</span>
-          </h2>
-          <div className="relative flex flex-col gap-16 items-center min-h-[600px]">
-            {/* SVG lines connecting cards */}
-            <svg className="absolute top-0 left-0 w-[100vw] h-full pointer-events-none z-0" width="100%" height="100%" fill="none" style={{ minHeight: 600 }}>
-              {Array.from({ length: visibleMentorCount - 1 }).map((_, i) => {
-                if (!mentorCardPositions[i] || !mentorCardPositions[i + 1]) return null;
-                const { x: x1, y: y1 } = mentorCardPositions[i];
-                const { x: x2, y: y2 } = mentorCardPositions[i + 1];
-                return (
-                  <path
-                    key={i}
-                    d={getCurvedBezierPath(x1, y1, x2, y2)}
-                    stroke="#ffd699"
-                    strokeWidth="3"
-                    strokeDasharray="6 8"
-                    fill="none"
-                    style={{ filter: 'drop-shadow(0 0 6px #ffd699cc)' }}
-                  />
-                );
-              })}
-            </svg>
-            {/* Cards */}
-            {mentorPoints.map((point, i) => {
-              const offset = getCardOffset(i, 120, 32);
-              return (
-                <div
-                  key={point}
-                  ref={el => { mentorCardRefs.current[i] = el; }}
-                  className={`relative z-10 w-full max-w-xl mx-auto px-8 py-7 rounded-2xl bg-white/10 backdrop-blur-md border border-amber-100/10 shadow-xl transition-all duration-500 ${i < visibleMentorCount ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8 pointer-events-none'} font-mono text-lg md:text-xl tracking-tight flex items-center gap-4`}
-                  style={{
-                    transitionDelay: `${i * 0.08}s`,
-                    transform: `translateX(${offset.x}px) translateY(${offset.y}px)`
-                  }}
-                >
-                  <span className="inline-block w-3 h-3 rounded-full bg-amber-200/80 mr-2" />
-                  {point}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-0 w-full h-16 z-10 pointer-events-none" style={{background: 'linear-gradient(0deg, #23243a 0%, rgba(35,36,58,0.0) 100%)'}} />
-      </section>
-    </>
+      </div>
+      <div className="absolute inset-0 pointer-events-none z-10 rounded-2xl border-4 border-transparent bg-gradient-to-r from-amber-400/20 via-purple-600/10 to-amber-400/20 blur-[2px]" />
+    </section>
   );
 }; 
