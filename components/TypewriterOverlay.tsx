@@ -10,6 +10,7 @@ interface TypewriterOverlayProps {
   borderColor: string;
   stackIndex?: number;
   isActive?: boolean;
+  forceVisible?: boolean;
   children?: React.ReactNode;
 }
 
@@ -22,6 +23,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   borderColor,
   stackIndex = 0,
   isActive = false,
+  forceVisible = false,
   children
 }) => {
   const { isOverlayOpen, closeOverlay, bringToFront } = useOverlayStack();
@@ -78,7 +80,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     }
   }, [typed, currentLine, titleDone, started, lines]);
 
-  if (!isOverlayOpen(id)) return null;
+  if (!forceVisible && !isOverlayOpen(id)) return null;
 
   // Offset for cascading effect
   const offset = stackIndex * 16;

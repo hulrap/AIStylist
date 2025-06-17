@@ -8,7 +8,7 @@ const lines = [
   'THE PARTNERSHIP — Text support, Your personal AI advisor, Forever. Price: €50/month'
 ];
 
-export const Packages: React.FC<{ stackIndex?: number; isActive?: boolean }> = (props) => {
+export const Packages: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
   return (
     <TypewriterOverlay
       id="packages"

@@ -8,7 +8,7 @@ const lines = [
   `© ${new Date().getFullYear()} AI Stylist. All rights reserved.`
 ];
 
-export const Footer: React.FC<{ stackIndex?: number; isActive?: boolean }> = (props) => {
+export const Footer: React.FC<{ stackIndex?: number; isActive?: boolean; forceVisible?: boolean }> = (props) => {
   return (
     <TypewriterOverlay
       id="footer"

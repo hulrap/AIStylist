@@ -55,7 +55,7 @@ export default function Home() {
                   boxShadow: i === activeIndex ? '0 8px 32px 0 rgba(0,0,0,0.25)' : '0 2px 8px 0 rgba(0,0,0,0.10)',
                 }}
               >
-                <Component stackIndex={i} isActive={i === activeIndex} />
+                <Component stackIndex={i} isActive={i === activeIndex} forceVisible={true} />
               </div>
             ) : null
           )}
