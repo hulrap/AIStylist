@@ -12,6 +12,10 @@ import { useOverlayStack, SectionId } from './OverlayStackContext';
 
 const INITIAL_CASCADE_OFFSET = 32;
 const WINDOW_APPEAR_DELAY = 200;
+const WINDOW_WIDTH = 420; // Default window width
+const WINDOW_HEIGHT = 540; // Default window height
+const INITIAL_X_OFFSET = 120; // Starting X position for cascade
+const INITIAL_Y_OFFSET = 60; // Starting Y position for cascade
 
 const WINDOW_ORDER: SectionId[] = [
   'credits',
@@ -81,9 +85,19 @@ export const DesktopLayout: React.FC = () => {
 
   const getInitialPosition = (id: SectionId) => {
     const index = WINDOW_ORDER.indexOf(id);
+    
+    // Get window dimensions
+    const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
+    
+    // Calculate center position
+    const centerX = (windowWidth - WINDOW_WIDTH) / 2;
+    const centerY = (windowHeight - WINDOW_HEIGHT) / 2;
+    
+    // Apply cascade offset
     return {
-      x: INITIAL_CASCADE_OFFSET * index,
-      y: INITIAL_CASCADE_OFFSET * index
+      x: centerX + (INITIAL_CASCADE_OFFSET * index) - (INITIAL_X_OFFSET * (WINDOW_ORDER.length - 1) / 2),
+      y: centerY + (INITIAL_CASCADE_OFFSET * index) - (INITIAL_Y_OFFSET * (WINDOW_ORDER.length - 1) / 2)
     };
   };
 
