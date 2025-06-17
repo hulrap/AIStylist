@@ -31,9 +31,15 @@ interface MinimizedWindow {
   icon: string;
 }
 
+interface WindowDimensions {
+  width: number;
+  height: number;
+}
+
 export const DesktopLayout: React.FC = () => {
   const { openOverlay, closeOverlay, isOpen, activeOverlay, bringToFront } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [windowDimensions, setWindowDimensions] = useState<WindowDimensions>({ width: 1024, height: 768 });
   const [windowsVisible, setWindowsVisible] = useState<Record<SectionId, boolean>>(() => {
     const initial: Record<SectionId, boolean> = {
       'ai-stylist': false,
@@ -48,6 +54,25 @@ export const DesktopLayout: React.FC = () => {
     return initial;
   });
   const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
+
+  // Initialize window dimensions on client side
+  useEffect(() => {
+    const updateWindowDimensions = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    // Set initial dimensions
+    updateWindowDimensions();
+
+    // Add event listener
+    window.addEventListener('resize', updateWindowDimensions);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', updateWindowDimensions);
+  }, []);
 
   useEffect(() => {
     // Initial cascade animation
@@ -82,8 +107,8 @@ export const DesktopLayout: React.FC = () => {
 
   const getInitialPosition = (id: SectionId) => {
     // Center all windows with cascade offset
-    const baseX = Math.max(0, (window.innerWidth - (id === 'ai-stylist' ? 800 : 600)) / 2);
-    const baseY = Math.max(0, (window.innerHeight - (id === 'ai-stylist' ? 600 : 400)) / 2);
+    const baseX = Math.max(0, (windowDimensions.width - (id === 'ai-stylist' ? 800 : 600)) / 2);
+    const baseY = Math.max(0, (windowDimensions.height - (id === 'ai-stylist' ? 600 : 400)) / 2);
     const index = WINDOW_ORDER.indexOf(id);
     return {
       x: baseX + (INITIAL_CASCADE_OFFSET * index),
