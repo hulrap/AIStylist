@@ -1,19 +1,22 @@
 import React from 'react';
 import { SectionId } from './OverlayStackContext';
+import { getIconForSection } from './Icons';
 
 interface DesktopIconProps {
   id: SectionId;
-  icon: React.FC<{ className?: string }>;
+  icon: React.FC<{ className?: string }> | string;
   label: string;
   onClick: () => void;
 }
 
 export const DesktopIcon: React.FC<DesktopIconProps> = ({
   id,
-  icon: Icon,
+  icon,
   label,
   onClick,
 }) => {
+  const Icon = typeof icon === 'string' ? getIconForSection(icon) : icon;
+
   return (
     <button
       onClick={onClick}

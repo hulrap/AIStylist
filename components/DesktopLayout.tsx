@@ -224,7 +224,7 @@ export const DesktopLayout: React.FC = () => {
           <DesktopIcon
             key={id}
             id={id}
-            icon={getIconForSection(id)}
+            icon={id}
             label={getLabelForSection(id)}
             onClick={() => handleIconClick(id)}
           />
