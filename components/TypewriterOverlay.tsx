@@ -32,8 +32,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [currentLine, setCurrentLine] = useState(0);
   const [typed, setTyped] = useState<string[]>(Array(lines.length).fill(''));
   const [isTyping, setIsTyping] = useState(true);
-  const [titleTyped, setTitleTyped] = useState('');
-  const [titleDone, setTitleDone] = useState(false);
   const [started, setStarted] = useState(false);
 
   // Start animation only when isActive is true
@@ -41,25 +39,18 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     if (isActive && !started) {
       setStarted(true);
     }
-  }, [isActive, started]);
-
-  // Typewriter for title
-  useEffect(() => {
-    if (!started || !isActive) return;
-    if (!titleDone && titleTyped.length < title.length) {
-      const timeout = setTimeout(() => {
-        setTitleTyped(title.slice(0, titleTyped.length + 1));
-      }, 24);
-      return () => clearTimeout(timeout);
-    } else if (!titleDone && started) {
-      setTitleDone(true);
+    if (!isActive) {
+      setStarted(false);
+      setCurrentLine(0);
+      setTyped(Array(lines.length).fill(''));
+      setIsTyping(true);
     }
-  }, [titleTyped, titleDone, started, title, isActive]);
+  }, [isActive, started, lines.length]);
 
   // Typewriter for lines
   useEffect(() => {
     if (!started || !isActive) return;
-    if (titleDone && currentLine < lines.length) {
+    if (currentLine < lines.length) {
       if (typed[currentLine].length < lines[currentLine].length) {
         setIsTyping(true);
         const timeout = setTimeout(() => {
@@ -80,7 +71,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         }
       }
     }
-  }, [typed, currentLine, titleDone, started, lines, isActive]);
+  }, [typed, currentLine, started, lines, isActive]);
 
   // Handler wrappers to notify parent
   const handleClose = () => {
@@ -94,31 +85,30 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
   if (!forceVisible && !isOverlayOpen(id)) return null;
 
-  // Offset for cascading effect
+  // Offset for cascading effect (top-left only)
   const offset = stackIndex * 16;
 
   return (
     <div
       className="fixed z-[60] transition-all duration-500"
       style={{
-        left: '50%',
-        top: '50%',
-        transform: `translate(-50%, -50%) translate(${offset}px, ${offset}px)`,
+        left: `${offset + 32}px`,
+        top: `${offset + 32}px`,
+        width: 420,
+        height: 540,
+        maxWidth: '90vw',
+        maxHeight: '90vh',
         pointerEvents: isActive ? 'auto' : 'none',
         opacity: isActive ? 1 : 0.85,
         boxShadow: isActive
           ? '0 8px 32px 0 rgba(0,0,0,0.25)'
           : '0 2px 8px 0 rgba(0,0,0,0.10)',
         transition: 'box-shadow 0.3s, opacity 0.3s',
-        width: '100%',
-        maxWidth: 900,
-        maxHeight: '90vh',
-        overflow: 'visible',
       }}
     >
       <div
-        className={`w-full max-w-3xl mx-auto rounded-2xl shadow-2xl border bg-white/5 backdrop-blur-lg relative overflow-auto ${bgGradient}`}
-        style={{ borderColor: borderColor, maxHeight: '90vh' }}
+        className={`w-full h-full flex flex-col rounded-2xl shadow-2xl border bg-white/5 backdrop-blur-lg relative overflow-hidden ${bgGradient}`}
+        style={{ borderColor: borderColor }}
       >
         {/* Window bar */}
         <div
@@ -141,48 +131,33 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
           <span className="text-xs text-[#b0b0c3] tracking-widest font-mono uppercase">{title}</span>
         </div>
 
-        {/* Content */}
-        <div className="flex flex-col items-center justify-center py-12 px-6 md:px-12 gap-4">
-          <h2
-            className="font-mono text-2xl md:text-3xl font-bold tracking-wide text-center mb-8"
-            style={{ color: accentColor }}
-          >
-            {titleTyped}
-            {!titleDone && started && (
-              <span
-                className="inline-block align-middle ml-1 animate-cursor w-2 h-6 rounded-sm"
-                style={{ backgroundColor: accentColor }}
-              />
-            )}
-          </h2>
-
-          {titleDone &&
-            lines.map((line, idx) => (
+        {/* Content area, scrollable, chat-like */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-2" style={{ alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+          {lines.map((line, idx) => (
+            <div
+              key={idx}
+              className={`w-full flex items-start mb-1 transition-all duration-500 ${
+                idx > currentLine ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
+              }`}
+            >
               <div
-                key={idx}
-                className={`w-full max-w-xl flex items-center justify-center mb-2 transition-all duration-500 ${
-                  idx > currentLine ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
-                }`}
+                className={`flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border shadow-md font-mono text-base tracking-tight transition-all duration-200 hover:scale-[1.03] cursor-default select-none`}
+                style={{
+                  borderColor: borderColor,
+                  '--hover-border-color': `${accentColor}60`,
+                  '--hover-shadow-color': `${accentColor}10`,
+                } as React.CSSProperties}
               >
-                <div
-                  className={`flex items-center px-5 py-3 rounded-xl bg-gradient-to-r from-[#23243a]/80 to-[#23243a]/60 border shadow-md font-mono text-lg md:text-xl tracking-tight transition-all duration-200 hover:scale-[1.03] cursor-default select-none`}
-                  style={{
-                    borderColor: borderColor,
-                    '--hover-border-color': `${accentColor}60`,
-                    '--hover-shadow-color': `${accentColor}10`,
-                  } as React.CSSProperties}
-                >
-                  <span className="font-mono">{typed[idx]}</span>
-                  {idx === currentLine && isTyping && started && (
-                    <span
-                      className="inline-block align-middle ml-1 animate-cursor w-2 h-6 rounded-sm"
-                      style={{ backgroundColor: accentColor }}
-                    />
-                  )}
-                </div>
+                <span className="font-mono">{isActive ? typed[idx] : lines[idx]}</span>
+                {idx === currentLine && isTyping && isActive && (
+                  <span
+                    className="inline-block align-middle ml-1 animate-cursor w-2 h-6 rounded-sm"
+                    style={{ backgroundColor: accentColor }}
+                  />
+                )}
               </div>
-            ))}
-
+            </div>
+          ))}
           {children}
         </div>
       </div>

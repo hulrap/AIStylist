@@ -13,9 +13,10 @@ const sections: { id: SectionId; title: string }[] = [
 
 export const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { isOverlayOpen, bringToFront } = useOverlayStack();
+  const { isOverlayOpen, openOverlay, bringToFront } = useOverlayStack();
 
   const handleNavigation = (id: SectionId) => {
+    openOverlay(id);
     bringToFront(id);
     setMenuOpen(false);
   };
