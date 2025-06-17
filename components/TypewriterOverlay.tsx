@@ -133,7 +133,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     if (!content) return;
     
     setIsTyping(true);
-    const lines = content.split('\n').filter(line => line.trim());
+    const lines = content.split('\n');
     let currentCharIndex = 0;
     let currentText = '';
     
@@ -162,8 +162,16 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         currentCharIndex++;
         typingTimeoutRef.current = setTimeout(typeNextCharacter, 25);
       } else {
-        // Move to next line
+        // Move to next line and add it immediately if it's empty
         currentLineRef.current++;
+        if (currentLineRef.current < lines.length && lines[currentLineRef.current] === '') {
+          setChatHistory(prev => {
+            const newHistory = [...prev];
+            newHistory.push({ text: '', type: 'system' });
+            return newHistory;
+          });
+          currentLineRef.current++;
+        }
         currentCharIndex = 0;
         currentText = '';
         typingTimeoutRef.current = setTimeout(typeNextCharacter, 250);

@@ -25,16 +25,20 @@ export const Problem: React.FC<ProblemProps> = ({
 
   useEffect(() => {
     if (showContent && !displayedContent) {
-      const content = `Every AI consultant wants to, optimize your business processes
-Increase your company efficiency, save your organization money,
-Schedule meetings in conference rooms, or sell you enterprise solutions
+      const contentLines = [
+        "Every AI consultant wants to optimize your business processes",
+        "Increase your company efficiency, save your organization money",
+        "Schedule meetings in conference rooms, or sell you enterprise solutions",
+        "",
+        "I want to make you personally more powerful, help you work fewer hours for same results",
+        "Keep you human in an AI world, sit on your couch and actually help YOU",
+        "Give you superpowers, not software",
+        "",
+        "This is the difference between a corporate consultant and an AI stylist,",
+        "I style your skills in the age of AI, while a consultant maximizes profit"
+      ];
 
-I want to, make you personally more powerful, help you work fewer hours for same results.
-Keep you human in an AI world, sit on your couch and actually help YOU.
-Give you superpowers, not software.
-
-This is the difference between a corporate consultant and an AI stylist, I style your skills in the age of AI, while a consultant maximizes profit.`;
-
+      const content = contentLines.join('\n');
       let currentText = '';
       let currentIndex = 0;
 
