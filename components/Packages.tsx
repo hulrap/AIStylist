@@ -1,29 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
+import { SectionId } from './OverlayStackContext';
 
 interface PackagesProps {
+  id: SectionId;
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-  isMaximized?: boolean;
-  onMinimize?: () => void;
-  onMaximize?: () => void;
-  onUnmaximize?: () => void;
+  showContent?: boolean;
 }
 
 export const Packages: React.FC<PackagesProps> = ({
+  id,
   stackIndex,
   isActive,
-  forceVisible,
+  forceVisible = false,
   initialPosition,
-  isMaximized,
-  onMinimize,
-  onMaximize,
-  onUnmaximize,
+  showContent = false,
 }) => {
-  const content = `
-THREE WAYS TO TRANSFORM:
+  const [displayedContent, setDisplayedContent] = useState('');
+
+  useEffect(() => {
+    if (showContent && !displayedContent) {
+      const content = `THREE WAYS TO TRANSFORM:
 
 THE DISCOVERY
 90 minutes at your place
@@ -40,22 +40,33 @@ THE FRIENDSHIP
 Ongoing text support
 Questions answered immediately
 Your AI buddy for life
-€50/month
-  `.trim();
+€50/month`;
+
+      let currentText = '';
+      let currentIndex = 0;
+
+      const typeNextCharacter = () => {
+        if (currentIndex < content.length) {
+          currentText += content[currentIndex];
+          setDisplayedContent(currentText);
+          currentIndex++;
+          setTimeout(typeNextCharacter, 50);
+        }
+      };
+
+      typeNextCharacter();
+    }
+  }, [showContent, displayedContent]);
 
   return (
     <TypewriterOverlay
-      id="packages"
+      id={id}
       title="Three Ways"
-      content={content}
+      content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
-      isMaximized={isMaximized}
-      onMinimize={onMinimize}
-      onMaximize={onMaximize}
-      onUnmaximize={onUnmaximize}
     />
   );
 }; 

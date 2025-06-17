@@ -1,29 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
+import { SectionId } from './OverlayStackContext';
 
 interface ExperienceProps {
+  id: SectionId;
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-  isMaximized?: boolean;
-  onMinimize?: () => void;
-  onMaximize?: () => void;
-  onUnmaximize?: () => void;
+  showContent?: boolean;
 }
 
 export const Experience: React.FC<ExperienceProps> = ({
+  id,
   stackIndex,
   isActive,
-  forceVisible,
+  forceVisible = false,
   initialPosition,
-  isMaximized,
-  onMinimize,
-  onMaximize,
-  onUnmaximize,
+  showContent = false,
 }) => {
-  const content = `
-THIS IS NOT A BUSINESS MEETING.
+  const [displayedContent, setDisplayedContent] = useState('');
+
+  useEffect(() => {
+    if (showContent && !displayedContent) {
+      const content = `THIS IS NOT A BUSINESS MEETING.
 THIS IS PERSONAL MENTORING.
 
 I come to your home.
@@ -39,22 +39,33 @@ Just you, me, and the tools that will change your life.
 
 Text me when you have questions later.
 No invoice for a 2-minute answer.
-Because I'm your AI buddy, not your vendor.
-  `.trim();
+Because I'm your AI buddy, not your vendor.`;
+
+      let currentText = '';
+      let currentIndex = 0;
+
+      const typeNextCharacter = () => {
+        if (currentIndex < content.length) {
+          currentText += content[currentIndex];
+          setDisplayedContent(currentText);
+          currentIndex++;
+          setTimeout(typeNextCharacter, 50);
+        }
+      };
+
+      typeNextCharacter();
+    }
+  }, [showContent, displayedContent]);
 
   return (
     <TypewriterOverlay
-      id="experience"
+      id={id}
       title="The Experience"
-      content={content}
+      content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
-      isMaximized={isMaximized}
-      onMinimize={onMinimize}
-      onMaximize={onMaximize}
-      onUnmaximize={onUnmaximize}
     />
   );
 }; 

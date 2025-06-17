@@ -1,97 +1,86 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
-export type SectionId = 'hero' | 'problem' | 'category' | 'experience' | 'packages' | 'contact' | 'imprint' | 'footer';
+export type SectionId = 
+  | 'ai-stylist'
+  | 'problem'
+  | 'first'
+  | 'experience'
+  | 'packages'
+  | 'contact'
+  | 'imprint'
+  | 'credits';
 
 interface Position {
   x: number;
   y: number;
 }
 
-interface WindowState {
-  id: SectionId;
-  position: Position;
-  isOpen: boolean;
-}
-
-interface OverlayStackContextType {
+export interface OverlayStackContextType {
   overlayStack: SectionId[];
   openOverlay: (id: SectionId) => void;
   closeOverlay: (id: SectionId) => void;
   bringToFront: (id: SectionId) => void;
   updatePosition: (id: SectionId, position: Position) => void;
   getPosition: (id: SectionId) => Position | undefined;
+  isOpen: (id: SectionId) => boolean;
+  activeOverlay: SectionId | null;
 }
 
 const OverlayStackContext = createContext<OverlayStackContextType | undefined>(undefined);
 
+const initialPositions: Record<SectionId, Position> = {
+  'ai-stylist': { x: 0, y: 0 },
+  'problem': { x: 0, y: 0 },
+  'first': { x: 0, y: 0 },
+  'experience': { x: 0, y: 0 },
+  'packages': { x: 0, y: 0 },
+  'contact': { x: 0, y: 0 },
+  'imprint': { x: 0, y: 0 },
+  'credits': { x: 0, y: 0 }
+};
+
 export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [overlayStack, setOverlayStack] = useState<SectionId[]>([]);
-  const [windowStates, setWindowStates] = useState<Map<SectionId, WindowState>>(new Map());
+  const [positions, setPositions] = useState<Record<SectionId, Position>>(initialPositions);
 
-  const openOverlay = useCallback((id: SectionId) => {
+  const openOverlay = (id: SectionId) => {
+    if (!overlayStack.includes(id)) {
+      setOverlayStack(prev => [...prev, id]);
+    }
+  };
+
+  const closeOverlay = (id: SectionId) => {
+    setOverlayStack(prev => prev.filter(windowId => windowId !== id));
+  };
+
+  const bringToFront = (id: SectionId) => {
     setOverlayStack(prev => {
-      if (!prev.includes(id)) {
-        return [...prev, id];
-      }
-      return prev;
+      const newStack = prev.filter(windowId => windowId !== id);
+      return [...newStack, id];
     });
-    setWindowStates(prev => {
-      const newMap = new Map(prev);
-      const existingState = newMap.get(id);
-      newMap.set(id, {
-        id,
-        position: existingState?.position || { x: 32, y: 32 },
-        isOpen: true
-      });
-      return newMap;
-    });
-  }, []);
+  };
 
-  const closeOverlay = useCallback((id: SectionId) => {
-    setOverlayStack(prev => prev.filter(item => item !== id));
-    setWindowStates(prev => {
-      const newMap = new Map(prev);
-      const state = newMap.get(id);
-      if (state) {
-        newMap.set(id, { ...state, isOpen: false });
-      }
-      return newMap;
-    });
-  }, []);
+  const updatePosition = (id: SectionId, position: Position) => {
+    setPositions(prev => ({ ...prev, [id]: position }));
+  };
 
-  const bringToFront = useCallback((id: SectionId) => {
-    setOverlayStack(prev => {
-      const filtered = prev.filter(item => item !== id);
-      return [...filtered, id];
-    });
-  }, []);
+  const getPosition = (id: SectionId) => positions[id];
 
-  const updatePosition = useCallback((id: SectionId, position: Position) => {
-    setWindowStates(prev => {
-      const newMap = new Map(prev);
-      const state = newMap.get(id);
-      if (state) {
-        newMap.set(id, { ...state, position });
-      } else {
-        newMap.set(id, { id, position, isOpen: true });
-      }
-      return newMap;
-    });
-  }, []);
+  const isOpen = (id: SectionId) => overlayStack.includes(id);
 
-  const getPosition = useCallback((id: SectionId) => {
-    return windowStates.get(id)?.position;
-  }, [windowStates]);
+  const value: OverlayStackContextType = {
+    overlayStack,
+    openOverlay,
+    closeOverlay,
+    bringToFront,
+    updatePosition,
+    getPosition,
+    isOpen,
+    activeOverlay: overlayStack[overlayStack.length - 1] || null
+  };
 
   return (
-    <OverlayStackContext.Provider value={{
-      overlayStack,
-      openOverlay,
-      closeOverlay,
-      bringToFront,
-      updatePosition,
-      getPosition,
-    }}>
+    <OverlayStackContext.Provider value={value}>
       {children}
     </OverlayStackContext.Provider>
   );

@@ -1,61 +1,62 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
+import { SectionId } from './OverlayStackContext';
 
 interface FooterProps {
+  id: SectionId;
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-  isMaximized?: boolean;
-  onMinimize?: () => void;
-  onMaximize?: () => void;
-  onUnmaximize?: () => void;
+  showContent?: boolean;
 }
 
 export const Footer: React.FC<FooterProps> = ({
+  id,
   stackIndex,
   isActive,
-  forceVisible,
+  forceVisible = false,
   initialPosition,
-  isMaximized,
-  onMinimize,
-  onMaximize,
-  onUnmaximize,
+  showContent = false,
 }) => {
-  const content = `
-I DON'T CARE ABOUT YOUR COMPANY'S ROI.
-I CARE ABOUT YOUR PERSONAL FREEDOM.
+  const [displayedContent, setDisplayedContent] = useState('');
 
-AI is the biggest revolution in human history.
-Most people are being left behind by corporate solutions
-that don't actually help humans.
+  useEffect(() => {
+    if (showContent && !displayedContent) {
+      const content = `Made with ❤️ by:
 
-I believe every person deserves to be empowered,
-not just every business.
+Philipp Krüger
+AI Stylist & Personal Mentor
+Vienna, Austria
 
-I believe technology should serve humans,
-not the other way around.
+© 2024 AI Stylist
+All rights reserved.`;
 
-I believe learning should happen in your comfort zone,
-not in some sterile office.
+      let currentText = '';
+      let currentIndex = 0;
 
-This is why I exist.
-To keep you human while making you superhuman.
-  `.trim();
+      const typeNextCharacter = () => {
+        if (currentIndex < content.length) {
+          currentText += content[currentIndex];
+          setDisplayedContent(currentText);
+          currentIndex++;
+          setTimeout(typeNextCharacter, 50);
+        }
+      };
+
+      typeNextCharacter();
+    }
+  }, [showContent, displayedContent]);
 
   return (
     <TypewriterOverlay
-      id="footer"
-      title="The Manifesto"
-      content={content}
+      id="credits"
+      title="Credits"
+      content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
-      isMaximized={isMaximized}
-      onMinimize={onMinimize}
-      onMaximize={onMaximize}
-      onUnmaximize={onUnmaximize}
     />
   );
 }; 

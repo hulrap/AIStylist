@@ -1,5 +1,6 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
+import { SectionId } from './OverlayStackContext';
 
 interface HeroProps {
   stackIndex: number;
@@ -38,7 +39,7 @@ It's about making humans more powerful.
 
   return (
     <TypewriterOverlay
-      id="hero"
+      id="ai-stylist"
       title="AI Stylist"
       content={content}
       stackIndex={stackIndex}

@@ -30,6 +30,7 @@ interface TypewriterOverlayProps {
   onMinimize?: () => void;
   onMaximize?: () => void;
   onUnmaximize?: () => void;
+  showInitialContent?: boolean;
 }
 
 export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
@@ -44,6 +45,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   onMinimize,
   onMaximize,
   onUnmaximize,
+  showInitialContent = false,
 }) => {
   const { closeOverlay, bringToFront, updatePosition, getPosition } = useOverlayStack();
   const [isDragging, setIsDragging] = useState(false);
@@ -77,26 +79,23 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
-  // Typewriter effect
   useEffect(() => {
-    if (!forceVisible || isTyping) return;
+    if ((isActive || showInitialContent) && content && !displayedContent) {
+      let currentText = '';
+      let currentIndex = 0;
 
-    setIsTyping(true);
-    setDisplayedContent('');
+      const typeNextCharacter = () => {
+        if (currentIndex < content.length) {
+          currentText += content[currentIndex];
+          setDisplayedContent(currentText);
+          currentIndex++;
+          setTimeout(typeNextCharacter, 50);
+        }
+      };
 
-    let currentIndex = 0;
-    const interval = setInterval(() => {
-      if (currentIndex < content.length) {
-        setDisplayedContent(prev => prev + content[currentIndex]);
-        currentIndex++;
-      } else {
-        clearInterval(interval);
-        setIsTyping(false);
-      }
-    }, 30);
-
-    return () => clearInterval(interval);
-  }, [content, forceVisible]);
+      typeNextCharacter();
+    }
+  }, [isActive, showInitialContent, content, displayedContent]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isMaximized) return;
@@ -296,7 +295,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         <div className="flex-1 p-6 overflow-y-auto">
           {/* Content Bubbles */}
           <div className="space-y-4">
-            {displayedContent.split('\n').map((line, i) => (
+            {(isActive || showInitialContent) && displayedContent.split('\n').map((line, i) => (
               line.trim() && (
                 <div key={i} className="flex">
                   <div className="max-w-[80%] bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2 text-white/90 font-mono text-sm leading-relaxed">
@@ -309,80 +308,82 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         </div>
 
         {/* Chat Interface */}
-        <div className="p-4 bg-black/30 border-t border-white/20">
-          <div className="flex flex-col gap-4">
-            {/* Chat History */}
-            <div className="max-h-32 overflow-y-auto space-y-2">
-              {chatHistory.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
+        {(isActive || showInitialContent) && (
+          <div className="p-4 bg-black/30 border-t border-white/20">
+            <div className="flex flex-col gap-4">
+              {/* Chat History */}
+              <div className="max-h-32 overflow-y-auto space-y-2">
+                {chatHistory.map((msg, i) => (
                   <div
-                    className={`max-w-[80%] px-4 py-2 rounded-2xl ${
-                      msg.type === 'user'
-                        ? 'bg-purple-500/30 text-purple-100'
-                        : 'bg-white/10 text-white/90'
-                    }`}
+                    key={i}
+                    className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    {msg.text}
+                    <div
+                      className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+                        msg.type === 'user'
+                          ? 'bg-purple-500/30 text-purple-100'
+                          : 'bg-white/10 text-white/90'
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
                   </div>
-                </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
+                ))}
+                <div ref={chatEndRef} />
+              </div>
 
-            {/* Email Input */}
-            {showEmailInput && (
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  value={senderEmail}
-                  onChange={(e) => setSenderEmail(e.target.value)}
-                  placeholder="Enter your email..."
-                  className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              {/* Email Input */}
+              {showEmailInput && (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={senderEmail}
+                    onChange={(e) => setSenderEmail(e.target.value)}
+                    placeholder="Enter your email..."
+                    className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                  />
+                  <button
+                    onClick={() => {
+                      if (senderEmail && senderEmail.includes('@')) {
+                        setShowEmailInput(false);
+                        setChatHistory(prev => [...prev, {
+                          text: `Email set to: ${senderEmail}`,
+                          type: 'system'
+                        }]);
+                        handleSendMessage();
+                      }
+                    }}
+                    className="px-4 py-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors"
+                  >
+                    Set Email
+                  </button>
+                </div>
+              )}
+
+              {/* Message Input */}
+              <div className="flex items-center gap-2">
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={senderEmail ? "Type a message..." : "Send me a message..."}
+                  className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-10 leading-relaxed"
                 />
                 <button
-                  onClick={() => {
-                    if (senderEmail && senderEmail.includes('@')) {
-                      setShowEmailInput(false);
-                      setChatHistory(prev => [...prev, {
-                        text: `Email set to: ${senderEmail}`,
-                        type: 'system'
-                      }]);
-                      handleSendMessage();
-                    }
-                  }}
-                  className="px-4 py-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors"
+                  onClick={handleSendMessage}
+                  disabled={isSending}
+                  className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
                 >
-                  Set Email
+                  {isSending ? (
+                    <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
+                  ) : (
+                    <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
+                  )}
                 </button>
               </div>
-            )}
-
-            {/* Message Input */}
-            <div className="flex items-center gap-2">
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={senderEmail ? "Type a message..." : "Send me a message..."}
-                className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-10 leading-relaxed"
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={isSending}
-                className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
-              >
-                {isSending ? (
-                  <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
-                ) : (
-                  <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
-                )}
-              </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Resize Handle */}

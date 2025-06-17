@@ -1,107 +1,77 @@
-import React, { useEffect, useState } from 'react';
-import { useOverlayStack, SectionId } from './OverlayStackContext';
+import React, { useState, useEffect } from 'react';
+import { DesktopIcon } from './DesktopIcon';
+import { TaskBar } from './TaskBar';
+import { TypewriterOverlay } from './TypewriterOverlay';
 import { Problem } from './Problem';
 import { Category } from './Category';
 import { Experience } from './Experience';
 import { Packages } from './Packages';
 import { Contact } from './Contact';
 import { Imprint } from './Imprint';
-import { Footer } from './Footer';
-import { Hero } from './Hero';
-import { DesktopIcon } from './DesktopIcon';
-import { TaskBar } from './TaskBar';
-import { HiOutlineSparkles, HiOutlineExclamation, HiOutlineUserGroup, 
-         HiOutlineLightBulb, HiOutlineShoppingBag, HiOutlineMail, 
-         HiOutlineInformationCircle, HiOutlineHeart } from 'react-icons/hi';
-import { IconType } from 'react-icons';
+import { useOverlayStack, SectionId } from './OverlayStackContext';
 
-// Desktop icons configuration
-const desktopIcons = [
-  { id: 'hero' as SectionId, icon: HiOutlineSparkles, label: 'AI Stylist', position: { x: 40, y: 40 } },
-  { id: 'problem' as SectionId, icon: HiOutlineExclamation, label: 'The Problem', position: { x: 40, y: 120 } },
-  { id: 'category' as SectionId, icon: HiOutlineUserGroup, label: 'The First', position: { x: 40, y: 200 } },
-  { id: 'experience' as SectionId, icon: HiOutlineLightBulb, label: 'The Experience', position: { x: 40, y: 280 } },
-  { id: 'packages' as SectionId, icon: HiOutlineShoppingBag, label: 'Three Ways', position: { x: 40, y: 360 } },
-  { id: 'contact' as SectionId, icon: HiOutlineMail, label: 'Start Now', position: { x: 40, y: 440 } },
-  { id: 'imprint' as SectionId, icon: HiOutlineInformationCircle, label: 'Imprint', position: { x: 40, y: 520 } },
-  { id: 'footer' as SectionId, icon: HiOutlineHeart, label: 'Credits', position: { x: 40, y: 600 } },
-];
+const INITIAL_CASCADE_OFFSET = 32;
+const WINDOW_APPEAR_DELAY = 200;
 
-// Order of sections for initial cascade
-const initialSections: SectionId[] = [
-  'hero',
+const WINDOW_ORDER: SectionId[] = [
+  'ai-stylist',
   'problem',
-  'category',
+  'first',
   'experience',
   'packages',
   'contact',
   'imprint',
-  'footer'
+  'credits'
 ];
 
 interface MinimizedWindow {
   id: SectionId;
   label: string;
-  icon: IconType;
+  icon: string;
 }
 
-const overlayComponentsMap = {
-  problem: Problem,
-  category: Category,
-  experience: Experience,
-  packages: Packages,
-  contact: Contact,
-  imprint: Imprint,
-  footer: Footer,
-  hero: Hero,
-};
-
 export const DesktopLayout: React.FC = () => {
-  const { overlayStack, openOverlay, bringToFront } = useOverlayStack();
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
-  const [maximizedWindow, setMaximizedWindow] = useState<SectionId | null>(null);
-  const [visibleWindows, setVisibleWindows] = useState<Set<SectionId>>(new Set());
-
-  // Handle initial cascade animation
-  useEffect(() => {
-    if (!isInitializing) return;
-
-    let timeoutId: NodeJS.Timeout;
-    initialSections.forEach((section, index) => {
-      timeoutId = setTimeout(() => {        openOverlay(section);
-        setVisibleWindows(prev => new Set([...prev, section]));
-        if (index === initialSections.length - 1) {
-          setTimeout(() => setIsInitializing(false), 500);
-        }
-      }, index * 150);
-    });
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+  const { openOverlay, closeOverlay, isOpen, activeOverlay, bringToFront } = useOverlayStack();
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [windowsVisible, setWindowsVisible] = useState<Record<SectionId, boolean>>(() => {
+    const initial: Record<SectionId, boolean> = {
+      'ai-stylist': false,
+      'problem': false,
+      'first': false,
+      'experience': false,
+      'packages': false,
+      'contact': false,
+      'imprint': false,
+      'credits': false
     };
-  }, [isInitializing, openOverlay]);
+    return initial;
+  });
+  const [minimizedWindows, setMinimizedWindows] = useState<MinimizedWindow[]>([]);
+
+  useEffect(() => {
+    // Initial cascade animation
+    if (!hasInitialized) {
+      WINDOW_ORDER.forEach((id, index) => {
+        setTimeout(() => {
+          openOverlay(id);
+          setWindowsVisible(prev => ({ ...prev, [id]: true }));
+        }, index * WINDOW_APPEAR_DELAY);
+      });
+      setHasInitialized(true);
+    }
+  }, [hasInitialized, openOverlay]);
 
   const handleIconClick = (id: SectionId) => {
-    if (minimizedWindows.find(w => w.id === id)) {
-      handleRestore(id);
-    } else if (!overlayStack.includes(id)) {
-      openOverlay(id);
-      setVisibleWindows(prev => new Set([...prev, id]));
-    } else {
+    if (isOpen(id)) {
       bringToFront(id);
+    } else {
+      openOverlay(id);
+      setWindowsVisible(prev => ({ ...prev, [id]: true }));
     }
   };
 
-  const handleMinimize = (id: SectionId) => {
-    const icon = desktopIcons.find(di => di.id === id);
-    if (icon) {
-      setMinimizedWindows(prev => [...prev, { id, label: icon.label, icon: icon.icon }]);
-    }
-  };
-
-  const handleMaximize = (id: SectionId) => {
-    setMaximizedWindow(id);
+  const handleMinimize = (id: SectionId, label: string, icon: string) => {
+    setMinimizedWindows(prev => [...prev, { id, label, icon }]);
   };
 
   const handleRestore = (id: SectionId) => {
@@ -109,54 +79,128 @@ export const DesktopLayout: React.FC = () => {
     bringToFront(id);
   };
 
-  const handleUnmaximize = () => {
-    setMaximizedWindow(null);
+  const getInitialPosition = (id: SectionId) => {
+    const index = WINDOW_ORDER.indexOf(id);
+    return {
+      x: INITIAL_CASCADE_OFFSET * index,
+      y: INITIAL_CASCADE_OFFSET * index
+    };
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#181926]">
+    <div className="h-screen w-screen overflow-hidden bg-transparent">
       {/* Desktop Icons */}
-      <div className="absolute inset-0 p-4">
-        {desktopIcons.map((icon) => (
-          <DesktopIcon
-            key={icon.id}
-            id={icon.id}
-            Icon={icon.icon}
-            label={icon.label}
-            position={icon.position}
-            onClick={() => handleIconClick(icon.id)}
-          />
-        ))}
+      <div className="fixed left-8 top-8 space-y-6">
+        <DesktopIcon
+          id="ai-stylist"
+          icon="✨"
+          label="AI Stylist"
+          onClick={() => handleIconClick('ai-stylist')}
+        />
+        <DesktopIcon
+          id="problem"
+          icon="⚠️"
+          label="The Problem"
+          onClick={() => handleIconClick('problem')}
+        />
+        <DesktopIcon
+          id="first"
+          icon="👥"
+          label="The First"
+          onClick={() => handleIconClick('first')}
+        />
+        <DesktopIcon
+          id="experience"
+          icon="💡"
+          label="The Experience"
+          onClick={() => handleIconClick('experience')}
+        />
+        <DesktopIcon
+          id="packages"
+          icon="🛍️"
+          label="Three Ways"
+          onClick={() => handleIconClick('packages')}
+        />
+        <DesktopIcon
+          id="contact"
+          icon="✉️"
+          label="Start Now"
+          onClick={() => handleIconClick('contact')}
+        />
+        <DesktopIcon
+          id="imprint"
+          icon="ℹ️"
+          label="Imprint"
+          onClick={() => handleIconClick('imprint')}
+        />
+        <DesktopIcon
+          id="credits"
+          icon="❤️"
+          label="Credits"
+          onClick={() => handleIconClick('credits')}
+        />
       </div>
 
       {/* Windows */}
-      <div className="relative w-full h-[calc(100%-48px)]">
-        {overlayStack.map((id, i) => {
-          const Component = overlayComponentsMap[id];
-          if (!Component) return null;
-
-          // Calculate cascade offset
-          const baseOffset = 32;
-          const stackOffset = i * 24;
-
-          return (
-            <Component
-              key={id}
-              stackIndex={i}
-              isActive={!isInitializing && i === overlayStack.length - 1}
-              forceVisible={visibleWindows.has(id)}
-              initialPosition={{ 
-                x: baseOffset + stackOffset,
-                y: baseOffset + stackOffset
-              }}
-              isMaximized={maximizedWindow === id}
-              onMinimize={() => handleMinimize(id)}
-              onMaximize={() => handleMaximize(id)}
-              onUnmaximize={handleUnmaximize}
-            />
-          );
-        })}
-      </div>
+      <TypewriterOverlay
+        id="ai-stylist"
+        title="AI Stylist"
+        content="Finally.\nAn AI expert who comes to YOUR place.\nNot your office. Your home.\nWith pizza. And beer.\nAnd zero corporate bullshit."
+        stackIndex={WINDOW_ORDER.indexOf('ai-stylist')}
+        isActive={activeOverlay === 'ai-stylist'}
+        forceVisible={windowsVisible['ai-stylist']}
+        initialPosition={getInitialPosition('ai-stylist')}
+        showInitialContent={true}
+        onMinimize={() => handleMinimize('ai-stylist', 'AI Stylist', '✨')}
+      />
+      <Problem
+        id="problem"
+        stackIndex={WINDOW_ORDER.indexOf('problem')}
+        isActive={activeOverlay === 'problem'}
+        forceVisible={windowsVisible['problem']}
+        initialPosition={getInitialPosition('problem')}
+        showContent={activeOverlay === 'problem'}
+      />
+      <Category
+        id="first"
+        stackIndex={WINDOW_ORDER.indexOf('first')}
+        isActive={activeOverlay === 'first'}
+        forceVisible={windowsVisible['first']}
+        initialPosition={getInitialPosition('first')}
+        showContent={activeOverlay === 'first'}
+      />
+      <Experience
+        id="experience"
+        stackIndex={WINDOW_ORDER.indexOf('experience')}
+        isActive={activeOverlay === 'experience'}
+        forceVisible={windowsVisible['experience']}
+        initialPosition={getInitialPosition('experience')}
+        showContent={activeOverlay === 'experience'}
+      />
+      <Packages
+        id="packages"
+        stackIndex={WINDOW_ORDER.indexOf('packages')}
+        isActive={activeOverlay === 'packages'}
+        forceVisible={windowsVisible['packages']}
+        initialPosition={getInitialPosition('packages')}
+        showContent={activeOverlay === 'packages'}
+      />
+      <Contact
+        id="contact"
+        stackIndex={WINDOW_ORDER.indexOf('contact')}
+        isActive={activeOverlay === 'contact'}
+        forceVisible={windowsVisible['contact']}
+        initialPosition={getInitialPosition('contact')}
+        showContent={activeOverlay === 'contact'}
+      />
+      <Imprint
+        id="imprint"
+        stackIndex={WINDOW_ORDER.indexOf('imprint')}
+        isActive={activeOverlay === 'imprint'}
+        forceVisible={windowsVisible['imprint']}
+        initialPosition={getInitialPosition('imprint')}
+        showContent={activeOverlay === 'imprint'}
+      />
 
       {/* Taskbar */}
       <TaskBar minimizedWindows={minimizedWindows} onRestore={handleRestore} />

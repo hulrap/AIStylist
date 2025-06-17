@@ -1,29 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
+import { SectionId } from './OverlayStackContext';
 
 interface CategoryProps {
+  id: SectionId;
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-  isMaximized?: boolean;
-  onMinimize?: () => void;
-  onMaximize?: () => void;
-  onUnmaximize?: () => void;
+  showContent?: boolean;
 }
 
 export const Category: React.FC<CategoryProps> = ({
+  id,
   stackIndex,
   isActive,
-  forceVisible,
+  forceVisible = false,
   initialPosition,
-  isMaximized,
-  onMinimize,
-  onMaximize,
-  onUnmaximize,
+  showContent = false,
 }) => {
-  const content = `
-PERSONAL SERVICES THAT ALREADY EXIST:
+  const [displayedContent, setDisplayedContent] = useState('');
+
+  useEffect(() => {
+    if (showContent && !displayedContent) {
+      const content = `PERSONAL SERVICES THAT ALREADY EXIST:
 
 Personal Stylist → Makes you look amazing
 Personal Trainer → Makes you physically strong  
@@ -34,22 +34,33 @@ Language Tutor → Makes you multilingual
 AI Stylist → Makes you technologically powerful
 
 YOU ARE LOOKING AT THE FIRST PERSONAL AI MENTOR.
-Not for your company. For YOU.
-  `.trim();
+Not for your company. For YOU.`;
+
+      let currentText = '';
+      let currentIndex = 0;
+
+      const typeNextCharacter = () => {
+        if (currentIndex < content.length) {
+          currentText += content[currentIndex];
+          setDisplayedContent(currentText);
+          currentIndex++;
+          setTimeout(typeNextCharacter, 50);
+        }
+      };
+
+      typeNextCharacter();
+    }
+  }, [showContent, displayedContent]);
 
   return (
     <TypewriterOverlay
-      id="category"
+      id={id}
       title="The First"
-      content={content}
+      content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
-      isMaximized={isMaximized}
-      onMinimize={onMinimize}
-      onMaximize={onMaximize}
-      onUnmaximize={onUnmaximize}
     />
   );
 }; 

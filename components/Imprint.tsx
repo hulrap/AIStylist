@@ -1,59 +1,73 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
+import { SectionId } from './OverlayStackContext';
 
 interface ImprintProps {
+  id: SectionId;
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-  isMaximized?: boolean;
-  onMinimize?: () => void;
-  onMaximize?: () => void;
-  onUnmaximize?: () => void;
+  showContent?: boolean;
 }
 
 export const Imprint: React.FC<ImprintProps> = ({
+  id,
   stackIndex,
   isActive,
-  forceVisible,
+  forceVisible = false,
   initialPosition,
-  isMaximized,
-  onMinimize,
-  onMaximize,
-  onUnmaximize,
+  showContent = false,
 }) => {
-  const content = `
-QUEER MEDIA LITERACY e.V.
+  const [displayedContent, setDisplayedContent] = useState('');
+
+  useEffect(() => {
+    if (showContent && !displayedContent) {
+      const content = `QUEER MEDIA LITERACY e.V.
+An Austrian association registered in Vienna
+
 ZVR Number: 1689372191
 Founded: 21.09.2024
+Address: c/o 1060 Wien, Mariahilfer Straße 49/15
+Jurisdiction: Landespolizeidirektion Wien
 
-Address:
-c/o 1060 Wien
-Mariahilfer Straße 49/15
+Contact: admin@queer-alliance.com
 
-Jurisdiction:
-Landespolizeidirektion Wien
+Privacy Policy:
+We collect only technical data necessary for security and functionality.
+All data is hosted in the EU (Frankfurt fra1 region).
+Age restriction: 18+
 
-Contact:
-admin@queer-alliance.com
+Consent Collection:
+1. Allow direct contact - for opportunities inside the queer alliance
+2. Newsletter - for information (not marketing)
+3. Organizational representative - for direct organizational contact`;
 
-© ${new Date().getFullYear()} AI Stylist
-All rights reserved.
-  `.trim();
+      let currentText = '';
+      let currentIndex = 0;
+
+      const typeNextCharacter = () => {
+        if (currentIndex < content.length) {
+          currentText += content[currentIndex];
+          setDisplayedContent(currentText);
+          currentIndex++;
+          setTimeout(typeNextCharacter, 50);
+        }
+      };
+
+      typeNextCharacter();
+    }
+  }, [showContent, displayedContent]);
 
   return (
     <TypewriterOverlay
-      id="imprint"
+      id={id}
       title="Imprint"
-      content={content}
+      content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
-      isMaximized={isMaximized}
-      onMinimize={onMinimize}
-      onMaximize={onMaximize}
-      onUnmaximize={onUnmaximize}
     />
   );
 }; 

@@ -1,29 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
+import { SectionId } from './OverlayStackContext';
 
 interface ProblemProps {
+  id: SectionId;
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-  isMaximized?: boolean;
-  onMinimize?: () => void;
-  onMaximize?: () => void;
-  onUnmaximize?: () => void;
+  showContent?: boolean;
 }
 
 export const Problem: React.FC<ProblemProps> = ({
+  id,
   stackIndex,
   isActive,
-  forceVisible,
+  forceVisible = false,
   initialPosition,
-  isMaximized,
-  onMinimize,
-  onMaximize,
-  onUnmaximize,
+  showContent = false,
 }) => {
-  const content = `
-EVERY AI 'CONSULTANT' IN AUSTRIA WANTS TO:
+  const [displayedContent, setDisplayedContent] = useState('');
+
+  useEffect(() => {
+    if (showContent && !displayedContent) {
+      const content = `EVERY AI 'CONSULTANT' IN AUSTRIA WANTS TO:
 - Optimize your business processes
 - Increase your company efficiency  
 - Save your organization money
@@ -38,22 +38,33 @@ I WANT TO:
 - Give you superpowers, not software
 
 This is the difference between a corporate consultant
-and a personal mentor.
-  `.trim();
+and a personal mentor.`;
+
+      let currentText = '';
+      let currentIndex = 0;
+
+      const typeNextCharacter = () => {
+        if (currentIndex < content.length) {
+          currentText += content[currentIndex];
+          setDisplayedContent(currentText);
+          currentIndex++;
+          setTimeout(typeNextCharacter, 50);
+        }
+      };
+
+      typeNextCharacter();
+    }
+  }, [showContent, displayedContent]);
 
   return (
     <TypewriterOverlay
-      id="problem"
+      id={id}
       title="The Problem"
-      content={content}
+      content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
-      isMaximized={isMaximized}
-      onMinimize={onMinimize}
-      onMaximize={onMaximize}
-      onUnmaximize={onUnmaximize}
     />
   );
 }; 

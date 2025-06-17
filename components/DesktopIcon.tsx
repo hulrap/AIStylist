@@ -1,30 +1,28 @@
 import React from 'react';
-import { IconType } from 'react-icons';
-import { useOverlayStack, SectionId } from './OverlayStackContext';
+import { SectionId } from './OverlayStackContext';
 
 interface DesktopIconProps {
   id: SectionId;
-  Icon: IconType;
+  icon: string;
   label: string;
-  position: { x: number; y: number };
   onClick: () => void;
 }
 
-export const DesktopIcon: React.FC<DesktopIconProps> = ({ id, Icon, label, position, onClick }) => {
+export const DesktopIcon: React.FC<DesktopIconProps> = ({
+  id,
+  icon,
+  label,
+  onClick,
+}) => {
   return (
     <button
       onClick={onClick}
-      className="absolute flex flex-col items-center group"
-      style={{
-        left: position.x,
-        top: position.y,
-        width: '80px',
-      }}
+      className="flex flex-col items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors group"
     >
-      <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-all duration-200">
-        <Icon className="w-6 h-6 text-white/80 group-hover:text-white transition-colors duration-200" />
+      <div className="w-12 h-12 flex items-center justify-center text-2xl bg-white/5 rounded-lg group-hover:bg-white/10 transition-colors">
+        {icon}
       </div>
-      <span className="mt-2 text-xs text-white/80 group-hover:text-white text-center font-medium transition-colors duration-200">
+      <span className="text-sm text-white/80 group-hover:text-white/90 transition-colors">
         {label}
       </span>
     </button>
