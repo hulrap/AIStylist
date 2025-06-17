@@ -10,6 +10,10 @@ interface ImprintProps {
   initialPosition?: { x: number; y: number };
   initialSize?: { width: number; height: number };
   showContent?: boolean;
+  isMaximized?: boolean;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onUnmaximize?: () => void;
 }
 
 export const Imprint: React.FC<ImprintProps> = ({
@@ -20,6 +24,10 @@ export const Imprint: React.FC<ImprintProps> = ({
   initialPosition,
   initialSize,
   showContent = false,
+  isMaximized = false,
+  onMinimize,
+  onMaximize,
+  onUnmaximize,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
 

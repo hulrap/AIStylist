@@ -10,6 +10,10 @@ interface ExperienceProps {
   initialPosition?: { x: number; y: number };
   initialSize?: { width: number; height: number };
   showContent?: boolean;
+  isMaximized?: boolean;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onUnmaximize?: () => void;
 }
 
 export const Experience: React.FC<ExperienceProps> = ({
@@ -20,6 +24,10 @@ export const Experience: React.FC<ExperienceProps> = ({
   initialPosition,
   initialSize,
   showContent = false,
+  isMaximized = false,
+  onMinimize,
+  onMaximize,
+  onUnmaximize,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
 

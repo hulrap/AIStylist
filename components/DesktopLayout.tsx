@@ -288,6 +288,10 @@ export const DesktopLayout: React.FC = () => {
                 initialPosition={getInitialPosition(id)}
                 initialSize={getInitialSize(id)}
                 showContent={isActive}
+                isMaximized={isMaximized}
+                onMinimize={() => handleMinimize(id)}
+                onMaximize={() => handleMaximize(id)}
+                onUnmaximize={() => handleUnmaximize(id)}
               />
             );
           case 'first':
@@ -301,6 +305,10 @@ export const DesktopLayout: React.FC = () => {
                 initialPosition={getInitialPosition(id)}
                 initialSize={getInitialSize(id)}
                 showContent={isActive}
+                isMaximized={isMaximized}
+                onMinimize={() => handleMinimize(id)}
+                onMaximize={() => handleMaximize(id)}
+                onUnmaximize={() => handleUnmaximize(id)}
               />
             );
           case 'experience':
@@ -314,6 +322,10 @@ export const DesktopLayout: React.FC = () => {
                 initialPosition={getInitialPosition(id)}
                 initialSize={getInitialSize(id)}
                 showContent={isActive}
+                isMaximized={isMaximized}
+                onMinimize={() => handleMinimize(id)}
+                onMaximize={() => handleMaximize(id)}
+                onUnmaximize={() => handleUnmaximize(id)}
               />
             );
           case 'packages':
@@ -327,6 +339,10 @@ export const DesktopLayout: React.FC = () => {
                 initialPosition={getInitialPosition(id)}
                 initialSize={getInitialSize(id)}
                 showContent={isActive}
+                isMaximized={isMaximized}
+                onMinimize={() => handleMinimize(id)}
+                onMaximize={() => handleMaximize(id)}
+                onUnmaximize={() => handleUnmaximize(id)}
               />
             );
           case 'contact':
@@ -340,6 +356,10 @@ export const DesktopLayout: React.FC = () => {
                 initialPosition={getInitialPosition(id)}
                 initialSize={getInitialSize(id)}
                 showContent={isActive}
+                isMaximized={isMaximized}
+                onMinimize={() => handleMinimize(id)}
+                onMaximize={() => handleMaximize(id)}
+                onUnmaximize={() => handleUnmaximize(id)}
               />
             );
           case 'imprint':
@@ -353,6 +373,10 @@ export const DesktopLayout: React.FC = () => {
                 initialPosition={getInitialPosition(id)}
                 initialSize={getInitialSize(id)}
                 showContent={isActive}
+                isMaximized={isMaximized}
+                onMinimize={() => handleMinimize(id)}
+                onMaximize={() => handleMaximize(id)}
+                onUnmaximize={() => handleUnmaximize(id)}
               />
             );
           case 'credits':

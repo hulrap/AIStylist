@@ -10,6 +10,10 @@ interface ProblemProps {
   initialPosition?: { x: number; y: number };
   initialSize?: { width: number; height: number };
   showContent?: boolean;
+  isMaximized?: boolean;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onUnmaximize?: () => void;
 }
 
 export const Problem: React.FC<ProblemProps> = ({
@@ -20,6 +24,10 @@ export const Problem: React.FC<ProblemProps> = ({
   initialPosition,
   initialSize = { width: 420, height: 640 },
   showContent = false,
+  isMaximized = false,
+  onMinimize,
+  onMaximize,
+  onUnmaximize,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
 

@@ -112,9 +112,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       setHasStartedTyping(false);
       setChatHistory([]);
       currentLineRef.current = 0;
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
     }
   }, [isActive]);
 
