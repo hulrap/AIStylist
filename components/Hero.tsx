@@ -25,16 +25,22 @@ export const Hero: React.FC<HeroProps> = ({
 }) => {
   const content = `
 Finally.
-An AI expert who comes to YOUR place.
+An AI expert who sees you.
+And comes to YOUR place.
 Not your office. Your home.
-With pizza. And beer.
-And zero corporate bullshit.
+With pizza. And beer or wine if your want to.
+And zero corporate bs.
 
-In a world where AI consultants treat you like a company,
-I treat you like a human.
+I treat you like a human, not a company.
 
 Because AI isn't about making businesses more efficient.
 It's about making humans more powerful.
+
+I'm not a consultant. I'm your friend.
+
+And I know a lot about AI and digital tools.
+
+You can access my cognitive knowledge base.
   `.trim();
 
   return (

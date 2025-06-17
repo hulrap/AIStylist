@@ -27,8 +27,7 @@ export const Credits: React.FC<CreditsProps> = ({
   onMaximize,
   onUnmaximize,
 }) => {
-  const content = `Created with ♥ by AI Stylist
-Powered by Next.js and Tailwind CSS`;
+  const content = `Created with ♥ by Raphael Hulan`;
 
   return (
     <TypewriterOverlay

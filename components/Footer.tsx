@@ -25,11 +25,11 @@ export const Footer: React.FC<FooterProps> = ({
     if (showContent && !displayedContent) {
       const content = `Made with ❤️ by:
 
-Philipp Krüger
+Raphael Hulan
 AI Stylist & Personal Mentor
 Vienna, Austria
 
-© 2024 AI Stylist
+© 2025 AI Stylist
 All rights reserved.`;
 
       let currentText = '';

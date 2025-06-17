@@ -25,21 +25,15 @@ export const Problem: React.FC<ProblemProps> = ({
 
   useEffect(() => {
     if (showContent && !displayedContent) {
-      const content = `EVERY AI 'CONSULTANT' IN AUSTRIA WANTS TO:
-Optimize your business processes
-Increase your company efficiency  
-Save your organization money
-Schedule meetings in conference rooms
-Sell you enterprise solutions
+      const content = `Every AI consultant wants to, optimize your business processes
+Increase your company efficiency, save your organization money,
+Schedule meetings in conference rooms, or sell you enterprise solutions
 
-I WANT TO:
-Make you personally more powerful
-Help you work fewer hours for same results
-Keep you human in an AI world
-Sit on your couch and actually help YOU
-Give you superpowers, not software
+I want to, make you personally more powerful, help you work fewer hours for same results.
+Keep you human in an AI world, sit on your couch and actually help YOU.
+Give you superpowers, not software.
 
-This is the difference between a corporate consultant and a personal mentor.`;
+This is the difference between a corporate consultant and an AI stylist, I style your skills in the age of AI, while a consultant maximizes profit.`;
 
       let currentText = '';
       let currentIndex = 0;

@@ -30,18 +30,18 @@ export const Packages: React.FC<PackagesProps> = ({
 THE DISCOVERY
 90 minutes at your place
 We explore what AI can do for YOUR life
-€150
+€180
 
 THE IMMERSION  
-1 week intensive at your home
-Daily sessions, pizza included
+6x90 minutes at your place
+One week, one day, two days, up to you
 Complete AI transformation
-€1,200
+€1,080
 
 THE FRIENDSHIP
 Ongoing text support
 Questions answered immediately
-Your AI buddy for life
+Your AI stylist for as long as you need refining.
 €50/month`;
 
       let currentText = '';

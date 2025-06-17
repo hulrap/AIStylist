@@ -25,18 +25,16 @@ export const Category: React.FC<CategoryProps> = ({
 
   useEffect(() => {
     if (showContent && !displayedContent) {
-      const content = `PERSONAL SERVICES THAT ALREADY EXIST:
-
-Personal Stylist → Makes you look amazing
-Personal Trainer → Makes you physically strong  
+      const content = `Personal Stylist → Makes you look amazing
+Personal Trainer → Makes you physically strong
 Life Coach → Makes you mentally resilient
 Singing Teacher → Makes you musically gifted
 Language Tutor → Makes you multilingual
 
 AI Stylist → Makes you technologically powerful
 
-YOU ARE LOOKING AT THE FIRST PERSONAL AI MENTOR.
-Not for your company. For YOU.`;
+YOU ARE LOOKING AT THE FIRST PERSONAL AI STYLIST
+Not for your company. Mentorship for YOU.`;
 
       let currentText = '';
       let currentIndex = 0;
