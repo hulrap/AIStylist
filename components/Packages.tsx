@@ -28,21 +28,13 @@ export const Packages: React.FC<PackagesProps> = ({
       const content = `THREE WAYS TO TRANSFORM:
 
 THE DISCOVERY
-90 minutes at your place
-We explore what AI can do for YOUR life
-€180
+90 minutes at your place, we explore what AI can do for YOUR life, for €180
 
 THE IMMERSION  
-6x90 minutes at your place
-One week, one day, two days, up to you
-Complete AI transformation
-€1,080
+6x90 minutes at your place, one week, one day, two days, up to you, complete AI transformation, for €1,080
 
 THE FRIENDSHIP
-Ongoing text support
-Questions answered immediately
-Your AI stylist for as long as you need refining.
-€50/month`;
+Ongoing text support, questions answered immediately, your AI stylist for as long as you need refining, for €50/month`;
 
       let currentText = '';
       let currentIndex = 0;

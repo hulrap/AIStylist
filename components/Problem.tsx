@@ -18,7 +18,7 @@ export const Problem: React.FC<ProblemProps> = ({
   isActive,
   forceVisible = false,
   initialPosition,
-  initialSize,
+  initialSize = { width: 420, height: 640 },
   showContent = false,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
