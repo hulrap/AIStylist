@@ -83,21 +83,39 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
   useEffect(() => {
     if ((isActive || showInitialContent) && content && !displayedContent) {
+      const lines = content.split('\n').filter(line => line.trim());
+      let currentLineIndex = 0;
+      let currentCharIndex = 0;
       let currentText = '';
-      let currentIndex = 0;
 
       const typeNextCharacter = () => {
-        if (currentIndex < content.length) {
-          currentText += content[currentIndex];
-          setDisplayedContent(currentText);
-          currentIndex++;
-          setTimeout(typeNextCharacter, 50);
+        if (currentLineIndex < lines.length) {
+          const currentLine = lines[currentLineIndex];
+          
+          if (currentCharIndex < currentLine.length) {
+            currentText += currentLine[currentCharIndex];
+            setDisplayedContent(prev => prev + currentLine[currentCharIndex]);
+            currentCharIndex++;
+            setTimeout(typeNextCharacter, 50);
+          } else {
+            // Line is complete, add it to chat history
+            setChatHistory(prev => [...prev, {
+              text: currentLine,
+              type: 'system'
+            }]);
+            
+            // Move to next line
+            currentLineIndex++;
+            currentCharIndex = 0;
+            currentText = '';
+            setTimeout(typeNextCharacter, 500); // Longer delay between messages
+          }
         }
       };
 
       typeNextCharacter();
     }
-  }, [isActive, showInitialContent, content, displayedContent]);
+  }, [isActive, showInitialContent, content]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isMaximized) return;
@@ -295,17 +313,25 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       {/* Content Area */}
       <div className="flex flex-col h-[calc(100%-2.5rem)]">
         <div className="flex-1 p-6 overflow-y-auto">
-          {/* Content Bubbles */}
+          {/* Chat Messages */}
           <div className="space-y-4">
-            {(isActive || showInitialContent) && displayedContent.split('\n').map((line, i) => (
-              line.trim() && (
-                <div key={i} className="flex">
-                  <div className="max-w-[80%] bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2 text-white/90 font-mono text-sm leading-relaxed">
-                    {line}
-                  </div>
+            {chatHistory.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+                    msg.type === 'user'
+                      ? 'bg-purple-500/30 text-purple-100'
+                      : 'bg-white/10 text-white/90 font-mono text-sm leading-relaxed'
+                  }`}
+                >
+                  {msg.text}
                 </div>
-              )
+              </div>
             ))}
+            <div ref={chatEndRef} />
           </div>
         </div>
 
@@ -384,7 +410,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                 </button>
               </div>
             </div>
-        </div>
+          </div>
         )}
       </div>
 
