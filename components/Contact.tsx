@@ -1,12 +1,27 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-export const Contact: React.FC<{
+interface ContactProps {
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-}> = ({ stackIndex, isActive, forceVisible, initialPosition }) => {
+  isMaximized?: boolean;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onUnmaximize?: () => void;
+}
+
+export const Contact: React.FC<ContactProps> = ({
+  stackIndex,
+  isActive,
+  forceVisible,
+  initialPosition,
+  isMaximized,
+  onMinimize,
+  onMaximize,
+  onUnmaximize,
+}) => {
   const content = `
 READY TO BECOME AN AI NATIVE?
 
@@ -33,6 +48,10 @@ I'll come to you.
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 

@@ -1,12 +1,27 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-export const Hero: React.FC<{
+interface HeroProps {
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-}> = ({ stackIndex, isActive, forceVisible, initialPosition }) => {
+  isMaximized?: boolean;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onUnmaximize?: () => void;
+}
+
+export const Hero: React.FC<HeroProps> = ({
+  stackIndex,
+  isActive,
+  forceVisible,
+  initialPosition,
+  isMaximized,
+  onMinimize,
+  onMaximize,
+  onUnmaximize,
+}) => {
   const content = `
 Finally.
 An AI expert who comes to YOUR place.
@@ -30,6 +45,10 @@ It's about making humans more powerful.
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 

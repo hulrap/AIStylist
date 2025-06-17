@@ -1,12 +1,27 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-export const Packages: React.FC<{
+interface PackagesProps {
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-}> = ({ stackIndex, isActive, forceVisible, initialPosition }) => {
+  isMaximized?: boolean;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onUnmaximize?: () => void;
+}
+
+export const Packages: React.FC<PackagesProps> = ({
+  stackIndex,
+  isActive,
+  forceVisible,
+  initialPosition,
+  isMaximized,
+  onMinimize,
+  onMaximize,
+  onUnmaximize,
+}) => {
   const content = `
 THREE WAYS TO TRANSFORM:
 
@@ -37,6 +52,10 @@ Your AI buddy for life
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 

@@ -1,12 +1,27 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-export const Imprint: React.FC<{
+interface ImprintProps {
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-}> = ({ stackIndex, isActive, forceVisible, initialPosition }) => {
+  isMaximized?: boolean;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onUnmaximize?: () => void;
+}
+
+export const Imprint: React.FC<ImprintProps> = ({
+  stackIndex,
+  isActive,
+  forceVisible,
+  initialPosition,
+  isMaximized,
+  onMinimize,
+  onMaximize,
+  onUnmaximize,
+}) => {
   const content = `
 QUEER MEDIA LITERACY e.V.
 ZVR Number: 1689372191
@@ -35,6 +50,10 @@ All rights reserved.
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 

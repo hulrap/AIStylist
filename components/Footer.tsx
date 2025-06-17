@@ -1,12 +1,27 @@
 import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 
-export const Footer: React.FC<{
+interface FooterProps {
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
-}> = ({ stackIndex, isActive, forceVisible, initialPosition }) => {
+  isMaximized?: boolean;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  onUnmaximize?: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({
+  stackIndex,
+  isActive,
+  forceVisible,
+  initialPosition,
+  isMaximized,
+  onMinimize,
+  onMaximize,
+  onUnmaximize,
+}) => {
   const content = `
 I DON'T CARE ABOUT YOUR COMPANY'S ROI.
 I CARE ABOUT YOUR PERSONAL FREEDOM.
@@ -37,6 +52,10 @@ To keep you human while making you superhuman.
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 
