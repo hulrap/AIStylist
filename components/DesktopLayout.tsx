@@ -96,7 +96,8 @@ export const DesktopLayout: React.FC = () => {
     restoreWindow,
     getWindowState,
     minimizedWindows,
-    maximizedWindow
+    maximizedWindow,
+    setOverlayStack
   } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -135,7 +136,9 @@ export const DesktopLayout: React.FC = () => {
   };
 
   const handleMinimize = (id: SectionId) => {
-    minimizeWindow(id, getLabelForSection(id), id);
+    // Remove from overlay stack to make next window active
+    setOverlayStack((prev: SectionId[]) => prev.filter((windowId: SectionId) => windowId !== id));
+    minimizeWindow(id, getLabelForSection(id), getLabelForSection(id));
   };
 
   const handleMaximize = (id: SectionId) => {
@@ -219,7 +222,7 @@ export const DesktopLayout: React.FC = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* Desktop Icons */}
-      <div className="absolute top-0 left-0 p-4 space-y-4">
+      <div className="absolute top-0 left-12 p-4 space-y-6">
         {WINDOW_ORDER.map((id) => (
           <DesktopIcon
             key={id}
