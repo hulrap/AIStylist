@@ -236,7 +236,7 @@ export const DesktopLayout: React.FC = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* Desktop Icons */}
-      <div className="absolute inset-0 p-4 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] gap-1 pointer-events-none">
+      <div className="absolute inset-0 p-4 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] gap-1">
         {WINDOW_ORDER.map((id) => (
           <DesktopIcon
             key={id}
