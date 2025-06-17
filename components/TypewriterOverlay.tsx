@@ -58,6 +58,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [showEmailInput, setShowEmailInput] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
@@ -121,48 +122,67 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     }
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isMaximized) return;
-
-    if (isDragging && overlayRef.current) {
-      const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - overlayRef.current.offsetWidth));
-      const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - overlayRef.current.offsetHeight));
-      
-      // Use requestAnimationFrame for smoother dragging
-      if (!dragRef.current || 
-          Math.abs(dragRef.current.x - newX) > 1 || 
-          Math.abs(dragRef.current.y - newY) > 1) {
-        dragRef.current = { x: newX, y: newY };
-        requestAnimationFrame(() => {
-          setPosition({ x: newX, y: newY });
-          updatePosition(id, { x: newX, y: newY });
-        });
-      }
-    } else if (isResizing && overlayRef.current) {
-      const rect = overlayRef.current.getBoundingClientRect();
-      const newWidth = Math.max(320, Math.min(e.clientX - rect.left, window.innerWidth - rect.left));
-      const newHeight = Math.max(400, Math.min(e.clientY - rect.top, window.innerHeight - rect.top));
-      
-      setSize({ width: newWidth, height: newHeight });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setIsResizing(false);
-    dragRef.current = null;
-  };
-
   useEffect(() => {
     if (isDragging || isResizing) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      const handleGlobalMouseMove = (e: MouseEvent) => {
+        if (isMaximized) return;
+
+        if (isDragging && overlayRef.current) {
+          const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - overlayRef.current.offsetWidth));
+          const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - overlayRef.current.offsetHeight));
+          
+          // Use requestAnimationFrame for smoother dragging
+          if (!dragRef.current || 
+              Math.abs(dragRef.current.x - newX) > 1 || 
+              Math.abs(dragRef.current.y - newY) > 1) {
+            dragRef.current = { x: newX, y: newY };
+            requestAnimationFrame(() => {
+              setPosition({ x: newX, y: newY });
+              updatePosition(id, { x: newX, y: newY });
+            });
+          }
+
+          // Update light effect position
+          if (overlayRef.current) {
+            const rect = overlayRef.current.getBoundingClientRect();
+            setMousePosition({
+              x: e.clientX - rect.left,
+              y: e.clientY - rect.top
+            });
+          }
+        } else if (isResizing && overlayRef.current) {
+          const rect = overlayRef.current.getBoundingClientRect();
+          const newWidth = Math.max(320, Math.min(e.clientX - rect.left, window.innerWidth - rect.left));
+          const newHeight = Math.max(400, Math.min(e.clientY - rect.top, window.innerHeight - rect.top));
+          
+          setSize({ width: newWidth, height: newHeight });
+        }
+      };
+
+      const handleGlobalMouseUp = () => {
+        setIsDragging(false);
+        setIsResizing(false);
+        dragRef.current = null;
+      };
+
+      window.addEventListener('mousemove', handleGlobalMouseMove);
+      window.addEventListener('mouseup', handleGlobalMouseUp);
       return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('mousemove', handleGlobalMouseMove);
+        window.removeEventListener('mouseup', handleGlobalMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragOffset]);
+  }, [isDragging, isResizing, dragOffset, isMaximized, id, updatePosition]);
+
+  const handleLocalMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (overlayRef.current) {
+      const rect = overlayRef.current.getBoundingClientRect();
+      setMousePosition({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -225,20 +245,33 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   return (
     <div
       ref={overlayRef}
-      className={`fixed bg-[#1a1a1a]/90 backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 ${
+      className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
         isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
-      } ${forceVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      } ${forceVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
       style={{
         left: isMaximized ? 0 : position.x,
         top: isMaximized ? 0 : position.y,
         width: isMaximized ? '100%' : size.width,
         height: isMaximized ? '100%' : size.height,
-        transform: `scale(${forceVisible ? 1 : 0.95})`,
+        transform: `${isMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
+        transition: isDragging ? 'none' : 'all 0.2s ease-out'
       }}
+      onMouseMove={handleLocalMouseMove}
       onMouseDown={handleMouseDown}
     >
+      {/* Light Effect */}
+      <div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.2), transparent 50%)`
+        }}
+      />
+
+      {/* Glass Background */}
+      <div className="absolute inset-0 bg-white/10 backdrop-blur-md" />
+
       {/* Window Titlebar */}
-      <div className="window-titlebar flex items-center justify-between h-10 px-4 bg-white/5 border-b border-white/10">
+      <div className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-black/20 border-b border-white/20">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <button
@@ -258,35 +291,42 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         </div>
       </div>
 
-      {/* Window Content */}
+      {/* Content Area */}
       <div className="flex flex-col h-[calc(100%-2.5rem)]">
         <div className="flex-1 p-6 overflow-y-auto">
-          <div className="font-mono text-sm leading-relaxed whitespace-pre-wrap text-white/90">
-            {displayedContent}
+          {/* Content Bubbles */}
+          <div className="space-y-4">
+            {displayedContent.split('\n').map((line, i) => (
+              line.trim() && (
+                <div key={i} className="flex">
+                  <div className="max-w-[80%] bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2 text-white/90 font-mono text-sm leading-relaxed">
+                    {line}
+                  </div>
+                </div>
+              )
+            ))}
           </div>
         </div>
 
         {/* Chat Interface */}
-        <div className="p-4 bg-black/20 border-t border-white/10">
+        <div className="p-4 bg-black/30 border-t border-white/20">
           <div className="flex flex-col gap-4">
             {/* Chat History */}
             <div className="max-h-32 overflow-y-auto space-y-2">
               {chatHistory.map((msg, i) => (
                 <div
                   key={i}
-                  className={`${
-                    msg.type === 'user' ? 'text-right' : 'text-left'
-                  }`}
+                  className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <span
-                    className={`inline-block px-3 py-1.5 rounded-lg ${
+                  <div
+                    className={`max-w-[80%] px-4 py-2 rounded-2xl ${
                       msg.type === 'user'
-                        ? 'bg-purple-500/20 text-purple-200'
-                        : 'bg-white/10 text-white/80'
+                        ? 'bg-purple-500/30 text-purple-100'
+                        : 'bg-white/10 text-white/90'
                     }`}
                   >
                     {msg.text}
-                  </span>
+                  </div>
                 </div>
               ))}
               <div ref={chatEndRef} />
@@ -300,7 +340,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                   value={senderEmail}
                   onChange={(e) => setSenderEmail(e.target.value)}
                   placeholder="Enter your email..."
-                  className="flex-1 px-4 py-2 bg-white/5 rounded-lg text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                  className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                 />
                 <button
                   onClick={() => {
@@ -327,7 +367,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder={senderEmail ? "Type a message..." : "Send me a message..."}
-                className="flex-1 px-4 py-2 bg-white/5 rounded-lg text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-10 leading-relaxed"
+                className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-10 leading-relaxed"
               />
               <button
                 onClick={handleSendMessage}
