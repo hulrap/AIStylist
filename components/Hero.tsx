@@ -24,32 +24,38 @@ export const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
   }, [visibleLines]);
 
   return (
-    <section id="hero" className="min-h-screen flex flex-col justify-center items-center px-4 bg-[#1a1a1a] text-[#f8f8f8]">
-      <div className="w-full max-w-3xl mx-auto text-center">
+    <section id="hero" className="relative min-h-screen flex flex-col justify-center items-center section-padding bg-[var(--brand-bg)] text-[var(--brand-fg)] overflow-hidden">
+      {/* Top blurred divider */}
+      <div className="divider-blur absolute top-0 left-0 w-full z-10" />
+      {/* Soft radial background for depth */}
+      <div className="bg-radial absolute inset-0 pointer-events-none z-0" />
+      <div className="w-full max-w-3xl mx-auto text-center relative z-20">
         <div className="flex flex-col items-center justify-center">
           {lines.map((line, idx) => (
             <h1
               key={idx}
-              className={`text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 transition-opacity duration-500 ${visibleLines > idx ? 'opacity-100' : 'opacity-0'}`}
-              style={{ fontFamily: 'Inter, Poppins, sans-serif' }}
+              className={`heading-hero mb-4 animate-fade-in-up transition-opacity duration-500 ${visibleLines > idx ? 'opacity-100' : 'opacity-0'}`}
+              style={{ animationDelay: `${0.15 * idx}s` }}
             >
               {line}
               {visibleLines === idx && visibleLines < lines.length && (
-                <span className="inline-block w-2 h-8 bg-[#ffb366] align-middle animate-pulse ml-1" />
+                <span className="inline-block align-middle ml-2 animate-cursor bg-[var(--brand-accent)] w-2 h-8 rounded-sm" />
               )}
             </h1>
           ))}
         </div>
         {visibleLines === lines.length && (
           <button
-            className="mt-12 bg-[#ffb366] text-[#1a1a1a] px-8 py-4 rounded-full text-lg font-semibold shadow hover:bg-[#ff9933] transition-all duration-200"
+            className="mt-12 btn-primary btn-animated animate-fade-in-up"
+            style={{ animationDelay: `${0.15 * lines.length}s` }}
             onClick={() => scrollToSection(6)}
-            style={{ fontFamily: 'Inter, Poppins, sans-serif' }}
           >
             Yes, this is what I've been looking for
           </button>
         )}
       </div>
+      {/* Bottom blurred divider */}
+      <div className="divider-blur absolute bottom-0 left-0 w-full z-10" />
     </section>
   );
 }; 

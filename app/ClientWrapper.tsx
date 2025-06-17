@@ -30,7 +30,7 @@ export default function ClientWrapper() {
   };
 
   return (
-    <main className="min-h-screen bg-[#1a1a1a] text-[#f8f8f8] antialiased">
+    <main className="min-h-screen bg-[var(--brand-bg)] text-[var(--brand-fg)] antialiased">
       <Header />
       <div className="pt-16">
         <Hero scrollToSection={scrollToSection} />
