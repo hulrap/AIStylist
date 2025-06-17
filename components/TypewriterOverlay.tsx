@@ -259,67 +259,88 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       </div>
 
       {/* Window Content */}
-      <div className="p-6 text-white/90 whitespace-pre-wrap font-mono text-sm leading-relaxed">
-        {displayedContent}
-      </div>
+      <div className="flex flex-col h-[calc(100%-2.5rem)]">
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="font-mono text-sm leading-relaxed whitespace-pre-wrap text-white/90">
+            {displayedContent}
+          </div>
+        </div>
 
-      {/* Chat Interface */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/20 border-t border-white/10">
-        <div className="flex flex-col gap-4">
-          {/* Chat History */}
-          <div className="max-h-32 overflow-y-auto">
-            {chatHistory.map((msg, i) => (
-              <div
-                key={i}
-                className={`mb-2 ${
-                  msg.type === 'user' ? 'text-right' : 'text-left'
-                }`}
-              >
-                <span
-                  className={`inline-block px-3 py-1.5 rounded-lg ${
-                    msg.type === 'user'
-                      ? 'bg-purple-500/20 text-purple-200'
-                      : 'bg-white/10 text-white/80'
+        {/* Chat Interface */}
+        <div className="p-4 bg-black/20 border-t border-white/10">
+          <div className="flex flex-col gap-4">
+            {/* Chat History */}
+            <div className="max-h-32 overflow-y-auto space-y-2">
+              {chatHistory.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`${
+                    msg.type === 'user' ? 'text-right' : 'text-left'
                   }`}
                 >
-                  {msg.text}
-                </span>
+                  <span
+                    className={`inline-block px-3 py-1.5 rounded-lg ${
+                      msg.type === 'user'
+                        ? 'bg-purple-500/20 text-purple-200'
+                        : 'bg-white/10 text-white/80'
+                    }`}
+                  >
+                    {msg.text}
+                  </span>
+                </div>
+              ))}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Email Input */}
+            {showEmailInput && (
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={senderEmail}
+                  onChange={(e) => setSenderEmail(e.target.value)}
+                  placeholder="Enter your email..."
+                  className="flex-1 px-4 py-2 bg-white/5 rounded-lg text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+                <button
+                  onClick={() => {
+                    if (senderEmail && senderEmail.includes('@')) {
+                      setShowEmailInput(false);
+                      setChatHistory(prev => [...prev, {
+                        text: `Email set to: ${senderEmail}`,
+                        type: 'system'
+                      }]);
+                      handleSendMessage();
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors"
+                >
+                  Set Email
+                </button>
               </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
+            )}
 
-          {/* Email Input */}
-          {showEmailInput && !senderEmail && (
-            <input
-              type="email"
-              value={senderEmail}
-              onChange={(e) => setSenderEmail(e.target.value)}
-              placeholder="Enter your email..."
-              className="w-full px-4 py-2 bg-white/5 rounded-lg text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-            />
-          )}
-
-          {/* Message Input */}
-          <div className="flex items-center gap-2">
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              className="flex-1 px-4 py-2 bg-white/5 rounded-lg text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-10 leading-relaxed"
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={isSending}
-              className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
-            >
-              {isSending ? (
-                <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
-              ) : (
-                <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
-              )}
-            </button>
+            {/* Message Input */}
+            <div className="flex items-center gap-2">
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={senderEmail ? "Type a message..." : "Send me a message..."}
+                className="flex-1 px-4 py-2 bg-white/5 rounded-lg text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-10 leading-relaxed"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={isSending}
+                className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
+              >
+                {isSending ? (
+                  <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
+                ) : (
+                  <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

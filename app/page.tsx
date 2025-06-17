@@ -100,6 +100,14 @@ function DesktopLayout() {
     const icon = desktopIcons.find(di => di.id === id);
     if (icon) {
       setMinimizedWindows(prev => [...prev, { id, label: icon.label, icon: icon.icon }]);
+      setVisibleWindows(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
+      if (maximizedWindow === id) {
+        setMaximizedWindow(null);
+      }
     }
   };
 
@@ -109,6 +117,7 @@ function DesktopLayout() {
 
   const handleRestore = (id: SectionId) => {
     setMinimizedWindows(prev => prev.filter(w => w.id !== id));
+    setVisibleWindows(prev => new Set([...prev, id]));
     bringToFront(id);
   };
 
@@ -138,9 +147,10 @@ function DesktopLayout() {
           const Component = overlayComponentsMap[id];
           if (!Component) return null;
 
-          // Calculate cascade offset
-          const baseOffset = 32;
-          const stackOffset = i * 24;
+          // Calculate cascade offset for center positioning
+          const baseX = Math.max(0, (window.innerWidth - 420) / 2); // 420 is window width
+          const baseY = Math.max(0, (window.innerHeight - 540) / 2); // 540 is window height
+          const stackOffset = i * 32;
 
           return (
             <Component
@@ -149,8 +159,8 @@ function DesktopLayout() {
               isActive={!isInitializing && i === overlayStack.length - 1}
               forceVisible={visibleWindows.has(id)}
               initialPosition={{ 
-                x: baseOffset + stackOffset,
-                y: baseOffset + stackOffset
+                x: baseX + stackOffset,
+                y: baseY + stackOffset
               }}
               isMaximized={maximizedWindow === id}
               onMinimize={() => handleMinimize(id)}
