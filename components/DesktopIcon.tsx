@@ -20,12 +20,12 @@ export const DesktopIcon: React.FC<DesktopIconProps> = ({
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center gap-2.5 p-2 rounded-lg hover:bg-white/5 transition-colors group w-[120px]"
+      className="flex flex-col items-center gap-2 p-1.5 rounded-lg hover:bg-white/5 transition-colors group w-[110px]"
     >
-      <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-        <Icon className="w-6 h-6 text-white/80" />
+      <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+        <Icon className="w-5 h-5 text-white/80" />
       </div>
-      <span className="text-sm text-white/80 text-center w-full line-clamp-2">{label}</span>
+      <span className="text-xs text-white/80 text-center w-full line-clamp-2">{label}</span>
     </button>
   );
 }; 

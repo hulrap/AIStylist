@@ -25,15 +25,13 @@ export const Packages: React.FC<PackagesProps> = ({
 
   useEffect(() => {
     if (showContent && !displayedContent) {
-      const content = `THREE WAYS TO TRANSFORM:
+      const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
 
-THE DISCOVERY
-90 minutes at your place, we explore what AI can do for YOUR life, for €180
-
-THE IMMERSION  
+THE DISCOVERY:
+90 minutes at your place, we explore what AI can do for YOUR life, for €180.
+THE IMMERSION:
 6x90 minutes at your place, one week, one day, two days, up to you, complete AI transformation, for €1,080
-
-THE FRIENDSHIP
+THE FRIENDSHIP:
 Ongoing text support, questions answered immediately, your AI stylist for as long as you need refining, for €50/month`;
 
       let currentText = '';
@@ -62,6 +60,7 @@ Ongoing text support, questions answered immediately, your AI stylist for as lon
       forceVisible={forceVisible}
       initialPosition={initialPosition}
       initialSize={initialSize}
+      showInitialContent={showContent}
     />
   );
 }; 

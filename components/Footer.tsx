@@ -28,7 +28,6 @@ export const Footer: React.FC<FooterProps> = ({
 Raphael Hulan
 AI Stylist & Personal Mentor
 Vienna, Austria
-
 © 2025 AI Stylist
 All rights reserved.`;
 

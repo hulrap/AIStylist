@@ -240,7 +240,7 @@ export const DesktopLayout: React.FC = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* Desktop Icons */}
-      <div className="absolute top-0 left-12 p-4 pb-20 space-y-6 h-full overflow-y-auto">
+      <div className="absolute top-0 left-12 p-4 grid grid-cols-1 gap-3 auto-rows-min">
         {WINDOW_ORDER.map((id) => (
           <DesktopIcon
             key={id}

@@ -25,20 +25,15 @@ export const Problem: React.FC<ProblemProps> = ({
 
   useEffect(() => {
     if (showContent && !displayedContent) {
-      const contentLines = [
-        "Every AI consultant wants to optimize your business processes",
-        "Increase your company efficiency, save your organization money",
-        "Schedule meetings in conference rooms, or sell you enterprise solutions",
-        "",
-        "I want to make you personally more powerful, help you work fewer hours for same results",
-        "Keep you human in an AI world, sit on your couch and actually help YOU",
-        "Give you superpowers, not software",
-        "",
-        "This is the difference between a corporate consultant and an AI stylist,",
-        "I style your skills in the age of AI, while a consultant maximizes profit"
-      ];
+      const content = `Every AI consultant wants to optimize your business processes
+Increase your company efficiency, save your organization money
+Schedule meetings in conference rooms, or sell you enterprise solutions
+I want to make you personally more powerful, help you work fewer hours for same results
+Keep you human in an AI world, sit on your couch and actually help YOU
+Give you superpowers, not software
+This is the difference between a corporate consultant and an AI stylist,
+I style your skills in the age of AI, while a consultant maximizes profit`.trim();
 
-      const content = contentLines.join('\n');
       let currentText = '';
       let currentIndex = 0;
 
@@ -65,6 +60,7 @@ export const Problem: React.FC<ProblemProps> = ({
       forceVisible={forceVisible}
       initialPosition={initialPosition}
       initialSize={initialSize}
+      showInitialContent={showContent}
     />
   );
 }; 

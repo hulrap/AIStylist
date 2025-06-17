@@ -30,16 +30,11 @@ And comes to YOUR place.
 Not your office. Your home.
 With pizza. And beer or wine if your want to.
 And zero corporate bs.
-
 I treat you like a human, not a company.
-
 Because AI isn't about making businesses more efficient.
 It's about making humans more powerful.
-
 I'm not a consultant. I'm your friend.
-
 And I know a lot about AI and digital tools.
-
 You can access my cognitive knowledge base.
   `.trim();
 
@@ -56,6 +51,7 @@ You can access my cognitive knowledge base.
       onMinimize={onMinimize}
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
+      showInitialContent={true}
     />
   );
 }; 

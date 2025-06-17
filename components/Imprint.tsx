@@ -27,11 +27,9 @@ export const Imprint: React.FC<ImprintProps> = ({
     if (showContent && !displayedContent) {
       const content = `Raw Fiction e.U.
 An Austrian company registered in Vienna
-
 Founded: 03.10.2019
 Address: Gusenleithnergasse 28/18, 1140 Wien
 Jurisdiction: Landespolizeidirektion Wien
-
 Contact: hulanraphael@gmail.com`;
 
       let currentText = '';
@@ -60,6 +58,7 @@ Contact: hulanraphael@gmail.com`;
       forceVisible={forceVisible}
       initialPosition={initialPosition}
       initialSize={initialSize}
+      showInitialContent={showContent}
     />
   );
 }; 

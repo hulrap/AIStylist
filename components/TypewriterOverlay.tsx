@@ -164,13 +164,15 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       } else {
         // Move to next line and add it immediately if it's empty
         currentLineRef.current++;
-        if (currentLineRef.current < lines.length && lines[currentLineRef.current] === '') {
-          setChatHistory(prev => {
-            const newHistory = [...prev];
-            newHistory.push({ text: '', type: 'system' });
-            return newHistory;
-          });
-          currentLineRef.current++;
+        if (currentLineRef.current < lines.length) {
+          if (lines[currentLineRef.current].trim() === '') {
+            setChatHistory(prev => {
+              const newHistory = [...prev];
+              newHistory.push({ text: '', type: 'system' });
+              return newHistory;
+            });
+            currentLineRef.current++;
+          }
         }
         currentCharIndex = 0;
         currentText = '';

@@ -30,9 +30,7 @@ Personal Trainer → Makes you physically strong
 Life Coach → Makes you mentally resilient
 Singing Teacher → Makes you musically gifted
 Language Tutor → Makes you multilingual
-
 AI Stylist → Makes you technologically powerful
-
 YOU ARE LOOKING AT THE FIRST PERSONAL AI STYLIST
 Not for your company. Mentorship for YOU.`;
 
@@ -62,6 +60,7 @@ Not for your company. Mentorship for YOU.`;
       forceVisible={forceVisible}
       initialPosition={initialPosition}
       initialSize={initialSize}
+      showInitialContent={showContent}
     />
   );
 }; 
