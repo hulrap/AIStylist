@@ -9,6 +9,7 @@ interface PackagesProps {
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
   showContent?: boolean;
+  className?: string;
 }
 
 export const Packages: React.FC<PackagesProps> = ({
@@ -18,14 +19,13 @@ export const Packages: React.FC<PackagesProps> = ({
   forceVisible = false,
   initialPosition,
   showContent = false,
+  className
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
     if (showContent && !displayedContent) {
-      const content = `THREE WAYS TO TRANSFORM:
-
-THE DISCOVERY
+      const content = `THE DISCOVERY
 90 minutes at your place
 We explore what AI can do for YOUR life
 €150
@@ -67,6 +67,7 @@ Your AI buddy for life
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      className={className}
     />
   );
 }; 

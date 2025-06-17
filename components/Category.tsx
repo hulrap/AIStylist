@@ -9,6 +9,7 @@ interface CategoryProps {
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
   showContent?: boolean;
+  className?: string;
 }
 
 export const Category: React.FC<CategoryProps> = ({
@@ -18,6 +19,7 @@ export const Category: React.FC<CategoryProps> = ({
   forceVisible = false,
   initialPosition,
   showContent = false,
+  className
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
 
@@ -34,7 +36,9 @@ Language Tutor → Makes you multilingual
 AI Stylist → Makes you technologically powerful
 
 YOU ARE LOOKING AT THE FIRST PERSONAL AI MENTOR.
-Not for your company. For YOU.`;
+
+Not for your company.
+For YOU.`;
 
       let currentText = '';
       let currentIndex = 0;
@@ -61,6 +65,7 @@ Not for your company. For YOU.`;
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      className={className}
     />
   );
 }; 

@@ -18,7 +18,7 @@ interface ChatMessage {
   email?: string;
 }
 
-interface TypewriterOverlayProps {
+export interface TypewriterOverlayProps {
   id: SectionId;
   title: string;
   content: string;
@@ -26,11 +26,11 @@ interface TypewriterOverlayProps {
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: Position;
-  isMaximized?: boolean;
+  showInitialContent?: boolean;
   onMinimize?: () => void;
   onMaximize?: () => void;
   onUnmaximize?: () => void;
-  showInitialContent?: boolean;
+  className?: string;
 }
 
 export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
@@ -41,29 +41,30 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   isActive,
   forceVisible = false,
   initialPosition,
-  isMaximized = false,
+  showInitialContent = false,
   onMinimize,
   onMaximize,
   onUnmaximize,
-  showInitialContent = false,
+  className = 'w-[600px] h-[400px]'
 }) => {
   const { closeOverlay, bringToFront, updatePosition, getPosition } = useOverlayStack();
+  const [displayedMessages, setDisplayedMessages] = useState<string[]>([]);
+  const [position, setPosition] = useState<Position>(initialPosition || { x: 32, y: 32 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [position, setPosition] = useState<Position>(initialPosition || { x: 32, y: 32 });
-  const [size, setSize] = useState<Size>({ width: 420, height: 540 });
-  const [displayedContent, setDisplayedContent] = useState('');
+  const [size, setSize] = useState<Size>({ width: 600, height: 400 });
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isTyping, setIsTyping] = useState(false);
+  const [displayedContent, setDisplayedContent] = useState('');
   const [message, setMessage] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [showEmailInput, setShowEmailInput] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ x: number; y: number } | null>(null);
+  const dragRef = useRef<Position | null>(null);
 
   useEffect(() => {
     const savedPosition = getPosition(id);
@@ -80,26 +81,41 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   }, [chatHistory]);
 
   useEffect(() => {
-    if ((isActive || showInitialContent) && content && !displayedContent) {
+    if ((isActive || showInitialContent) && displayedMessages.length === 0) {
+      const messages = content.split('\n').filter(msg => msg.trim() !== '');
+      let currentMessageIndex = 0;
       let currentText = '';
-      let currentIndex = 0;
+      let currentCharIndex = 0;
+
+      setIsTyping(true);
 
       const typeNextCharacter = () => {
-        if (currentIndex < content.length) {
-          currentText += content[currentIndex];
-          setDisplayedContent(currentText);
-          currentIndex++;
-          setTimeout(typeNextCharacter, 50);
+        if (currentMessageIndex < messages.length) {
+          const currentMessage = messages[currentMessageIndex];
+          if (currentCharIndex < currentMessage.length) {
+            currentText += currentMessage[currentCharIndex];
+            setDisplayedContent(currentText);
+            currentCharIndex++;
+            setTimeout(typeNextCharacter, 50);
+          } else {
+            setDisplayedMessages(prev => [...prev, currentText]);
+            currentMessageIndex++;
+            currentCharIndex = 0;
+            currentText = '';
+            if (currentMessageIndex < messages.length) {
+              setTimeout(typeNextCharacter, 500); // Delay between messages
+            } else {
+              setIsTyping(false);
+            }
+          }
         }
       };
 
       typeNextCharacter();
     }
-  }, [isActive, showInitialContent, content, displayedContent]);
+  }, [isActive, showInitialContent, content, displayedMessages.length]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isMaximized) return;
-    
     if (e.target instanceof HTMLElement) {
       const isResizeHandle = e.target.closest('.resize-handle');
       const isTitlebar = e.target.closest('.window-titlebar');
@@ -124,13 +140,10 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   useEffect(() => {
     if (isDragging || isResizing) {
       const handleGlobalMouseMove = (e: MouseEvent) => {
-        if (isMaximized) return;
-
         if (isDragging && overlayRef.current) {
           const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - overlayRef.current.offsetWidth));
           const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - overlayRef.current.offsetHeight));
           
-          // Use requestAnimationFrame for smoother dragging
           if (!dragRef.current || 
               Math.abs(dragRef.current.x - newX) > 1 || 
               Math.abs(dragRef.current.y - newY) > 1) {
@@ -141,7 +154,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
             });
           }
 
-          // Update light effect position
           if (overlayRef.current) {
             const rect = overlayRef.current.getBoundingClientRect();
             setMousePosition({
@@ -171,7 +183,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         window.removeEventListener('mouseup', handleGlobalMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragOffset, isMaximized, id, updatePosition]);
+  }, [isDragging, isResizing, dragOffset, id, updatePosition]);
 
   const handleLocalMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (overlayRef.current) {
@@ -244,152 +256,141 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   return (
     <div
       ref={overlayRef}
-      className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
-        isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
-      } ${forceVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+      className={`fixed ${className} bg-black/30 backdrop-blur-md border border-white/20 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ${
+        forceVisible ? 'opacity-100 visible' : 'opacity-0 invisible'
+      }`}
       style={{
-        left: isMaximized ? 0 : position.x,
-        top: isMaximized ? 0 : position.y,
-        width: isMaximized ? '100%' : size.width,
-        height: isMaximized ? '100%' : size.height,
-        transform: `${isMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
-        transition: isDragging ? 'none' : 'all 0.2s ease-out'
+        left: position.x,
+        top: position.y,
+        width: size.width,
+        height: size.height,
+        transform: `perspective(1000px) rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
+        transition: isDragging ? 'none' : 'all 0.2s ease-out',
+        zIndex: stackIndex
       }}
       onMouseMove={handleLocalMouseMove}
       onMouseDown={handleMouseDown}
     >
-      {/* Light Effect */}
-      <div 
-        className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-300"
-        style={{
-          background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.2), transparent 50%)`
-        }}
-      />
-
-      {/* Glass Background */}
-      <div className="absolute inset-0 bg-white/10 backdrop-blur-md" />
-
-      {/* Window Titlebar */}
-      <div className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-black/20 border-b border-white/20">
+      {/* Window Title Bar */}
+      <div className="window-titlebar flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
+        <h2 className="text-white/90 font-medium">{title}</h2>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => closeOverlay(id)}
-              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
-            />
+          {onMinimize && (
             <button
               onClick={onMinimize}
-              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
+              className="w-3 h-3 bg-yellow-500 rounded-full hover:bg-yellow-400 transition-colors"
             />
+          )}
+          {onMaximize && (
             <button
-              onClick={isMaximized ? onUnmaximize : onMaximize}
-              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
+              onClick={onMaximize}
+              className="w-3 h-3 bg-green-500 rounded-full hover:bg-green-400 transition-colors"
             />
-          </div>
-          <span className="text-sm text-white/80 ml-2">{title}</span>
+          )}
+          <button
+            onClick={onUnmaximize}
+            className="w-3 h-3 bg-red-500 rounded-full hover:bg-red-400 transition-colors"
+          />
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex flex-col h-[calc(100%-2.5rem)]">
-        <div className="flex-1 p-6 overflow-y-auto">
-          {/* Content Bubbles */}
-          <div className="space-y-4">
-            {(isActive || showInitialContent) && displayedContent.split('\n').map((line, i) => (
-              line.trim() && (
-                <div key={i} className="flex">
-                  <div className="max-w-[80%] bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2 text-white/90 font-mono text-sm leading-relaxed">
-                    {line}
-                  </div>
-                </div>
-              )
-            ))}
+      {/* Window Content */}
+      <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(100%-3rem)]">
+        {displayedMessages.map((message, index) => (
+          <div
+            key={index}
+            className="bg-white/5 rounded-lg p-4 text-white/90 whitespace-pre-wrap"
+          >
+            {message}
           </div>
-        </div>
-
-        {/* Chat Interface */}
-        {(isActive || showInitialContent) && (
-          <div className="p-4 bg-black/30 border-t border-white/20">
-            <div className="flex flex-col gap-4">
-              {/* Chat History */}
-              <div className="max-h-32 overflow-y-auto space-y-2">
-                {chatHistory.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] px-4 py-2 rounded-2xl ${
-                        msg.type === 'user'
-                          ? 'bg-purple-500/30 text-purple-100'
-                          : 'bg-white/10 text-white/90'
-                      }`}
-                    >
-                      {msg.text}
-                    </div>
-                  </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Email Input */}
-              {showEmailInput && (
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    value={senderEmail}
-                    onChange={(e) => setSenderEmail(e.target.value)}
-                    placeholder="Enter your email..."
-                    className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                  />
-                  <button
-                    onClick={() => {
-                      if (senderEmail && senderEmail.includes('@')) {
-                        setShowEmailInput(false);
-                        setChatHistory(prev => [...prev, {
-                          text: `Email set to: ${senderEmail}`,
-                          type: 'system'
-                        }]);
-                        handleSendMessage();
-                      }
-                    }}
-                    className="px-4 py-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors"
-                  >
-                    Set Email
-                  </button>
-                </div>
-              )}
-
-              {/* Message Input */}
-              <div className="flex items-center gap-2">
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder={senderEmail ? "Type a message..." : "Send me a message..."}
-                  className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-10 leading-relaxed"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={isSending}
-                  className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
-                >
-                  {isSending ? (
-                    <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
-                  ) : (
-                    <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
-                  )}
-                </button>
-              </div>
-            </div>
+        ))}
+        {isTyping && displayedContent && (
+          <div className="bg-white/5 rounded-lg p-4 text-white/90 whitespace-pre-wrap">
+            {displayedContent}
           </div>
         )}
       </div>
 
-      {/* Resize Handle */}
-      {!isMaximized && (
-        <div className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" />
+      {/* Chat Interface */}
+      {(isActive || showInitialContent) && (
+        <div className="p-4 bg-black/30 border-t border-white/20">
+          <div className="flex flex-col gap-4">
+            {/* Chat History */}
+            <div className="max-h-32 overflow-y-auto space-y-2">
+              {chatHistory.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+                      msg.type === 'user'
+                        ? 'bg-purple-500/30 text-purple-100'
+                        : 'bg-white/10 text-white/90'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Email Input */}
+            {showEmailInput && (
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={senderEmail}
+                  onChange={(e) => setSenderEmail(e.target.value)}
+                  placeholder="Enter your email..."
+                  className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+                <button
+                  onClick={() => {
+                    if (senderEmail && senderEmail.includes('@')) {
+                      setShowEmailInput(false);
+                      setChatHistory(prev => [...prev, {
+                        text: `Email set to: ${senderEmail}`,
+                        type: 'system'
+                      }]);
+                      handleSendMessage();
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors"
+                >
+                  Set Email
+                </button>
+              </div>
+            )}
+
+            {/* Message Input */}
+            <div className="flex items-center gap-2">
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={senderEmail ? "Type a message..." : "Send me a message..."}
+                className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none h-10 leading-relaxed"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={isSending}
+                className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
+              >
+                {isSending ? (
+                  <div className="w-5 h-5 border-2 border-purple-200/20 border-t-purple-200 rounded-full animate-spin" />
+                ) : (
+                  <HiOutlinePaperAirplane className="w-5 h-5 transform rotate-90" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
+
+      {/* Resize Handle */}
+      <div className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" />
     </div>
   );
 }; 

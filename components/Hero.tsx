@@ -2,15 +2,20 @@ import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { SectionId } from './OverlayStackContext';
 
+interface Position {
+  x: number;
+  y: number;
+}
+
 interface HeroProps {
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
-  initialPosition?: { x: number; y: number };
-  isMaximized?: boolean;
+  initialPosition?: Position;
   onMinimize?: () => void;
   onMaximize?: () => void;
   onUnmaximize?: () => void;
+  className?: string;
 }
 
 export const Hero: React.FC<HeroProps> = ({
@@ -18,13 +23,12 @@ export const Hero: React.FC<HeroProps> = ({
   isActive,
   forceVisible,
   initialPosition,
-  isMaximized,
   onMinimize,
   onMaximize,
   onUnmaximize,
+  className = 'w-[800px] h-[600px]'
 }) => {
-  const content = `
-Finally.
+  const content = `Finally.
 An AI expert who comes to YOUR place.
 Not your office. Your home.
 With pizza. And beer.
@@ -34,8 +38,7 @@ In a world where AI consultants treat you like a company,
 I treat you like a human.
 
 Because AI isn't about making businesses more efficient.
-It's about making humans more powerful.
-  `.trim();
+It's about making humans more powerful.`;
 
   return (
     <TypewriterOverlay
@@ -46,10 +49,11 @@ It's about making humans more powerful.
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
-      isMaximized={isMaximized}
+      showInitialContent={true}
       onMinimize={onMinimize}
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
+      className={className}
     />
   );
 }; 

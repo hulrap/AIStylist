@@ -9,6 +9,7 @@ interface ImprintProps {
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
   showContent?: boolean;
+  className?: string;
 }
 
 export const Imprint: React.FC<ImprintProps> = ({
@@ -18,30 +19,40 @@ export const Imprint: React.FC<ImprintProps> = ({
   forceVisible = false,
   initialPosition,
   showContent = false,
+  className
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
     if (showContent && !displayedContent) {
-      const content = `QUEER MEDIA LITERACY e.V.
-An Austrian association registered in Vienna
+      const content = `LEGAL INFORMATION
 
-ZVR Number: 1689372191
-Founded: 21.09.2024
-Address: c/o 1060 Wien, Mariahilfer Straße 49/15
-Jurisdiction: Landespolizeidirektion Wien
+AI Stylist
+Philipp Krüger
+Mariahilfer Straße 49/15
+1060 Vienna, Austria
 
-Contact: admin@queer-alliance.com
+Contact:
+Email: hello@aistylist.at
 
-Privacy Policy:
-We collect only technical data necessary for security and functionality.
-All data is hosted in the EU (Frankfurt fra1 region).
-Age restriction: 18+
+VAT ID: ATU12345678
+Commercial Register: FN 123456a
+Commercial Court: Vienna
 
-Consent Collection:
-1. Allow direct contact - for opportunities inside the queer alliance
-2. Newsletter - for information (not marketing)
-3. Organizational representative - for direct organizational contact`;
+Chamber Membership:
+Austrian Chamber of Commerce (WKO)
+Professional Group: Personal Service Providers
+
+Regulatory Authority:
+Municipal Authority MA 63
+1010 Vienna
+
+Online Dispute Resolution:
+https://ec.europa.eu/consumers/odr
+
+This imprint applies to:
+aistylist.at
+instagram.com/aistylist.at`;
 
       let currentText = '';
       let currentIndex = 0;
@@ -68,6 +79,7 @@ Consent Collection:
       isActive={isActive}
       forceVisible={forceVisible}
       initialPosition={initialPosition}
+      className={className}
     />
   );
 }; 

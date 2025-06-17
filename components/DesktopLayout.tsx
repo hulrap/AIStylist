@@ -13,15 +13,16 @@ import { useOverlayStack, SectionId } from './OverlayStackContext';
 const INITIAL_CASCADE_OFFSET = 32;
 const WINDOW_APPEAR_DELAY = 200;
 
+// Reverse the order so ai-stylist appears last (on top)
 const WINDOW_ORDER: SectionId[] = [
-  'ai-stylist',
-  'problem',
-  'first',
-  'experience',
-  'packages',
-  'contact',
+  'credits',
   'imprint',
-  'credits'
+  'contact',
+  'packages',
+  'experience',
+  'first',
+  'problem',
+  'ai-stylist'
 ];
 
 interface MinimizedWindow {
@@ -80,10 +81,13 @@ export const DesktopLayout: React.FC = () => {
   };
 
   const getInitialPosition = (id: SectionId) => {
+    // Center all windows with cascade offset
+    const baseX = Math.max(0, (window.innerWidth - (id === 'ai-stylist' ? 800 : 600)) / 2);
+    const baseY = Math.max(0, (window.innerHeight - (id === 'ai-stylist' ? 600 : 400)) / 2);
     const index = WINDOW_ORDER.indexOf(id);
     return {
-      x: INITIAL_CASCADE_OFFSET * index,
-      y: INITIAL_CASCADE_OFFSET * index
+      x: baseX + (INITIAL_CASCADE_OFFSET * index),
+      y: baseY + (INITIAL_CASCADE_OFFSET * index)
     };
   };
 
@@ -145,13 +149,24 @@ export const DesktopLayout: React.FC = () => {
       <TypewriterOverlay
         id="ai-stylist"
         title="AI Stylist"
-        content="Finally.\nAn AI expert who comes to YOUR place.\nNot your office. Your home.\nWith pizza. And beer.\nAnd zero corporate bullshit."
+        content={`Finally.
+An AI expert who comes to YOUR place.
+Not your office. Your home.
+With pizza. And beer.
+And zero corporate bullshit.
+
+In a world where AI consultants treat you like a company,
+I treat you like a human.
+
+Because AI isn't about making businesses more efficient.
+It's about making humans more powerful.`}
         stackIndex={WINDOW_ORDER.indexOf('ai-stylist')}
         isActive={activeOverlay === 'ai-stylist'}
         forceVisible={windowsVisible['ai-stylist']}
         initialPosition={getInitialPosition('ai-stylist')}
         showInitialContent={true}
         onMinimize={() => handleMinimize('ai-stylist', 'AI Stylist', '✨')}
+        className="w-[800px] h-[600px]"
       />
       <Problem
         id="problem"
@@ -160,6 +175,7 @@ export const DesktopLayout: React.FC = () => {
         forceVisible={windowsVisible['problem']}
         initialPosition={getInitialPosition('problem')}
         showContent={activeOverlay === 'problem'}
+        className="w-[600px] h-[400px]"
       />
       <Category
         id="first"
@@ -168,6 +184,7 @@ export const DesktopLayout: React.FC = () => {
         forceVisible={windowsVisible['first']}
         initialPosition={getInitialPosition('first')}
         showContent={activeOverlay === 'first'}
+        className="w-[600px] h-[400px]"
       />
       <Experience
         id="experience"
@@ -176,6 +193,7 @@ export const DesktopLayout: React.FC = () => {
         forceVisible={windowsVisible['experience']}
         initialPosition={getInitialPosition('experience')}
         showContent={activeOverlay === 'experience'}
+        className="w-[600px] h-[400px]"
       />
       <Packages
         id="packages"
@@ -184,6 +202,7 @@ export const DesktopLayout: React.FC = () => {
         forceVisible={windowsVisible['packages']}
         initialPosition={getInitialPosition('packages')}
         showContent={activeOverlay === 'packages'}
+        className="w-[600px] h-[400px]"
       />
       <Contact
         id="contact"
@@ -192,6 +211,7 @@ export const DesktopLayout: React.FC = () => {
         forceVisible={windowsVisible['contact']}
         initialPosition={getInitialPosition('contact')}
         showContent={activeOverlay === 'contact'}
+        className="w-[600px] h-[400px]"
       />
       <Imprint
         id="imprint"
@@ -200,6 +220,7 @@ export const DesktopLayout: React.FC = () => {
         forceVisible={windowsVisible['imprint']}
         initialPosition={getInitialPosition('imprint')}
         showContent={activeOverlay === 'imprint'}
+        className="w-[600px] h-[400px]"
       />
 
       {/* Taskbar */}
