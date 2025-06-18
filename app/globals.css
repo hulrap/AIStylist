@@ -717,14 +717,18 @@
   @media (max-width: 768px) {
     .mobile-window-stack {
       position: fixed !important;
-      left: 10px !important;
-      right: 10px !important;
-      width: calc(100vw - 20px) !important;
+      left: 15px !important;
+      right: 15px !important;
+      width: calc(100vw - 30px) !important;
       max-width: none !important;
-      height: calc(100vh - 140px) !important; /* Leave space for icons at bottom */
-      max-height: calc(100vh - 140px) !important;
+      height: calc(100vh - 160px) !important; /* Leave more space for icons at bottom */
+      max-height: none !important;
       border-radius: 12px !important;
-      overflow: hidden !important; /* Ensure proper content containment */
+      overflow: visible !important; /* Allow content to be visible */
+      background: rgba(255, 255, 255, 0.05) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
     
     /* Stack windows with different z-indexes and slight offsets */
@@ -860,9 +864,11 @@
 
     /* Mobile content area fixes */
     .mobile-window-stack .window-content-area {
-      max-height: 100% !important;
+      flex: 1 !important;
       overflow-y: auto !important;
-      padding: 16px !important;
+      padding: 20px !important;
+      display: flex !important;
+      flex-direction: column !important;
     }
 
     .mobile-window-stack .window-content-container {
@@ -870,6 +876,25 @@
       min-height: 0 !important;
       display: flex !important;
       flex-direction: column !important;
+    }
+
+    /* Ensure typewriter content is visible on mobile */
+    .mobile-window-stack .space-y-3 {
+      width: 100% !important;
+      max-width: none !important;
+    }
+
+    /* Mobile typewriter bubbles */
+    .mobile-window-stack .bg-white\/10 {
+      max-width: none !important;
+      width: 100% !important;
+    }
+
+    /* Mobile window controls - larger touch targets */
+    .mobile-window-stack .window-titlebar button {
+      width: 24px !important;
+      height: 24px !important;
+      font-size: 14px !important;
     }
 
     /* Prevent body scroll on mobile when windows are open */

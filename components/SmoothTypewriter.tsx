@@ -226,7 +226,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
             key={index}
             className={`bg-white/10 text-white/90 font-mono text-sm leading-relaxed px-4 py-2 rounded-2xl cursor-pointer hover:bg-white/15 transition-colors min-h-[2.5rem] flex items-start ${className}`}
             style={{ 
-              width: 'calc(100vw - 20vw)', // Window width minus 10vw spacing on each side
+              width: '100%', // Use full container width
               maxWidth: '400px', // Maximum width cap for very large screens
               minWidth: '250px', // Minimum width for very small screens
               minHeight: '2.5rem'
