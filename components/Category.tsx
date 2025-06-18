@@ -36,14 +36,16 @@ export const Category: React.FC<CategoryProps> = ({
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
 
-  const content = `FIRST THINGS FIRST
-
-Let's understand your style.
-What do you like to wear?
-What makes you feel confident?
-What's your lifestyle?
-
-I'll help you find your perfect style.`;
+  const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
+Not software. Not a course.
+A real person who comes to you.
+A Fitness Instructor, teaches your body to be strong.
+A Piano Instructor, teaches your fingers to make music.
+A Driving Instructor, teaches your mind to navigate roads.
+A Cooking Instructor, teaches your hands to create meals.
+A Dance Instructor, teaches your body to move with rhythm and a Swimming Instructor, teaches you to master water.
+An AI Instructor, teaches you to master the digital future.
+Not for your company. Personal instruction for YOU.`.trim();
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -76,14 +78,21 @@ I'll help you find your perfect style.`;
       startTypewriter();
     }
 
+    // Only clear typing state if the window becomes inactive AND is not minimizing
     if (!isActive) {
-      isTypingRef.current = false;
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-        typewriterTimeoutRef.current = null;
-      }
-      contentRef.current = '';
-      setDisplayedContent('');
+      const timeoutId = setTimeout(() => {
+        isTypingRef.current = false;
+        if (typewriterTimeoutRef.current) {
+          clearTimeout(typewriterTimeoutRef.current);
+          typewriterTimeoutRef.current = null;
+        }
+        contentRef.current = '';
+        setDisplayedContent('');
+      }, 150); // Delay clearing the state to allow for transitions
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
 
     return () => {

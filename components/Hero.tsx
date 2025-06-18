@@ -40,8 +40,8 @@ I treat you like a human, not a company.
 Because AI isn't about making businesses more efficient.
 It's about making humans more powerful.
 I'm not a consultant. I'm your friend.
-And I know a lot about AI and digital tools.
-You can access my cognitive knowledge base.`.trim();
+I know a lot about AI and digital tools.
+And you can access it.`.trim();
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -74,14 +74,21 @@ You can access my cognitive knowledge base.`.trim();
       startTypewriter();
     }
 
+    // Only clear typing state if the window becomes inactive AND is not minimizing
     if (!isActive) {
-      isTypingRef.current = false;
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-        typewriterTimeoutRef.current = null;
-      }
-      contentRef.current = '';
-      setDisplayedContent('');
+      const timeoutId = setTimeout(() => {
+        isTypingRef.current = false;
+        if (typewriterTimeoutRef.current) {
+          clearTimeout(typewriterTimeoutRef.current);
+          typewriterTimeoutRef.current = null;
+        }
+        contentRef.current = '';
+        setDisplayedContent('');
+      }, 150); // Delay clearing the state to allow for transitions
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
 
     return () => {

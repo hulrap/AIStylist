@@ -37,18 +37,12 @@ export const Experience: React.FC<ExperienceProps> = ({
   const contentRef = useRef('');
 
   const content = `WHAT TO EXPECT:
-I come to your place.
-We sit on your couch.
-I bring pizza (or your favorite food).
+I come to your place, we sit on your couch. I bring pizza, coffee, tea, beer or wine if you want to.
 And we make YOU more powerful.
-No corporate bullshit.
-No efficiency metrics.
-Just real human connection.
-And real AI superpowers.
-For YOUR life.
-For YOUR goals.
-For YOUR dreams.
-This is personal AI instruction.`;
+No corporate bs, No efficiency metrics.
+Just real human connection and real AI superpowers.
+For YOUR life, or YOUR goals, or YOUR dreams.
+This is personal AI instruction.`.trim();
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -81,14 +75,21 @@ This is personal AI instruction.`;
       startTypewriter();
     }
 
+    // Only clear typing state if the window becomes inactive AND is not minimizing
     if (!isActive) {
-      isTypingRef.current = false;
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-        typewriterTimeoutRef.current = null;
-      }
-      contentRef.current = '';
-      setDisplayedContent('');
+      const timeoutId = setTimeout(() => {
+        isTypingRef.current = false;
+        if (typewriterTimeoutRef.current) {
+          clearTimeout(typewriterTimeoutRef.current);
+          typewriterTimeoutRef.current = null;
+        }
+        contentRef.current = '';
+        setDisplayedContent('');
+      }, 150); // Delay clearing the state to allow for transitions
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
 
     return () => {

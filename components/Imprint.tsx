@@ -38,18 +38,17 @@ export const Imprint: React.FC<ImprintProps> = ({
 
   const content = `LEGAL INFORMATION
 
-AI Stylist
-123 Fashion Street
-New York, NY 10001
-United States
+AI Instructor
+Raw Fiction e.U.
+Wien, Austria
 
-Email: contact@aistylist.com
-Phone: +1 (555) 123-4567
+Email: info@ai-instructor.me
+Phone: +43 670 606 6149
 
-Business Registration: NY12345
-VAT ID: US987654321
+Business Registration: FN 519455f
+VAT ID: ATU81854646
 
-© 2024 AI Stylist. All rights reserved.`;
+© 2025 Raw Fiction e.U. All rights reserved.`.trim();
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -82,14 +81,21 @@ VAT ID: US987654321
       startTypewriter();
     }
 
+    // Only clear typing state if the window becomes inactive AND is not minimizing
     if (!isActive) {
-      isTypingRef.current = false;
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-        typewriterTimeoutRef.current = null;
-      }
-      contentRef.current = '';
-      setDisplayedContent('');
+      const timeoutId = setTimeout(() => {
+        isTypingRef.current = false;
+        if (typewriterTimeoutRef.current) {
+          clearTimeout(typewriterTimeoutRef.current);
+          typewriterTimeoutRef.current = null;
+        }
+        contentRef.current = '';
+        setDisplayedContent('');
+      }, 150); // Delay clearing the state to allow for transitions
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
 
     return () => {

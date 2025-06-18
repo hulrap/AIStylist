@@ -115,13 +115,13 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
       
       // Skip Contact and Imprint windows when finding the next window to activate
       if (nextId !== 'contact' && nextId !== 'imprint') {
-        // Minimize current window
-        handleMinimize(id);
+        // First bring the next window to front
+        bringToFront(nextId);
         
-        // Activate next window
+        // Then minimize the current window after a short delay
         setTimeout(() => {
-          bringToFront(nextId);
-        }, 300); // Wait for minimization animation
+          handleMinimize(id);
+        }, 100);
       }
     }
   };

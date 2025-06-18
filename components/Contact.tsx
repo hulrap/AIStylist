@@ -37,15 +37,13 @@ export const Contact: React.FC<ContactProps> = ({
   const contentRef = useRef('');
 
   const content = `READY TO BECOME MORE POWERFUL?
-
 Send me a message.
 Tell me about your goals.
 Tell me about your dreams.
 Tell me about your life.
-
 I'll get back to you within 24 hours.
 And we'll make YOU more powerful.
-Together.`;
+Together.`.trim();
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -79,14 +77,21 @@ Together.`;
       startTypewriter();
     }
 
+    // Only clear typing state if the window becomes inactive AND is not minimizing
     if (!isActive) {
-      isTypingRef.current = false;
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-        typewriterTimeoutRef.current = null;
-      }
-      contentRef.current = '';
-      setDisplayedContent('');
+      const timeoutId = setTimeout(() => {
+        isTypingRef.current = false;
+        if (typewriterTimeoutRef.current) {
+          clearTimeout(typewriterTimeoutRef.current);
+          typewriterTimeoutRef.current = null;
+        }
+        contentRef.current = '';
+        setDisplayedContent('');
+      }, 150); // Delay clearing the state to allow for transitions
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
 
     return () => {

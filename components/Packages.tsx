@@ -45,7 +45,7 @@ THE IMMERSION:
 6x90 minutes at your place, one week, one day, two days, up to you, complete AI transformation, for €1,080
 
 THE FRIENDSHIP:
-Ongoing text support, questions answered immediately, your AI instructor for as long as you need refining, for €50/month`;
+Ongoing text support, questions answered immediately, your AI instructor for as long as you need refining, for €50/month`.trim();
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -78,14 +78,21 @@ Ongoing text support, questions answered immediately, your AI instructor for as 
       startTypewriter();
     }
 
+    // Only clear typing state if the window becomes inactive AND is not minimizing
     if (!isActive) {
-      isTypingRef.current = false;
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-        typewriterTimeoutRef.current = null;
-      }
-      contentRef.current = '';
-      setDisplayedContent('');
+      const timeoutId = setTimeout(() => {
+        isTypingRef.current = false;
+        if (typewriterTimeoutRef.current) {
+          clearTimeout(typewriterTimeoutRef.current);
+          typewriterTimeoutRef.current = null;
+        }
+        contentRef.current = '';
+        setDisplayedContent('');
+      }, 150); // Delay clearing the state to allow for transitions
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
 
     return () => {
