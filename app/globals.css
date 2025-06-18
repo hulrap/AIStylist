@@ -749,9 +749,26 @@
     .mobile-window-stack .window-content-area {
       flex: 1 !important;
       overflow-y: auto !important;
-      padding: 20px !important;
+      padding: 16px !important;
       display: flex !important;
       flex-direction: column !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    /* === MOBILE TYPEWRITER CONTENT === */
+    .mobile-window-stack .space-y-3 {
+      width: 100% !important;
+    }
+
+    .mobile-window-stack .space-y-4 {
+      width: 100% !important;
+    }
+
+    /* === MOBILE CHAT BUBBLES === */
+    .mobile-window-stack .bg-white\/10 {
+      max-width: none !important;
+      width: 100% !important;
     }
 
     /* === MOBILE WINDOW CONTROLS === */
@@ -821,6 +838,17 @@
     .taskbar { display: none !important; }
     .mobile-window-tabs { display: none !important; }
     .resize-handle { display: none !important; }
+
+    /* === MOBILE WINDOW OVERRIDES === */
+    .mobile-window-stack * {
+      box-sizing: border-box !important;
+    }
+
+    /* Ensure mobile windows don't inherit desktop positioning */
+    .mobile-window-stack {
+      transform: none !important;
+      perspective: none !important;
+    }
     
     .window-titlebar {
       cursor: default !important;

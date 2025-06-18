@@ -7,9 +7,9 @@ interface LoadingScreenProps {
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const [text, setText] = useState<string[]>([]);
   const lines = [
-    "This AI instructor,",
-    "Is not made out of code",
-    "Let's eat pizza."
+    "This is not a software or AI,",
+    "I will visit you",
+    "with pizza."
   ];
   const [isVisible, setIsVisible] = useState(true);
   const [currentLine, setCurrentLine] = useState(0);

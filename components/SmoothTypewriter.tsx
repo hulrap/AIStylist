@@ -212,7 +212,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
   }
 
   return (
-    <div ref={containerRef} className="space-y-3 flex flex-col items-center">
+    <div ref={containerRef} className="space-y-3 flex flex-col items-start w-full">
       {lines.map((line, index) => {
         const currentLineIndex = currentLineIndexRef.current;
         const shouldShow = index <= currentLineIndex || line.isComplete;
@@ -224,13 +224,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
         return (
           <div 
             key={index}
-            className={`bg-white/10 text-white/90 font-mono text-sm leading-relaxed px-4 py-2 rounded-2xl cursor-pointer hover:bg-white/15 transition-colors min-h-[2.5rem] flex items-start ${className}`}
-            style={{ 
-              width: '100%', // Use full container width
-              maxWidth: '400px', // Maximum width cap for very large screens
-              minWidth: '250px', // Minimum width for very small screens
-              minHeight: '2.5rem'
-            }}
+            className={`bg-white/10 text-white/90 font-mono text-sm leading-relaxed px-4 py-2 rounded-2xl cursor-pointer hover:bg-white/15 transition-colors min-h-[2.5rem] flex items-start w-full ${className}`}
             onClick={handleClick}
           >
             <div className="w-full break-words min-h-[1.5rem]">

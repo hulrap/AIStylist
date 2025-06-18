@@ -453,10 +453,20 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         isAnimatingRestore ? 'window-restoring' : ''
       } ${className || ''}`}
       style={{
-        left: isWindowMaximized ? 0 : position.x,
-        top: isWindowMaximized ? 0 : position.y,
-        width: isWindowMaximized ? '100%' : size.width,
-        height: isWindowMaximized ? '100%' : size.height,
+        // Only apply desktop positioning when NOT in mobile mode
+        ...(isMobile ? {} : {
+          left: isWindowMaximized ? 0 : position.x,
+          top: isWindowMaximized ? 0 : position.y,
+          width: isWindowMaximized ? '100%' : size.width,
+          height: isWindowMaximized ? '100%' : size.height,
+        }),
+        // Apply mobile styles only when in mobile mode
+        ...(isMobile && isWindowMaximized ? {
+          left: 0,
+          top: 0,
+          width: '100%',
+          height: '100%',
+        } : {}),
         transform: (isAnimatingMinimize || isAnimatingRestore) ? 'none' : `${isWindowMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
         transition: (isDragging || isAnimatingMinimize || isAnimatingRestore) ? 'none' : 'all 0.2s ease-out'
       }}
@@ -561,13 +571,13 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
           {/* Smooth Typewriter Content */}
           <div className="space-y-4">
             {(shouldShowTypewriter || hasCompletedTyping) && content && (
-              <div className="flex justify-start">
+              <div className="flex justify-start w-full">
                 <SmoothTypewriter
                   content={content}
                   isActive={shouldShowTypewriter || hasCompletedTyping}
                   onComplete={handleTypingComplete}
                   speed={80}
-                  className="max-w-[90%]"
+                  className={isMobile ? "w-full" : "max-w-[90%]"}
                   onScroll={handleTypewriterScroll}
                 />
               </div>
@@ -666,7 +676,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
             
             {showEmailField && (
               <div className="text-xs text-white/50 animate-fade-in">
-                This sends a real email to Raphael who will get back to you within 24 hours.
+                This sends a real email to me and I will get back to you within 24 hours.
               </div>
             )}
           </div>
