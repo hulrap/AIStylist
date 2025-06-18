@@ -5,41 +5,64 @@ interface LoadingScreenProps {
 }
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
-  const [text, setText] = useState('');
-  const fullText = "I am not a software, I will visit you with pizza.";
+  const [text, setText] = useState<string[]>([]);
+  const lines = [
+    "I am not a software,",
+    "I will visit you",
+    "with pizza."
+  ];
   const [isVisible, setIsVisible] = useState(true);
+  const [currentLine, setCurrentLine] = useState(0);
+  const [currentChar, setCurrentChar] = useState(0);
 
   useEffect(() => {
-    let currentIndex = 0;
-    const typeInterval = setInterval(() => {
-      if (currentIndex < fullText.length) {
-        setText(prev => prev + fullText[currentIndex]);
-        currentIndex++;
+    let timeoutId: NodeJS.Timeout;
+    
+    const typeNextCharacter = () => {
+      if (currentLine < lines.length) {
+        const currentText = lines[currentLine];
+        if (currentChar < currentText.length) {
+          setText(prev => {
+            const newLines = [...prev];
+            if (!newLines[currentLine]) newLines[currentLine] = '';
+            newLines[currentLine] = currentText.substring(0, currentChar + 1);
+            return newLines;
+          });
+          setCurrentChar(prev => prev + 1);
+          timeoutId = setTimeout(typeNextCharacter, 50);
+        } else {
+          // Move to next line after a pause
+          timeoutId = setTimeout(() => {
+            setCurrentLine(prev => prev + 1);
+            setCurrentChar(0);
+            timeoutId = setTimeout(typeNextCharacter, 50);
+          }, 200); // Pause between lines
+        }
       } else {
-        clearInterval(typeInterval);
-        // Keep text visible for a moment after completion
+        // All lines complete
         setTimeout(() => {
           setIsVisible(false);
         }, 1000);
       }
-    }, 50);
+    };
 
-    // Auto-complete after 3 seconds regardless of typing state
-    const timeout = setTimeout(() => {
-      clearInterval(typeInterval);
-      setText(fullText);
+    timeoutId = setTimeout(typeNextCharacter, 50);
+
+    // Auto-complete after 3 seconds
+    const autoCompleteTimeout = setTimeout(() => {
+      clearTimeout(timeoutId);
+      setText(lines);
       setTimeout(() => {
         setIsVisible(false);
       }, 1000);
     }, 3000);
 
     return () => {
-      clearInterval(typeInterval);
-      clearTimeout(timeout);
+      clearTimeout(timeoutId);
+      clearTimeout(autoCompleteTimeout);
     };
-  }, []);
+  }, [currentLine, currentChar]);
 
-  // Handle transition end to trigger onComplete
   const handleTransitionEnd = () => {
     if (!isVisible) {
       onComplete();
@@ -53,9 +76,16 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
       }`}
       onTransitionEnd={handleTransitionEnd}
     >
-      <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white text-center px-4 max-w-4xl">
-        {text}
-      </h1>
+      <div className="flex flex-col items-center justify-center gap-2">
+        {text.map((line, index) => (
+          <h1 
+            key={index}
+            className="text-4xl md:text-6xl lg:text-7xl font-black text-white text-center leading-tight"
+          >
+            {line}
+          </h1>
+        ))}
+      </div>
     </div>
   );
 }; 
