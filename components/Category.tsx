@@ -115,7 +115,7 @@ export const Category: React.FC<CategoryProps> = ({
   return (
     <TypewriterOverlay
       id={id}
-      title="AI Categories"
+      title="The First"
       content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
