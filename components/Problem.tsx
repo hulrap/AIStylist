@@ -34,19 +34,17 @@ export const Problem: React.FC<ProblemProps> = ({
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
 
-  const content = `THE PROBLEM WITH AI EDUCATION:
-It's all about companies.
-Courses that teach you to be a prompt engineer.
-Consultants that help your business automate.
-Bootcamps that make you an AI developer.
-But what about YOU?
-What about YOUR life?
-What about YOUR dreams?
-What about YOUR potential?
-Nobody teaches you how to use AI for yourself.
-Nobody shows you how to enhance YOUR capabilities.
-Nobody helps YOU become more powerful.
-That's why I'm here.`;
+  const content = `THE PROBLEM:
+AI is not about making businesses more efficient.
+It's about making humans more powerful.
+But most AI experts treat you like a company.
+They want to optimize your processes.
+They want to make you more productive.
+They want to make you more efficient.
+But they don't want to make you more powerful.
+They don't want to make you more creative.
+They don't want to make you more human.
+I do.`;
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -105,6 +103,10 @@ That's why I'm here.`;
       initialPosition={initialPosition}
       initialSize={initialSize}
       showInitialContent={showContent}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 

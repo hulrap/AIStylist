@@ -105,6 +105,10 @@ This is personal AI instruction.`;
       initialPosition={initialPosition}
       initialSize={initialSize}
       showInitialContent={showContent}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 

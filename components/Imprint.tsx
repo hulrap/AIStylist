@@ -98,6 +98,10 @@ Contact: admin@queer-alliance.com`;
       initialPosition={initialPosition}
       initialSize={initialSize}
       showInitialContent={showContent}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 

@@ -94,7 +94,7 @@ Ongoing text support, questions answered immediately, your AI instructor for as 
   return (
     <TypewriterOverlay
       id={id}
-      title="Three Ways"
+      title="Packages"
       content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
@@ -102,6 +102,10 @@ Ongoing text support, questions answered immediately, your AI instructor for as 
       initialPosition={initialPosition}
       initialSize={initialSize}
       showInitialContent={showContent}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 

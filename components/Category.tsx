@@ -34,16 +34,37 @@ export const Category: React.FC<CategoryProps> = ({
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
 
-  const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
-Not software. Not a course. A real person who comes to you.
-A Fitness Instructor → Teaches your body to be strong
-A Piano Instructor → Teaches your fingers to make music  
-A Driving Instructor → Teaches your mind to navigate roads
-A Cooking Instructor → Teaches your hands to create meals
-A Dance Instructor → Teaches your body to move with rhythm
-A Swimming Instructor → Teaches you to master water
-An AI Instructor → Teaches you to master the digital future
-Not for your company. Personal instruction for YOU.`;
+  const content = `WHAT I CAN TEACH YOU:
+
+1. PERSONAL AI ASSISTANTS
+- ChatGPT, Claude, Copilot
+- Custom GPTs and AI Agents
+- Voice Assistants
+- Task Automation
+
+2. CREATIVE AI TOOLS
+- Midjourney, DALL-E, Stable Diffusion
+- Adobe Firefly
+- Runway
+- Leonardo AI
+
+3. AUDIO & VIDEO AI
+- ElevenLabs
+- Descript
+- RunwayML
+- D-ID
+
+4. PRODUCTIVITY AI
+- Notion AI
+- Otter.ai
+- Mem.ai
+- Taskade
+
+5. CODING AI
+- GitHub Copilot
+- Amazon CodeWhisperer
+- Cursor
+- Replit`;
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -94,7 +115,7 @@ Not for your company. Personal instruction for YOU.`;
   return (
     <TypewriterOverlay
       id={id}
-      title="The First"
+      title="AI Categories"
       content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
@@ -102,6 +123,10 @@ Not for your company. Personal instruction for YOU.`;
       initialPosition={initialPosition}
       initialSize={initialSize}
       showInitialContent={showContent}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 

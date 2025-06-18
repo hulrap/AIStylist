@@ -34,18 +34,16 @@ export const Contact: React.FC<ContactProps> = ({
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
 
-  const content = `READY TO START?
-Send me a message right here.
-Tell me about yourself.
-What are your goals?
-What do you want to achieve?
-How can AI help YOU?
+  const content = `READY TO BECOME MORE POWERFUL?
+
+Send me a message.
+Tell me about your goals.
+Tell me about your dreams.
+Tell me about your life.
+
 I'll get back to you within 24 hours.
-We'll find a time that works for you.
-And we'll start your AI journey together.
-No corporate bullshit.
-Just real human connection.
-And real AI superpowers.`;
+And we'll make YOU more powerful.
+Together.`;
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -96,7 +94,7 @@ And real AI superpowers.`;
   return (
     <TypewriterOverlay
       id={id}
-      title="Start Now"
+      title="Contact"
       content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
@@ -104,6 +102,10 @@ And real AI superpowers.`;
       initialPosition={initialPosition}
       initialSize={initialSize}
       showInitialContent={showContent}
+      isMaximized={isMaximized}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      onUnmaximize={onUnmaximize}
     />
   );
 }; 
