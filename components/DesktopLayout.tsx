@@ -97,6 +97,69 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
 
+  useEffect(() => {
+    // Only start cascade animation when isReady is true and hasn't initialized yet
+    if (isReady && !hasInitialized) {
+      // Pre-calculate all positions to ensure consistency
+      const positions = WINDOW_ORDER.reduce((acc, id) => {
+        acc[id] = getInitialPosition(id);
+        return acc;
+      }, {} as Record<SectionId, Position>);
+
+      // Initialize all windows as visible but inactive
+      setWindowStates(prev => {
+        const newStates = { ...prev };
+        WINDOW_ORDER.forEach(id => {
+          newStates[id] = {
+            ...newStates[id],
+            isVisible: false, // Start invisible for cascade effect
+            isActive: false,
+            isMinimized: false, // All windows start unminimized
+            transitionState: 'idle'
+          };
+        });
+        return newStates;
+      });
+
+      // Then start the cascade sequence
+      let currentIndex = WINDOW_ORDER.length - 1; // Start from last window (ai-instructor)
+      
+      const activateNextWindow = () => {
+        if (currentIndex >= 0) {
+          const id = WINDOW_ORDER[currentIndex];
+          
+          // Update position first
+          updatePosition(id, positions[id]);
+          
+          // Then update window state
+          setWindowStates(prev => ({
+            ...prev,
+            [id]: {
+              ...prev[id],
+              isVisible: true,
+              isActive: id === 'ai-instructor', // Only AI Instructor starts as active
+              isMinimized: false, // All windows start unminimized
+              transitionState: id === 'ai-instructor' ? 'typing' : 'idle'
+            }
+          }));
+
+          // Add to overlay stack in correct order for layering
+          setOverlayStack(prev => [...prev, id]);
+          
+          // Schedule next window
+          currentIndex--;
+          if (currentIndex >= 0) {
+            setTimeout(activateNextWindow, WINDOW_APPEAR_DELAY);
+          }
+        }
+      };
+
+      // Start the cascade
+      activateNextWindow();
+      setHasInitialized(true);
+    }
+  }, [isReady, hasInitialized, updatePosition, setWindowStates]);
+
   const handleTypingComplete = (id: SectionId) => {
     // Don't auto-minimize Contact window
     if (id === 'contact') return;
@@ -136,69 +199,6 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
       }, 200); // Delay to allow minimization animation to start
     }
   };
-
-  useEffect(() => {
-    // Only start cascade animation when isReady is true and hasn't initialized yet
-    if (isReady && !hasInitialized) {
-      // Pre-calculate all positions to ensure consistency
-      const positions = WINDOW_ORDER.reduce((acc, id) => {
-        acc[id] = getInitialPosition(id);
-        return acc;
-      }, {} as Record<SectionId, Position>);
-
-      // Initialize all windows as minimized and inactive first
-      setWindowStates(prev => {
-        const newStates = { ...prev };
-        WINDOW_ORDER.forEach(id => {
-          newStates[id] = {
-            ...newStates[id],
-            isVisible: false,
-            isActive: false,
-            isMinimized: true,
-            transitionState: 'idle'
-          };
-        });
-        return newStates;
-      });
-
-      // Then start the cascade sequence
-      let currentIndex = WINDOW_ORDER.length - 1; // Start from last window (ai-instructor)
-      
-      const activateNextWindow = () => {
-        if (currentIndex >= 0) {
-          const id = WINDOW_ORDER[currentIndex];
-          
-          // Update position first
-          updatePosition(id, positions[id]);
-          
-          // Then update window state
-          setWindowStates(prev => ({
-            ...prev,
-            [id]: {
-              ...prev[id],
-              isVisible: true,
-              isActive: id === 'ai-instructor', // Only AI Instructor starts as active
-              isMinimized: id !== 'ai-instructor', // Only AI Instructor starts unminimized
-              transitionState: id === 'ai-instructor' ? 'typing' : 'idle'
-            }
-          }));
-
-          // Add to overlay stack
-          setOverlayStack(prev => [...prev, id]);
-          
-          // Schedule next window
-          currentIndex--;
-          if (currentIndex >= 0) {
-            setTimeout(activateNextWindow, WINDOW_APPEAR_DELAY);
-          }
-        }
-      };
-
-      // Start the cascade
-      activateNextWindow();
-      setHasInitialized(true);
-    }
-  }, [isReady, hasInitialized, updatePosition, setWindowStates]);
 
   const handleIconClick = (id: SectionId) => {
     const windowState = getWindowState(id);
