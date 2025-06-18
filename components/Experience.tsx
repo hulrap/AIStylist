@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { SectionId } from './OverlayStackContext';
 
@@ -30,46 +30,69 @@ export const Experience: React.FC<ExperienceProps> = ({
   onUnmaximize,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
+  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
 
+  const content = `WHAT TO EXPECT:
+I come to your place.
+We sit on your couch.
+I bring pizza (or your favorite food).
+And we make YOU more powerful.
+No corporate bullshit.
+No efficiency metrics.
+Just real human connection.
+And real AI superpowers.
+For YOUR life.
+For YOUR goals.
+For YOUR dreams.
+This is personal AI instruction.`;
+
+  const startTypewriter = useCallback(() => {
+    let currentText = '';
+    let currentIndex = 0;
+    isTypingRef.current = true;
+
+    const typeNextCharacter = () => {
+      if (currentIndex < content.length) {
+        currentText += content[currentIndex];
+        setDisplayedContent(currentText);
+        currentIndex++;
+        typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
+      } else {
+        isTypingRef.current = false;
+      }
+    };
+
+    typeNextCharacter();
+  }, [content]);
+
+  // Clear content when window becomes inactive
   useEffect(() => {
     if (!isActive) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
       setDisplayedContent('');
+      isTypingRef.current = false;
     }
   }, [isActive]);
 
+  // Start typewriter when window becomes active
   useEffect(() => {
-    if (showContent && isActive && !displayedContent) {
-      const content = `This is not a business meeting.
-This is personal mentoring and learning experience.
-I come to your home.
-We order pizza or I bring one (if you are close, I don't like cold pizza).
-We open some beers or wine (if you want to), or brew some coffee or tea.
-We sit comfortably in your comfort zone.
-And I teach you to be a digital AI native.
-Depending on how much time and experience you have.
-No PowerPoints. No corporate jargon. No 'solutions.'
-Just you, me, and the tools that will change your life.
-I'm not a consultant. I'm your friend.
-I would not even charge if I wouldn't have to earn a living too.
-Text me when you have questions later.
-No invoice for a 2-minute answer.
-Because I'm your AI instructor, not your vendor.`;
-
-      let currentText = '';
-      let currentIndex = 0;
-
-      const typeNextCharacter = () => {
-        if (currentIndex < content.length) {
-          currentText += content[currentIndex];
-          setDisplayedContent(currentText);
-          currentIndex++;
-          setTimeout(typeNextCharacter, 50);
-        }
-      };
-
-      typeNextCharacter();
+    if (isActive && !isTypingRef.current) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+      setDisplayedContent('');
+      startTypewriter();
     }
-  }, [showContent, isActive, displayedContent]);
+
+    return () => {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+    };
+  }, [isActive, startTypewriter]);
 
   return (
     <TypewriterOverlay

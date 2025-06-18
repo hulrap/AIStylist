@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { SectionId } from './OverlayStackContext';
 
@@ -30,16 +30,10 @@ export const Category: React.FC<CategoryProps> = ({
   onUnmaximize,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
+  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
 
-  useEffect(() => {
-    if (!isActive) {
-      setDisplayedContent('');
-    }
-  }, [isActive]);
-
-  useEffect(() => {
-    if (showContent && isActive && !displayedContent) {
-      const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
+  const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
 Not software. Not a course. A real person who comes to you.
 A Fitness Instructor → Teaches your body to be strong
 A Piano Instructor → Teaches your fingers to make music  
@@ -50,21 +44,52 @@ A Swimming Instructor → Teaches you to master water
 An AI Instructor → Teaches you to master the digital future
 Not for your company. Personal instruction for YOU.`;
 
-      let currentText = '';
-      let currentIndex = 0;
+  const startTypewriter = useCallback(() => {
+    let currentText = '';
+    let currentIndex = 0;
+    isTypingRef.current = true;
 
-      const typeNextCharacter = () => {
-        if (currentIndex < content.length) {
-          currentText += content[currentIndex];
-          setDisplayedContent(currentText);
-          currentIndex++;
-          setTimeout(typeNextCharacter, 50);
-        }
-      };
+    const typeNextCharacter = () => {
+      if (currentIndex < content.length) {
+        currentText += content[currentIndex];
+        setDisplayedContent(currentText);
+        currentIndex++;
+        typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
+      } else {
+        isTypingRef.current = false;
+      }
+    };
 
-      typeNextCharacter();
+    typeNextCharacter();
+  }, [content]);
+
+  // Clear content when window becomes inactive
+  useEffect(() => {
+    if (!isActive) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+      setDisplayedContent('');
+      isTypingRef.current = false;
     }
-  }, [showContent, isActive, displayedContent]);
+  }, [isActive]);
+
+  // Start typewriter when window becomes active
+  useEffect(() => {
+    if (isActive && !isTypingRef.current) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+      setDisplayedContent('');
+      startTypewriter();
+    }
+
+    return () => {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+    };
+  }, [isActive, startTypewriter]);
 
   return (
     <TypewriterOverlay

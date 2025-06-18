@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { SectionId } from './OverlayStackContext';
 
@@ -30,40 +30,68 @@ export const Contact: React.FC<ContactProps> = ({
   onUnmaximize,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
+  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
 
+  const content = `READY TO START?
+Send me a message right here.
+Tell me about yourself.
+What are your goals?
+What do you want to achieve?
+How can AI help YOU?
+I'll get back to you within 24 hours.
+We'll find a time that works for you.
+And we'll start your AI journey together.
+No corporate bullshit.
+Just real human connection.
+And real AI superpowers.`;
+
+  const startTypewriter = useCallback(() => {
+    let currentText = '';
+    let currentIndex = 0;
+    isTypingRef.current = true;
+
+    const typeNextCharacter = () => {
+      if (currentIndex < content.length) {
+        currentText += content[currentIndex];
+        setDisplayedContent(currentText);
+        currentIndex++;
+        typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
+      } else {
+        isTypingRef.current = false;
+      }
+    };
+
+    typeNextCharacter();
+  }, [content]);
+
+  // Clear content when window becomes inactive
   useEffect(() => {
     if (!isActive) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
       setDisplayedContent('');
+      isTypingRef.current = false;
     }
   }, [isActive]);
 
+  // Start typewriter when window becomes active
   useEffect(() => {
-    if (showContent && isActive && !displayedContent) {
-      const content = `READY TO BECOME AN AI NATIVE?
-
-You can reply to any window and send me a message to my email or you can directly text me on +43 670 606 6149 via whatsapp.
-You can also directly email me: hulanraphael@gmail.com
-No need for formal greetings, no need for video calls, no need for any sort of work related stress.
-No forms. No 'business inquiries.' No corporate bullshit.
-Just message me like you'd message a friend, English or German:
-'I think I need an AI Instructor.'
-I'll come to you.`;
-
-      let currentText = '';
-      let currentIndex = 0;
-
-      const typeNextCharacter = () => {
-        if (currentIndex < content.length) {
-          currentText += content[currentIndex];
-          setDisplayedContent(currentText);
-          currentIndex++;
-          setTimeout(typeNextCharacter, 50);
-        }
-      };
-
-      typeNextCharacter();
+    if (isActive && !isTypingRef.current) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+      setDisplayedContent('');
+      startTypewriter();
     }
-  }, [showContent, isActive, displayedContent]);
+
+    return () => {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+    };
+  }, [isActive, startTypewriter]);
 
   return (
     <TypewriterOverlay

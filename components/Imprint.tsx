@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { SectionId } from './OverlayStackContext';
 
@@ -30,37 +30,76 @@ export const Imprint: React.FC<ImprintProps> = ({
   onUnmaximize,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
+  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
 
+  const content = `LEGAL INFORMATION:
+
+QUEER MEDIA LITERACY e.V.
+ZVR Number: 1689372191
+Founded: 21.09.2024
+
+Address:
+c/o 1060 Wien
+Mariahilfer Straße 49/15
+Austria
+
+Under jurisdiction of:
+Landespolizeidirektion Wien
+
+Contact:
+admin@queer-alliance.com
+
+This is a personal service.
+All communication is confidential.
+No data is shared with third parties.`;
+
+  const startTypewriter = useCallback(() => {
+    let currentText = '';
+    let currentIndex = 0;
+    isTypingRef.current = true;
+
+    const typeNextCharacter = () => {
+      if (currentIndex < content.length) {
+        currentText += content[currentIndex];
+        setDisplayedContent(currentText);
+        currentIndex++;
+        typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
+      } else {
+        isTypingRef.current = false;
+      }
+    };
+
+    typeNextCharacter();
+  }, [content]);
+
+  // Clear content when window becomes inactive
   useEffect(() => {
     if (!isActive) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
       setDisplayedContent('');
+      isTypingRef.current = false;
     }
   }, [isActive]);
 
+  // Start typewriter when window becomes active
   useEffect(() => {
-    if (showContent && isActive && !displayedContent) {
-      const content = `Raw Fiction e.U.
-An Austrian company registered in Vienna
-Founded: 03.10.2019
-Address: Gusenleithnergasse 28/18, 1140 Wien
-Jurisdiction: Landespolizeidirektion Wien
-Contact: hulanraphael@gmail.com`;
-
-      let currentText = '';
-      let currentIndex = 0;
-
-      const typeNextCharacter = () => {
-        if (currentIndex < content.length) {
-          currentText += content[currentIndex];
-          setDisplayedContent(currentText);
-          currentIndex++;
-          setTimeout(typeNextCharacter, 50);
-        }
-      };
-
-      typeNextCharacter();
+    if (isActive && !isTypingRef.current) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+      setDisplayedContent('');
+      startTypewriter();
     }
-  }, [showContent, isActive, displayedContent]);
+
+    return () => {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+    };
+  }, [isActive, startTypewriter]);
 
   return (
     <TypewriterOverlay

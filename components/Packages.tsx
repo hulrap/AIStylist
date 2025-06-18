@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { SectionId } from './OverlayStackContext';
 
@@ -30,39 +30,66 @@ export const Packages: React.FC<PackagesProps> = ({
   onUnmaximize,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
+  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
 
-  useEffect(() => {
-    if (!isActive) {
-      setDisplayedContent('');
-    }
-  }, [isActive]);
-
-  useEffect(() => {
-    if (showContent && isActive && !displayedContent) {
-      const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
+  const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
 
 THE DISCOVERY:
 90 minutes at your place, we explore what AI can do for YOUR life, for €180.
+
 THE IMMERSION:
 6x90 minutes at your place, one week, one day, two days, up to you, complete AI transformation, for €1,080
+
 THE FRIENDSHIP:
 Ongoing text support, questions answered immediately, your AI instructor for as long as you need refining, for €50/month`;
 
-      let currentText = '';
-      let currentIndex = 0;
+  const startTypewriter = useCallback(() => {
+    let currentText = '';
+    let currentIndex = 0;
+    isTypingRef.current = true;
 
-      const typeNextCharacter = () => {
-        if (currentIndex < content.length) {
-          currentText += content[currentIndex];
-          setDisplayedContent(currentText);
-          currentIndex++;
-          setTimeout(typeNextCharacter, 50);
-        }
-      };
+    const typeNextCharacter = () => {
+      if (currentIndex < content.length) {
+        currentText += content[currentIndex];
+        setDisplayedContent(currentText);
+        currentIndex++;
+        typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
+      } else {
+        isTypingRef.current = false;
+      }
+    };
 
-      typeNextCharacter();
+    typeNextCharacter();
+  }, [content]);
+
+  // Clear content when window becomes inactive
+  useEffect(() => {
+    if (!isActive) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+      setDisplayedContent('');
+      isTypingRef.current = false;
     }
-  }, [showContent, isActive, displayedContent]);
+  }, [isActive]);
+
+  // Start typewriter when window becomes active
+  useEffect(() => {
+    if (isActive && !isTypingRef.current) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+      setDisplayedContent('');
+      startTypewriter();
+    }
+
+    return () => {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+    };
+  }, [isActive, startTypewriter]);
 
   return (
     <TypewriterOverlay

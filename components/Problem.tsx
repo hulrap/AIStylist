@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { SectionId } from './OverlayStackContext';
 
@@ -22,7 +22,7 @@ export const Problem: React.FC<ProblemProps> = ({
   isActive,
   forceVisible = false,
   initialPosition,
-  initialSize = { width: 420, height: 640 },
+  initialSize,
   showContent = false,
   isMaximized = false,
   onMinimize,
@@ -30,39 +30,69 @@ export const Problem: React.FC<ProblemProps> = ({
   onUnmaximize,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
+  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
 
+  const content = `THE PROBLEM WITH AI EDUCATION:
+It's all about companies.
+Courses that teach you to be a prompt engineer.
+Consultants that help your business automate.
+Bootcamps that make you an AI developer.
+But what about YOU?
+What about YOUR life?
+What about YOUR dreams?
+What about YOUR potential?
+Nobody teaches you how to use AI for yourself.
+Nobody shows you how to enhance YOUR capabilities.
+Nobody helps YOU become more powerful.
+That's why I'm here.`;
+
+  const startTypewriter = useCallback(() => {
+    let currentText = '';
+    let currentIndex = 0;
+    isTypingRef.current = true;
+
+    const typeNextCharacter = () => {
+      if (currentIndex < content.length) {
+        currentText += content[currentIndex];
+        setDisplayedContent(currentText);
+        currentIndex++;
+        typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
+      } else {
+        isTypingRef.current = false;
+      }
+    };
+
+    typeNextCharacter();
+  }, [content]);
+
+  // Clear content when window becomes inactive
   useEffect(() => {
     if (!isActive) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
       setDisplayedContent('');
+      isTypingRef.current = false;
     }
   }, [isActive]);
 
+  // Start typewriter when window becomes active
   useEffect(() => {
-    if (showContent && isActive && !displayedContent) {
-      const content = `Every AI consultant wants to optimize your business processes
-Increase your company efficiency, save your organization money
-Schedule meetings in conference rooms, or sell you enterprise solutions
-I want to make you personally more powerful, help you work fewer hours for same results
-Keep you human in an AI world, sit on your couch and actually help YOU
-Give you superpowers, not software
-This is the difference between a corporate consultant and an AI instructor,
-I style your skills in the age of AI, while a consultant maximizes profit`.trim();
-
-      let currentText = '';
-      let currentIndex = 0;
-
-      const typeNextCharacter = () => {
-        if (currentIndex < content.length) {
-          currentText += content[currentIndex];
-          setDisplayedContent(currentText);
-          currentIndex++;
-          setTimeout(typeNextCharacter, 50);
-        }
-      };
-
-      typeNextCharacter();
+    if (isActive && !isTypingRef.current) {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+      setDisplayedContent('');
+      startTypewriter();
     }
-  }, [showContent, isActive, displayedContent]);
+
+    return () => {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+    };
+  }, [isActive, startTypewriter]);
 
   return (
     <TypewriterOverlay
