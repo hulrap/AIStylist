@@ -176,8 +176,21 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
       
       // Use a timeout to ensure state updates happen in sequence
       setTimeout(() => {
-        // First minimize the current window
-        handleMinimize(id);
+        // First minimize the current window but keep it visible
+        setWindowStates(prevStates => ({
+          ...prevStates,
+          [id]: {
+            ...prevStates[id],
+            isActive: false,
+            isMinimized: true,
+            transitionState: 'idle',
+            // Keep the window visible in the background
+            isVisible: true
+          }
+        }));
+        
+        // Add to minimized windows list
+        minimizeWindow(id, getLabelForSection(id), getLabelForSection(id));
         
         // Then after a short delay, activate the next window
         setTimeout(() => {
@@ -229,6 +242,18 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   const handleMinimize = (id: SectionId) => {
     const windowState = getWindowState(id);
     if (!windowState?.isMinimized) {
+      // Keep the window visible but minimized
+      setWindowStates(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isMinimized: true,
+          isActive: false,
+          // Keep it visible
+          isVisible: true,
+          transitionState: 'idle'
+        }
+      }));
       minimizeWindow(id, getLabelForSection(id), getLabelForSection(id));
     }
   };
