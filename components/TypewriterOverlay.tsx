@@ -84,6 +84,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [isAnimatingMinimize, setIsAnimatingMinimize] = useState(false);
   const [isAnimatingRestore, setIsAnimatingRestore] = useState(false);
   const [hasCompletedTyping, setHasCompletedTyping] = useState(false);
+  const [showEmailField, setShowEmailField] = useState(false);
   
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -221,6 +222,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       if (windowState?.transitionState === 'closing') {
         setChatHistory([]);
         setShouldShowTypewriter(false);
+        setShowEmailField(false); // Reset email field visibility
       }
     };
   }, [id, getWindowState]);
@@ -326,6 +328,12 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
+    // Show email field if not already shown
+    if (!showEmailField) {
+      setShowEmailField(true);
+      return;
+    }
+
     // Check if user has provided their email
     if (!senderEmail.trim()) {
       setChatHistory(prev => [
@@ -370,6 +378,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         ...prev,
         { text: 'Message sent! I will get back to you within 24 hours.', type: 'system' }
       ]);
+      // Keep email field visible and populated for easier follow-up messages
     } catch (error) {
       setChatHistory(prev => [
         ...prev,
@@ -591,32 +600,45 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         {/* Chat Interface */}
         {(isActive || showInitialContent) && (
           <div className="p-4 bg-white/5 border-t border-white/10 space-y-3">
-            <div className="space-y-2">
-              <label className="text-xs text-white/70">Your email (so I can get back to you):</label>
-              <input
-                type="email"
-                value={senderEmail}
-                onChange={(e) => setSenderEmail(e.target.value)}
-                onFocus={() => {
-                  if (stopAutoSequence) stopAutoSequence();
-                }}
-                placeholder="your.email@example.com"
-                className="w-full px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (stopAutoSequence) stopAutoSequence();
-                }}
-              />
-            </div>
+            {/* Email field - only show when user starts typing */}
+            {showEmailField && (
+              <div className="space-y-2 animate-fade-in">
+                <label className="text-xs text-white/70">Your email (so I can get back to you):</label>
+                <input
+                  type="email"
+                  value={senderEmail}
+                  onChange={(e) => setSenderEmail(e.target.value)}
+                  onFocus={() => {
+                    if (stopAutoSequence) stopAutoSequence();
+                  }}
+                  placeholder="your.email@example.com"
+                  className="w-full px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (stopAutoSequence) stopAutoSequence();
+                  }}
+                />
+              </div>
+            )}
             
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  // Show email field when user starts typing
+                  if (e.target.value.length > 0 && !showEmailField) {
+                    setShowEmailField(true);
+                  }
+                }}
                 onKeyPress={handleKeyPress}
                 onFocus={() => {
                   if (stopAutoSequence) stopAutoSequence();
+                  // Show email field when user focuses on message input and has content
+                  if (message.length > 0 && !showEmailField) {
+                    setShowEmailField(true);
+                  }
                 }}
                 placeholder="Send me a message..."
                 className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
@@ -631,7 +653,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                   if (stopAutoSequence) stopAutoSequence();
                   handleSendMessage();
                 }}
-                disabled={isSending || !message.trim() || !senderEmail.trim()}
+                disabled={isSending || !message.trim() || (showEmailField && !senderEmail.trim())}
                 className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
               >
                 {isSending ? (
@@ -642,9 +664,11 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
               </button>
             </div>
             
-            <div className="text-xs text-white/50">
-              This sends a real email to Raphael who will get back to you within 24 hours.
-            </div>
+            {showEmailField && (
+              <div className="text-xs text-white/50 animate-fade-in">
+                This sends a real email to Raphael who will get back to you within 24 hours.
+              </div>
+            )}
           </div>
         )}
       </div>
