@@ -34,10 +34,8 @@ export const Hero: React.FC<HeroProps> = ({
   stopAutoSequence,
 }) => {
   const content = `Finally.
-An AI expert who sees you.
-And comes to your place instead of your office.
-With pizza. And coffee, tea, beer,or wine if you want to.
-And zero corporate bs.
+An AI expert who sees you and comes to your place instead of your office.
+With pizza. And coffee, tea, beer,or wine if you want to. And zero corporate vibes.
 I treat you like a human, not a company.
 Because AI isn't about making businesses more efficient.
 It's about making YOU more powerful.`.trim();

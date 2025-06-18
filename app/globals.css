@@ -19,6 +19,9 @@
     font-family: 'Inter', 'Poppins', sans-serif;
     color: var(--brand-fg);
     overflow: hidden; /* Keep this for desktop background */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     user-select: none;
     min-height: 100vh;
     overflow-x: hidden;
@@ -26,10 +29,16 @@
   
   /* Allow scrolling in window content areas */
   .window-content-area {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
     user-select: text;
   }
   
   .window-content-area * {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
     user-select: text;
   }
 }
@@ -104,6 +113,8 @@
   }
   .card-glass {
     @apply card-base bg-[var(--brand-glass)] border border-white/10 shadow-2xl;
+    -webkit-backdrop-filter: blur(16px);
+    -moz-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
   }
   .card-accent {
@@ -222,7 +233,10 @@
     background: radial-gradient(ellipse at center, rgba(255,179,102,0.10) 0%, transparent 80%);
   }
   .bg-glass {
-    @apply bg-[var(--brand-glass)] backdrop-blur-md;
+    @apply bg-[var(--brand-glass)];
+    -webkit-backdrop-filter: blur(12px);
+    -moz-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
   }
   .bg-gradient-section {
     @apply bg-gradient-to-b via-transparent to-[var(--brand-bg)];
@@ -331,10 +345,59 @@
   .z-top {
     z-index: 50;
   }
+  
+  /* Cross-browser backdrop filter support */
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(4px) !important;
+    -moz-backdrop-filter: blur(4px) !important;
+    backdrop-filter: blur(4px) !important;
+  }
+  .backdrop-blur {
+    -webkit-backdrop-filter: blur(8px) !important;
+    -moz-backdrop-filter: blur(8px) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: blur(12px) !important;
+    -moz-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+  }
+  .backdrop-blur-lg {
+    -webkit-backdrop-filter: blur(16px) !important;
+    -moz-backdrop-filter: blur(16px) !important;
+    backdrop-filter: blur(16px) !important;
+  }
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(24px) !important;
+    -moz-backdrop-filter: blur(24px) !important;
+    backdrop-filter: blur(24px) !important;
+  }
+  .backdrop-blur-2xl {
+    -webkit-backdrop-filter: blur(40px) !important;
+    -moz-backdrop-filter: blur(40px) !important;
+    backdrop-filter: blur(40px) !important;
+  }
+  .backdrop-blur-3xl {
+    -webkit-backdrop-filter: blur(64px) !important;
+    -moz-backdrop-filter: blur(64px) !important;
+    backdrop-filter: blur(64px) !important;
+  }
 }
 
 /* === CUSTOM SCROLLBAR === */
 @layer base {
+  /* Firefox scrollbar styles */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.05);
+  }
+  
+  .window-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.02);
+  }
+  
+  /* WebKit/Blink scrollbar styles */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -393,17 +456,23 @@
 /* Window styles */
 .window-titlebar {
   -webkit-app-region: drag;
+  -moz-app-region: drag;
   app-region: drag;
   cursor: move; /* fallback */
   cursor: grab;
+  cursor: -webkit-grab;
+  cursor: -moz-grab;
 }
 
 .window-titlebar:active {
   cursor: grabbing;
+  cursor: -webkit-grabbing;
+  cursor: -moz-grabbing;
 }
 
 .window-titlebar button {
   -webkit-app-region: no-drag;
+  -moz-app-region: no-drag;
   app-region: no-drag;
   cursor: pointer;
 }
@@ -454,6 +523,9 @@
 
 /* Prevent text selection in window controls */
 .window-controls {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   user-select: none;
 }
 
@@ -472,12 +544,17 @@
 
 /* Disable text selection in window titlebar */
 .window-titlebar * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   user-select: none;
 }
 
 /* Glass Effect */
 .glass {
   background: rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(10px);
+  -moz-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);

@@ -34,14 +34,10 @@ export const Problem: React.FC<ProblemProps> = ({
   stopAutoSequence,
 }) => {
   const content = `THE PROBLEM:
-AI is not about making businesses more efficient.
-It's about making humans more powerful.
+AI is not about making businesses more efficient. It's about making humans more powerful.
 But most AI experts treat you like a company.
-They want to optimize your processes.
-They want to make you more productive.
-They want to make you more efficient.
-But they don't want to make you more powerful.
-They don't want to make you more human.
+They want to optimize your processes, make you more productive, make you more efficient.
+But they don't want to make you more powerful as a person. They don't want to make you more human.
 I do.`.trim();
 
   return (

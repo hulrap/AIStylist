@@ -34,12 +34,9 @@ export const Category: React.FC<CategoryProps> = ({
   stopAutoSequence,
 }) => {
   const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
-Not software, not a course.
-A real person who comes to you.
-A Fitness Instructor teaches you how to be fit.
-A Piano Instructor teaches you how to play the piano.
-An AI Instructor teaches you how to master the digital future.
-For you personally.`.trim();
+Not software, not a course, not some agentic AI, a real person who comes to you.
+A Fitness Instructor teaches you how to be fit, a Piano Instructor teaches you how to play the piano.
+An AI Instructor teaches you how to master the digital future. For you personally.`.trim();
 
   return (
     <TypewriterOverlay

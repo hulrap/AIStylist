@@ -36,10 +36,7 @@ export const Experience: React.FC<ExperienceProps> = ({
   const content = `WHAT TO EXPECT:
 I come to your place, we sit on your couch or at your work desk.
 I will listen to your pain points, and goals and we will try to fit as much as we can into the time we have.
-No efficiency metrics. Just individualized instruction and mentoring.
-And real AI superpowers.
-For YOUR life, or YOUR goals, or YOUR dreams.
-This is personal AI instruction.`.trim();
+No efficiency metrics. Just individualized instruction and mentoring. And real AI superpowers.`.trim();
 
   return (
     <TypewriterOverlay
