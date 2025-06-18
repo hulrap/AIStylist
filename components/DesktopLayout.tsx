@@ -142,13 +142,12 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         return acc;
       }, {} as Record<SectionId, Position>);
 
-      // Open windows with pre-calculated positions
+      // Open windows with pre-calculated positions in sequence
       WINDOW_ORDER.forEach((id, index) => {
         setTimeout(() => {
           updatePosition(id, positions[id]);
-          openOverlay(id);
           
-          // For the first window (ai-instructor), ensure it starts in typing state
+          // For the first window, we need to set up the initial state
           if (index === 0) {
             setWindowStates(prev => ({
               ...prev,
@@ -159,46 +158,78 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 transitionState: 'typing'
               }
             }));
+            setOverlayStack(prev => [...prev, id]);
+          } else {
+            // For subsequent windows, we need to minimize them immediately
+            setWindowStates(prev => ({
+              ...prev,
+              [id]: {
+                ...prev[id],
+                isVisible: true,
+                isActive: false,
+                isMinimized: true
+              }
+            }));
           }
         }, index * WINDOW_APPEAR_DELAY);
       });
       
       setHasInitialized(true);
     }
-  }, [isReady, hasInitialized, openOverlay, updatePosition, setWindowStates]);
+  }, [isReady, hasInitialized, updatePosition, setWindowStates]);
 
   const handleIconClick = (id: SectionId) => {
+    const windowState = getWindowState(id);
+    
     if (isOpen(id)) {
-      const windowState = getWindowState(id);
-      // If window is minimized, restore it
       if (windowState?.isMinimized) {
+        // If window is minimized, restore it
         restoreWindow(id);
+      } else {
+        // If window is open but not minimized, just bring it to front and start typing
+        setWindowStates(prev => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            isActive: true,
+            isVisible: true,
+            transitionState: 'typing'
+          }
+        }));
+        bringToFront(id);
       }
-      bringToFront(id);
     } else {
+      // If window is not open, open it
       openOverlay(id);
     }
   };
 
   const handleMinimize = (id: SectionId) => {
-    // Remove from overlay stack to make next window active
-    setOverlayStack((prev: SectionId[]) => {
-      const newStack = prev.filter((windowId: SectionId) => windowId !== id);
-      return newStack;
-    });
-    minimizeWindow(id, getLabelForSection(id), getLabelForSection(id));
+    const windowState = getWindowState(id);
+    if (!windowState?.isMinimized) {
+      minimizeWindow(id, getLabelForSection(id), getLabelForSection(id));
+    }
   };
 
   const handleMaximize = (id: SectionId) => {
-    maximizeWindow(id);
+    const windowState = getWindowState(id);
+    if (!windowState?.isMaximized) {
+      maximizeWindow(id);
+    }
   };
 
   const handleUnmaximize = (id: SectionId) => {
-    unmaximizeWindow(id);
+    const windowState = getWindowState(id);
+    if (windowState?.isMaximized) {
+      unmaximizeWindow(id);
+    }
   };
 
   const handleRestore = (id: SectionId) => {
-    restoreWindow(id);
+    const windowState = getWindowState(id);
+    if (windowState?.isMinimized) {
+      restoreWindow(id);
+    }
   };
 
   const handleClose = (id: SectionId) => {

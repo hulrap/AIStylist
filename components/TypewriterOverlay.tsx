@@ -106,7 +106,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       // Clear existing content first
       setChatHistory([]);
       
-      // Process each line synchronously
+      // Process each line with a delay
       let currentIndex = 0;
       
       const processNextLine = () => {
@@ -114,9 +114,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
           setChatHistory(prev => [...prev, { text: lines[currentIndex], type: 'system' }]);
           currentIndex++;
           
-          // Schedule next line or complete typing
+          // Schedule next line with a delay for typewriter effect
           if (currentIndex < lines.length) {
-            requestAnimationFrame(processNextLine);
+            setTimeout(processNextLine, 100);
           } else if (onTypingComplete) {
             onTypingComplete();
           }
@@ -125,12 +125,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       
       // Start processing lines
       processNextLine();
-    } else if (!isActive) {
+    } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
       // Clear chat history when window becomes inactive
-      const state = getWindowState(id);
-      if (state?.transitionState !== 'minimizing' && state?.transitionState !== 'closing') {
-        setChatHistory([]);
-      }
+      setChatHistory([]);
     }
   }, [content, isActive, id, getWindowState, onTypingComplete]);
 

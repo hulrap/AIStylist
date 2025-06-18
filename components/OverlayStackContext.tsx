@@ -171,25 +171,23 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
       deactivateAllWindows();
       
       // Start opening transition
-      startWindowTransition(id, 'opening');
-      
-      // Add to overlay stack
-      setOverlayStack(prev => [...prev, id]);
-      
-      // Initialize window state if needed
       setWindowStates(prev => ({
         ...prev,
         [id]: {
           ...prev[id],
+          transitionState: 'opening',
           isVisible: true,
           isActive: true,
           label: '',
           icon: id
         }
       }));
-
-      // Schedule transition to typing state
-      requestAnimationFrame(() => {
+      
+      // Add to overlay stack
+      setOverlayStack(prev => [...prev, id]);
+      
+      // Transition to typing state after a short delay
+      setTimeout(() => {
         setWindowStates(prev => ({
           ...prev,
           [id]: {
@@ -197,13 +195,20 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
             transitionState: 'typing'
           }
         }));
-      });
+      }, 100);
     }
-  }, [overlayStack, deactivateAllWindows, startWindowTransition]);
+  }, [overlayStack, deactivateAllWindows]);
 
   const closeOverlay = useCallback((id: SectionId) => {
     // Start closing transition
-    startWindowTransition(id, 'closing');
+    setWindowStates(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        transitionState: 'closing',
+        isActive: false
+      }
+    }));
     
     // Remove from minimized windows if needed
     setMinimizedWindows(prev => prev.filter(w => w.id !== id));
@@ -213,12 +218,21 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setMaximizedWindow(null);
     }
     
-    // Remove from overlay stack
-    setOverlayStack(prev => prev.filter(windowId => windowId !== id));
-    
-    // Complete the transition
-    completeWindowTransition(id);
-  }, [startWindowTransition, completeWindowTransition, maximizedWindow]);
+    // Complete the transition and remove from stack after animation
+    setTimeout(() => {
+      setOverlayStack(prev => prev.filter(windowId => windowId !== id));
+      setWindowStates(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isVisible: false,
+          isMinimized: false,
+          isMaximized: false,
+          transitionState: 'idle'
+        }
+      }));
+    }, 300);
+  }, [maximizedWindow]);
 
   const bringToFront = useCallback((id: SectionId) => {
     // Deactivate all windows first
@@ -256,57 +270,131 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const minimizeWindow = useCallback((id: SectionId, label: string, icon: string) => {
     if (!minimizedWindows.some(w => w.id === id)) {
       // Start minimizing transition
-      startWindowTransition(id, 'minimizing');
+      setWindowStates(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          transitionState: 'minimizing',
+          isActive: false
+        }
+      }));
       
       // Add to minimized windows
       setMinimizedWindows(prev => [...prev, { id, label, icon }]);
       
-      // Remove from overlay stack
-      setOverlayStack(prev => prev.filter(windowId => windowId !== id));
-      
-      // Complete the transition
-      completeWindowTransition(id);
+      // Remove from overlay stack after a short delay to allow for animation
+      setTimeout(() => {
+        setOverlayStack(prev => prev.filter(windowId => windowId !== id));
+        
+        // Complete the transition
+        setWindowStates(prev => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            isMinimized: true,
+            isVisible: false,
+            transitionState: 'idle'
+          }
+        }));
+      }, 300);
     }
-  }, [minimizedWindows, startWindowTransition, completeWindowTransition]);
+  }, [minimizedWindows]);
 
   const maximizeWindow = useCallback((id: SectionId) => {
     // Start maximizing transition
-    startWindowTransition(id, 'maximizing');
+    setWindowStates(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        transitionState: 'maximizing',
+        isActive: true,
+        isVisible: true
+      }
+    }));
     
     // Set as maximized window
     setMaximizedWindow(id);
     
     // Bring to front
-    bringToFront(id);
+    setOverlayStack(prev => {
+      const newStack = prev.filter(windowId => windowId !== id);
+      return [...newStack, id];
+    });
     
-    // Complete the transition
-    completeWindowTransition(id);
-  }, [startWindowTransition, bringToFront, completeWindowTransition]);
+    // Complete the transition after animation
+    setTimeout(() => {
+      setWindowStates(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isMaximized: true,
+          transitionState: 'idle'
+        }
+      }));
+    }, 300);
+  }, []);
 
   const unmaximizeWindow = useCallback((id: SectionId) => {
-    // Start restoring transition (unmaximize is essentially restoring)
-    startWindowTransition(id, 'restoring');
+    // Start restoring transition
+    setWindowStates(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        transitionState: 'restoring',
+        isActive: true,
+        isVisible: true
+      }
+    }));
     
     // Clear maximized window state
     setMaximizedWindow(null);
     
-    // Complete the transition
-    completeWindowTransition(id);
-  }, [startWindowTransition, completeWindowTransition]);
+    // Complete the transition after animation
+    setTimeout(() => {
+      setWindowStates(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isMaximized: false,
+          transitionState: 'idle'
+        }
+      }));
+    }, 300);
+  }, []);
 
   const restoreWindow = useCallback((id: SectionId) => {
     // Start restoring transition
-    startWindowTransition(id, 'restoring');
+    setWindowStates(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        transitionState: 'restoring',
+        isActive: true,
+        isVisible: true
+      }
+    }));
     
     // Remove from minimized windows
     setMinimizedWindows(prev => prev.filter(w => w.id !== id));
     
     // Bring to front
-    bringToFront(id);
+    setOverlayStack(prev => {
+      const newStack = prev.filter(windowId => windowId !== id);
+      return [...newStack, id];
+    });
     
-    // Complete the transition
-    completeWindowTransition(id);
-  }, [startWindowTransition, bringToFront, completeWindowTransition]);
+    // Transition to typing state after restore animation
+    setTimeout(() => {
+      setWindowStates(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isMinimized: false,
+          transitionState: 'typing'
+        }
+      }));
+    }, 300);
+  }, []);
 
   const getWindowState = (id: SectionId) => windowStates[id];
 

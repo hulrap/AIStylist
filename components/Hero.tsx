@@ -48,13 +48,10 @@ Because AI isn't about making businesses more efficient.`.trim();
     
     if (windowState?.transitionState === 'typing') {
       setDisplayedContent(content);
-      if (onTypingComplete) {
-        onTypingComplete();
-      }
     } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
       setDisplayedContent('');
     }
-  }, [isActive, content, id, getWindowState, onTypingComplete]);
+  }, [isActive, content, id, getWindowState]);
 
   return (
     <TypewriterOverlay
