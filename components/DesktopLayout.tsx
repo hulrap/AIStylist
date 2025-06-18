@@ -588,18 +588,14 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
           'data-stack': stackIndex.toString(),
         } : {};
 
-        // Calculate mobile dimensions safely
-        const mobileWidth = typeof window !== 'undefined' ? window.innerWidth - 20 : 360;
-        const mobileHeight = typeof window !== 'undefined' ? window.innerHeight - 120 : 640;
-
         const commonProps = {
           key: id,
           id,
           stackIndex,
           isActive,
           forceVisible: isVisible,
-          initialPosition: isMobile ? { x: 10, y: 20 + (stackIndex * 8) } : getInitialPosition(id),
-          initialSize: isMobile ? { width: mobileWidth, height: mobileHeight } : getInitialSize(id),
+          initialPosition: isMobile ? { x: 10, y: 20 } : getInitialPosition(id),
+          initialSize: isMobile ? { width: window.innerWidth - 20, height: window.innerHeight - 120 } : getInitialSize(id),
           isMaximized,
           onMinimize: () => handleMinimize(id),
           onMaximize: () => handleMaximize(id),
