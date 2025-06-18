@@ -361,11 +361,18 @@
 .window-titlebar {
   -webkit-app-region: drag;
   app-region: drag;
+  cursor: move; /* fallback */
+  cursor: grab;
+}
+
+.window-titlebar:active {
+  cursor: grabbing;
 }
 
 .window-titlebar button {
   -webkit-app-region: no-drag;
   app-region: no-drag;
+  cursor: pointer;
 }
 
 .resize-handle {
