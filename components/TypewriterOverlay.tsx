@@ -98,13 +98,51 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
   // Update chat history when content changes
   useEffect(() => {
-    if (content) {
+    const windowState = getWindowState(id);
+    
+    if (content && windowState?.transitionState === 'typing') {
       const lines = content.split('\n');
-      setChatHistory(lines.map(line => ({ text: line, type: 'system' })));
-    } else {
+      
+      // Clear existing content first
       setChatHistory([]);
+      
+      // Process each line synchronously
+      let currentIndex = 0;
+      
+      const processNextLine = () => {
+        if (currentIndex < lines.length) {
+          setChatHistory(prev => [...prev, { text: lines[currentIndex], type: 'system' }]);
+          currentIndex++;
+          
+          // Schedule next line or complete typing
+          if (currentIndex < lines.length) {
+            requestAnimationFrame(processNextLine);
+          } else if (onTypingComplete) {
+            onTypingComplete();
+          }
+        }
+      };
+      
+      // Start processing lines
+      processNextLine();
+    } else if (!isActive) {
+      // Clear chat history when window becomes inactive
+      const state = getWindowState(id);
+      if (state?.transitionState !== 'minimizing' && state?.transitionState !== 'closing') {
+        setChatHistory([]);
+      }
     }
-  }, [content]);
+  }, [content, isActive, id, getWindowState, onTypingComplete]);
+
+  // Cleanup on unmount or window close
+  useEffect(() => {
+    return () => {
+      const windowState = getWindowState(id);
+      if (windowState?.transitionState === 'closing') {
+        setChatHistory([]);
+      }
+    };
+  }, [id, getWindowState]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isWindowMaximized) return;
@@ -245,27 +283,27 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   };
 
   const handleMaximize = () => {
-    if (!isWindowMaximized) {
-      setPreMaximizeState({ position, size });
-      maximizeWindow(id);
-      if (onMaximize) onMaximize();
-    } else {
-      if (preMaximizeState) {
-        setPosition(preMaximizeState.position);
-        setSize(preMaximizeState.size);
-        updatePosition(id, preMaximizeState.position);
+    if (isWindowMaximized) {
+      if (onUnmaximize) {
+        onUnmaximize();
       }
-      unmaximizeWindow(id);
-      if (onUnmaximize) onUnmaximize();
+    } else {
+      if (onMaximize) {
+        onMaximize();
+      }
     }
   };
 
   const handleMinimize = () => {
-    if (onMinimize) onMinimize();
+    if (onMinimize) {
+      onMinimize();
+    }
   };
 
   const handleClose = () => {
-    closeOverlay(id);
+    if (closeOverlay) {
+      closeOverlay(id);
+    }
   };
 
   const zIndex = stackIndex * 10;

@@ -33,9 +33,6 @@ export const Problem: React.FC<ProblemProps> = ({
   onTypingComplete,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
-  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isTypingRef = useRef(false);
-  const contentRef = useRef('');
   const { getWindowState } = useOverlayStack();
 
   const content = `THE PROBLEM:
@@ -50,67 +47,18 @@ They don't want to make you more creative.
 They don't want to make you more human.
 I do.`;
 
-  const startTypewriter = useCallback(() => {
-    if (isTypingRef.current) return;
-    
-    isTypingRef.current = true;
-    contentRef.current = '';
-    let currentIndex = 0;
-
-    const typeNextCharacter = () => {
-      if (!isTypingRef.current) return;
-
-      if (currentIndex < content.length) {
-        contentRef.current += content[currentIndex];
-        setDisplayedContent(contentRef.current);
-        currentIndex++;
-        typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
-      } else {
-        isTypingRef.current = false;
-        if (onTypingComplete) {
-          onTypingComplete();
-        }
-      }
-    };
-
-    typeNextCharacter();
-  }, [content, onTypingComplete]);
-
   useEffect(() => {
-    if (isActive && !isTypingRef.current) {
-      startTypewriter();
-    }
-
-    // Only clear typing state if the window becomes inactive AND is not in transition
-    if (!isActive) {
-      const windowState = getWindowState(id);
-      // Don't clear state if window is in transition
-      if (windowState?.isMinimizing) {
-        return;
+    const windowState = getWindowState(id);
+    
+    if (windowState?.transitionState === 'typing') {
+      setDisplayedContent(content);
+      if (onTypingComplete) {
+        onTypingComplete();
       }
-
-      const timeoutId = setTimeout(() => {
-        isTypingRef.current = false;
-        if (typewriterTimeoutRef.current) {
-          clearTimeout(typewriterTimeoutRef.current);
-          typewriterTimeoutRef.current = null;
-        }
-        contentRef.current = '';
-        setDisplayedContent('');
-      }, 200); // Increased delay to ensure proper sequencing
-
-      return () => {
-        clearTimeout(timeoutId);
-      };
+    } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
+      setDisplayedContent('');
     }
-
-    return () => {
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-        typewriterTimeoutRef.current = null;
-      }
-    };
-  }, [isActive, startTypewriter, id, getWindowState]);
+  }, [isActive, content, id, getWindowState, onTypingComplete]);
 
   return (
     <TypewriterOverlay

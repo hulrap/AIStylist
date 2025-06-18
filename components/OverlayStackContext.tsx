@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 export type SectionId = 
   | 'ai-instructor'
@@ -8,6 +8,16 @@ export type SectionId =
   | 'packages'
   | 'contact'
   | 'imprint';
+
+export type WindowTransitionState = 
+  | 'idle' 
+  | 'typing'
+  | 'minimizing'
+  | 'maximizing'
+  | 'restoring'
+  | 'closing'
+  | 'opening'
+  | 'activating';
 
 interface Position {
   x: number;
@@ -19,7 +29,7 @@ export interface WindowState {
   isMaximized: boolean;
   isVisible: boolean;
   isActive: boolean;
-  isMinimizing: boolean;
+  transitionState: WindowTransitionState;
   label: string;
   icon: string;
   position?: { x: number; y: number };
@@ -44,6 +54,9 @@ export interface OverlayStackContextType {
   maximizedWindow: SectionId | null;
   setOverlayStack: (updater: (prev: SectionId[]) => SectionId[]) => void;
   setWindowStates: (updater: (prev: Record<SectionId, WindowState>) => Record<SectionId, WindowState>) => void;
+  startWindowTransition: (id: SectionId, transition: WindowTransitionState) => void;
+  completeWindowTransition: (id: SectionId) => void;
+  deactivateAllWindows: () => void;
 }
 
 const OverlayStackContext = createContext<OverlayStackContextType | undefined>(undefined);
@@ -63,56 +76,153 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [positions, setPositions] = useState<Record<SectionId, Position>>(initialPositions);
   const [windowStates, setWindowStates] = useState<Record<SectionId, WindowState>>(() => {
     const initial: Record<SectionId, WindowState> = {
-      'ai-instructor': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'ai-instructor' },
-      'problem': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'problem' },
-      'first': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'first' },
-      'experience': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'experience' },
-      'packages': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'packages' },
-      'contact': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'contact' },
-      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'imprint' }
+      'ai-instructor': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'ai-instructor' },
+      'problem': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'problem' },
+      'first': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'first' },
+      'experience': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'experience' },
+      'packages': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'packages' },
+      'contact': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'contact' },
+      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'imprint' }
     };
     return initial;
   });
   const [minimizedWindows, setMinimizedWindows] = useState<{ id: SectionId; label: string; icon: string }[]>([]);
   const [maximizedWindow, setMaximizedWindow] = useState<SectionId | null>(null);
 
-  const openOverlay = (id: SectionId) => {
+  const startWindowTransition = useCallback((id: SectionId, transition: WindowTransitionState) => {
+    setWindowStates(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        transitionState: transition
+      }
+    }));
+  }, []);
+
+  const completeWindowTransition = useCallback((id: SectionId) => {
+    setWindowStates(prev => {
+      const window = prev[id];
+      if (!window) return prev;
+
+      const newState = { ...window };
+
+      // Apply final state based on transition
+      switch (window.transitionState) {
+        case 'minimizing':
+          newState.isMinimized = true;
+          newState.isVisible = false;
+          newState.isActive = false;
+          break;
+        case 'maximizing':
+          newState.isMaximized = true;
+          newState.isActive = true;
+          newState.isVisible = true;
+          break;
+        case 'restoring':
+          newState.isMinimized = false;
+          newState.isMaximized = false;
+          newState.isVisible = true;
+          newState.isActive = true;
+          break;
+        case 'closing':
+          newState.isVisible = false;
+          newState.isActive = false;
+          newState.isMinimized = false;
+          newState.isMaximized = false;
+          break;
+        case 'opening':
+          newState.isVisible = true;
+          newState.isActive = true;
+          newState.isMinimized = false;
+          newState.transitionState = 'typing'; // Transition to typing state
+          return prev; // Don't complete transition yet
+        case 'activating':
+          newState.isActive = true;
+          newState.isVisible = true;
+          break;
+      }
+
+      newState.transitionState = 'idle';
+      return {
+        ...prev,
+        [id]: newState
+      };
+    });
+  }, []);
+
+  const deactivateAllWindows = useCallback(() => {
+    setWindowStates(prev => {
+      const newStates = { ...prev };
+      Object.keys(newStates).forEach(windowId => {
+        if (newStates[windowId as SectionId].isActive) {
+          newStates[windowId as SectionId] = {
+            ...newStates[windowId as SectionId],
+            isActive: false
+          };
+        }
+      });
+      return newStates;
+    });
+  }, []);
+
+  const openOverlay = useCallback((id: SectionId) => {
     if (!overlayStack.includes(id)) {
+      // Deactivate all other windows first
+      deactivateAllWindows();
+      
+      // Start opening transition
+      startWindowTransition(id, 'opening');
+      
+      // Add to overlay stack
       setOverlayStack(prev => [...prev, id]);
+      
+      // Initialize window state if needed
       setWindowStates(prev => ({
         ...prev,
         [id]: {
-          isMinimized: false,
-          isMaximized: false,
-          isVisible: true,
-          isActive: false,
-          isMinimizing: false,
+          ...prev[id],
           label: '',
-          icon: 'ai-instructor'
+          icon: id
         }
       }));
     }
-  };
+  }, [overlayStack, deactivateAllWindows, startWindowTransition]);
 
-  const closeOverlay = (id: SectionId) => {
-    setOverlayStack(prev => prev.filter(windowId => windowId !== id));
+  const closeOverlay = useCallback((id: SectionId) => {
+    // Start closing transition
+    startWindowTransition(id, 'closing');
+    
+    // Remove from minimized windows if needed
     setMinimizedWindows(prev => prev.filter(w => w.id !== id));
+    
+    // Remove from maximized window if needed
     if (maximizedWindow === id) {
       setMaximizedWindow(null);
     }
-    setWindowStates(prev => {
-      const newStates = { ...prev };
-      delete newStates[id];
-      return newStates;
-    });
-  };
+    
+    // Remove from overlay stack
+    setOverlayStack(prev => prev.filter(windowId => windowId !== id));
+    
+    // Complete the transition
+    completeWindowTransition(id);
+  }, [startWindowTransition, completeWindowTransition, maximizedWindow]);
 
-  const bringToFront = (id: SectionId) => {
+  const bringToFront = useCallback((id: SectionId) => {
+    // Deactivate all windows first
+    deactivateAllWindows();
+    
+    // Start activation transition
+    startWindowTransition(id, 'activating');
+    
+    // Reorder overlay stack
     setOverlayStack(prev => {
       const newStack = prev.filter(windowId => windowId !== id);
       return [...newStack, id];
     });
-  };
+    
+    // Complete the transition
+    completeWindowTransition(id);
+  }, [deactivateAllWindows, startWindowTransition, completeWindowTransition]);
 
   const updatePosition = (id: SectionId, position: Position) => {
     setPositions(prev => ({ ...prev, [id]: position }));
@@ -122,59 +232,60 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const isOpen = (id: SectionId) => overlayStack.includes(id);
 
-  const minimizeWindow = (id: SectionId, label: string, icon: string) => {
+  const minimizeWindow = useCallback((id: SectionId, label: string, icon: string) => {
     if (!minimizedWindows.some(w => w.id === id)) {
+      // Start minimizing transition
+      startWindowTransition(id, 'minimizing');
+      
+      // Add to minimized windows
       setMinimizedWindows(prev => [...prev, { id, label, icon }]);
-      setWindowStates(prev => ({
-        ...prev,
-        [id]: {
-          ...prev[id],
-          isMinimized: true,
-          isVisible: false,
-          isActive: false,
-          isMinimizing: false,
-          label,
-          icon
-        }
-      }));
+      
+      // Remove from overlay stack
+      setOverlayStack(prev => prev.filter(windowId => windowId !== id));
+      
+      // Complete the transition
+      completeWindowTransition(id);
     }
-  };
+  }, [minimizedWindows, startWindowTransition, completeWindowTransition]);
 
-  const maximizeWindow = (id: SectionId) => {
+  const maximizeWindow = useCallback((id: SectionId) => {
+    // Start maximizing transition
+    startWindowTransition(id, 'maximizing');
+    
+    // Set as maximized window
     setMaximizedWindow(id);
-    setWindowStates(prev => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        isMaximized: true
-      }
-    }));
+    
+    // Bring to front
     bringToFront(id);
-  };
+    
+    // Complete the transition
+    completeWindowTransition(id);
+  }, [startWindowTransition, bringToFront, completeWindowTransition]);
 
-  const unmaximizeWindow = (id: SectionId) => {
+  const unmaximizeWindow = useCallback((id: SectionId) => {
+    // Start restoring transition (unmaximize is essentially restoring)
+    startWindowTransition(id, 'restoring');
+    
+    // Clear maximized window state
     setMaximizedWindow(null);
-    setWindowStates(prev => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        isMaximized: false
-      }
-    }));
-  };
+    
+    // Complete the transition
+    completeWindowTransition(id);
+  }, [startWindowTransition, completeWindowTransition]);
 
-  const restoreWindow = (id: SectionId) => {
+  const restoreWindow = useCallback((id: SectionId) => {
+    // Start restoring transition
+    startWindowTransition(id, 'restoring');
+    
+    // Remove from minimized windows
     setMinimizedWindows(prev => prev.filter(w => w.id !== id));
-    setWindowStates(prev => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        isMinimized: false,
-        isVisible: true
-      }
-    }));
+    
+    // Bring to front
     bringToFront(id);
-  };
+    
+    // Complete the transition
+    completeWindowTransition(id);
+  }, [startWindowTransition, bringToFront, completeWindowTransition]);
 
   const getWindowState = (id: SectionId) => windowStates[id];
 
@@ -195,7 +306,10 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
     minimizedWindows,
     maximizedWindow,
     setOverlayStack,
-    setWindowStates
+    setWindowStates,
+    startWindowTransition,
+    completeWindowTransition,
+    deactivateAllWindows
   };
 
   return (

@@ -92,7 +92,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     minimizedWindows,
     maximizedWindow,
     setOverlayStack,
-    setWindowStates
+    setWindowStates,
+    startWindowTransition
   } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -109,37 +110,25 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
       
       // Skip Contact and Imprint windows when finding the next window to activate
       if (nextId !== 'contact' && nextId !== 'imprint') {
-        // First update window states to ensure proper transition
-        setWindowStates((prevStates: Record<SectionId, WindowState>) => ({
+        // Start transition for current window
+        startWindowTransition(id, 'minimizing');
+        
+        // Update window states in correct order
+        setWindowStates(prevStates => ({
           ...prevStates,
-          [id]: {
-            ...prevStates[id],
-            isMinimizing: true // Add a transitioning state
+          [nextId]: {
+            ...prevStates[nextId],
+            isVisible: true,
+            isActive: true,
+            transitionState: 'typing'
           }
         }));
 
-        // Delay the actual state changes to ensure proper sequencing
-        setTimeout(() => {
-          // First minimize the current window
-          handleMinimize(id);
-          
-          // Then after a short delay, bring the next window to front
-          setTimeout(() => {
-            setWindowStates((prevStates: Record<SectionId, WindowState>) => ({
-              ...prevStates,
-              [nextId]: {
-                ...prevStates[nextId],
-                isVisible: true,
-                isActive: true
-              },
-              [id]: {
-                ...prevStates[id],
-                isMinimizing: false // Clear the transitioning state
-              }
-            }));
-            bringToFront(nextId);
-          }, 50);
-        }, 100);
+        // Bring next window to front
+        bringToFront(nextId);
+        
+        // Complete the transition for current window
+        handleMinimize(id);
       }
     }
   };
