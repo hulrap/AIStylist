@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
-import { SectionId, useOverlayStack } from './OverlayStackContext';
+import { SectionId } from './OverlayStackContext';
 
 interface PackagesProps {
   id: SectionId;
@@ -31,8 +31,6 @@ export const Packages: React.FC<PackagesProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const { getWindowState } = useOverlayStack();
-
   const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
 
 THE DISCOVERY:

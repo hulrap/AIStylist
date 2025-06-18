@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { SectionId } from './OverlayStackContext';
-import { useOverlayStack } from './OverlayStackContext';
 
 interface ContactProps {
   id: SectionId;
@@ -32,8 +31,6 @@ export const Contact: React.FC<ContactProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const { getWindowState } = useOverlayStack();
-
   const content = `READY TO BECOME MORE POWERFUL?
 Send me a message.
 Tell me about your goals.

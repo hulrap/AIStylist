@@ -17,7 +17,6 @@ interface Position {
   y: number;
 }
 
-const INITIAL_CASCADE_OFFSET = 32;
 const WINDOW_APPEAR_DELAY = 200;
 
 // Base window sizes (will be adjusted per window)
@@ -150,12 +149,25 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
               isVisible: true,
               isActive: currentIndex === CASCADE_ORDER.length - 1, // Only ai-instructor (last) starts as active
               isMinimized: false,
-              transitionState: currentIndex === CASCADE_ORDER.length - 1 ? 'typing' : 'idle'
+              transitionState: 'idle' // Start with idle, will be set to typing separately
             }
           }));
 
           // Add to overlay stack in correct order for layering
           setOverlayStack(prev => [...prev, id]);
+          
+          // For AI instructor, start typing after window is fully visible
+          if (currentIndex === CASCADE_ORDER.length - 1) {
+            setTimeout(() => {
+              setWindowStates(prev => ({
+                ...prev,
+                [id]: {
+                  ...prev[id],
+                  transitionState: 'typing'
+                }
+              }));
+            }, 500); // Longer delay to ensure window is fully rendered
+          }
           
           // Schedule next window
           currentIndex++;
@@ -246,8 +258,22 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         closeOverlay(id);
       }
     } else {
-      // If window is not open, open it and start typing
-      openOverlay(id);
+      // If window is not open, open it
+      setWindowStates(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isVisible: true,
+          isActive: true,
+          isMinimized: false,
+          transitionState: 'opening'
+        }
+      }));
+      
+      // Add to overlay stack
+      setOverlayStack(prev => [...prev, id]);
+      
+      // Start typing immediately after opening
       setTimeout(() => {
         setWindowStates(prev => ({
           ...prev,
@@ -256,7 +282,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
             transitionState: 'typing'
           }
         }));
-      }, 200);
+      }, 100);
     }
   };
 

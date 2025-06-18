@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
-import { SectionId, useOverlayStack } from './OverlayStackContext';
+import { SectionId } from './OverlayStackContext';
 
 interface HeroProps {
   id: SectionId;
@@ -31,8 +31,6 @@ export const Hero: React.FC<HeroProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const { getWindowState } = useOverlayStack();
-
   const content = `Finally.
 An AI expert who sees you.
 And comes to YOUR place.

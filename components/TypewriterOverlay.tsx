@@ -71,9 +71,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [senderEmail, setSenderEmail] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
-  const [showEmailInput, setShowEmailInput] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [preMaximizeState, setPreMaximizeState] = useState<{ position: Position; size: Size } | null>(null);
   const [shouldShowTypewriter, setShouldShowTypewriter] = useState(false);
   
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -108,6 +106,15 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       setShouldShowTypewriter(false);
     }
   }, [isActive, content, id, getWindowState]);
+
+  // Force trigger typewriter when window becomes active and has typing state
+  useEffect(() => {
+    const windowState = getWindowState(id);
+    
+    if (isActive && windowState?.transitionState === 'typing' && content && !shouldShowTypewriter) {
+      setShouldShowTypewriter(true);
+    }
+  }, [isActive, content, id, getWindowState, shouldShowTypewriter]);
 
   // Handle typing completion
   const handleTypingComplete = () => {

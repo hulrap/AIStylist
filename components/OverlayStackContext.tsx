@@ -273,34 +273,20 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const minimizeWindow = useCallback((id: SectionId, label: string, icon: string) => {
     if (!minimizedWindows.some(w => w.id === id)) {
-      // Start minimizing transition
+      // Add to minimized windows immediately
+      setMinimizedWindows(prev => [...prev, { id, label, icon }]);
+      
+      // Update window state to minimized
       setWindowStates(prev => ({
         ...prev,
         [id]: {
           ...prev[id],
-          transitionState: 'minimizing',
-          isActive: false
+          isMinimized: true,
+          isActive: false,
+          isVisible: false, // Hide visually but keep in stack
+          transitionState: 'idle'
         }
       }));
-      
-      // Add to minimized windows
-      setMinimizedWindows(prev => [...prev, { id, label, icon }]);
-      
-      // Remove from overlay stack after a short delay to allow for animation
-      setTimeout(() => {
-        setOverlayStack(prev => prev.filter(windowId => windowId !== id));
-        
-        // Complete the transition
-        setWindowStates(prev => ({
-          ...prev,
-          [id]: {
-            ...prev[id],
-            isMinimized: true,
-            isVisible: false,
-            transitionState: 'idle'
-          }
-        }));
-      }, 300);
     }
   }, [minimizedWindows]);
 

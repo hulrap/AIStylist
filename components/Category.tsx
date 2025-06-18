@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
-import { SectionId, useOverlayStack } from './OverlayStackContext';
+import { SectionId } from './OverlayStackContext';
 
 interface CategoryProps {
   id: SectionId;
@@ -31,8 +31,6 @@ export const Category: React.FC<CategoryProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const { getWindowState } = useOverlayStack();
-
   const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
 Not software. Not a course.
 A real person who comes to you.

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
-import { SectionId, useOverlayStack } from './OverlayStackContext';
+import { SectionId } from './OverlayStackContext';
 
 interface ExperienceProps {
   id: SectionId;
@@ -31,8 +31,6 @@ export const Experience: React.FC<ExperienceProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const { getWindowState } = useOverlayStack();
-
   const content = `WHAT TO EXPECT:
 I come to your place, we sit on your couch. I bring pizza, coffee, tea, beer or wine if you want to.
 And we make YOU more powerful.

@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { SectionId } from './OverlayStackContext';
-import { useOverlayStack } from './OverlayStackContext';
 
 interface ProblemProps {
   id: SectionId;
@@ -32,8 +31,6 @@ export const Problem: React.FC<ProblemProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const { getWindowState } = useOverlayStack();
-
   const content = `THE PROBLEM:
 AI is not about making businesses more efficient.
 It's about making humans more powerful.
