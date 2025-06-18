@@ -33,26 +33,12 @@ export const Imprint: React.FC<ImprintProps> = ({
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
 
-  const content = `LEGAL INFORMATION:
-
-QUEER MEDIA LITERACY e.V.
+  const content = `QUEER MEDIA LITERACY e.V.
 ZVR Number: 1689372191
 Founded: 21.09.2024
-
-Address:
-c/o 1060 Wien
-Mariahilfer Straße 49/15
-Austria
-
-Under jurisdiction of:
-Landespolizeidirektion Wien
-
-Contact:
-admin@queer-alliance.com
-
-This is a personal service.
-All communication is confidential.
-No data is shared with third parties.`;
+Address: c/o 1060 Wien, Mariahilfer Straße 49/15
+Jurisdiction: Landespolizeidirektion Wien
+Contact: admin@queer-alliance.com`;
 
   const startTypewriter = useCallback(() => {
     let currentText = '';
@@ -73,25 +59,19 @@ No data is shared with third parties.`;
     typeNextCharacter();
   }, [content]);
 
-  // Clear content when window becomes inactive
   useEffect(() => {
+    // Start typing when window becomes active
+    if (isActive && !isTypingRef.current) {
+      startTypewriter();
+    }
+    
+    // Clear content when window becomes inactive
     if (!isActive) {
       if (typewriterTimeoutRef.current) {
         clearTimeout(typewriterTimeoutRef.current);
       }
       setDisplayedContent('');
       isTypingRef.current = false;
-    }
-  }, [isActive]);
-
-  // Start typewriter when window becomes active
-  useEffect(() => {
-    if (isActive && !isTypingRef.current) {
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-      }
-      setDisplayedContent('');
-      startTypewriter();
     }
 
     return () => {

@@ -204,8 +204,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
             y: e.clientY - rect.top,
           });
         }
-        bringToFront(id);
       }
+      // Always bring to front on any click inside the window
+      bringToFront(id);
     }
   };
 

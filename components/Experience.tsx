@@ -66,25 +66,19 @@ This is personal AI instruction.`;
     typeNextCharacter();
   }, [content]);
 
-  // Clear content when window becomes inactive
   useEffect(() => {
+    // Start typing when window becomes active
+    if (isActive && !isTypingRef.current) {
+      startTypewriter();
+    }
+    
+    // Clear content when window becomes inactive
     if (!isActive) {
       if (typewriterTimeoutRef.current) {
         clearTimeout(typewriterTimeoutRef.current);
       }
       setDisplayedContent('');
       isTypingRef.current = false;
-    }
-  }, [isActive]);
-
-  // Start typewriter when window becomes active
-  useEffect(() => {
-    if (isActive && !isTypingRef.current) {
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-      }
-      setDisplayedContent('');
-      startTypewriter();
     }
 
     return () => {
