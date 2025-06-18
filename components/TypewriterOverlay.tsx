@@ -85,6 +85,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [isAnimatingRestore, setIsAnimatingRestore] = useState(false);
   const [hasCompletedTyping, setHasCompletedTyping] = useState(false);
   const [showEmailField, setShowEmailField] = useState(false);
+  const [isUserTyping, setIsUserTyping] = useState(false);
   
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -424,6 +425,11 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
   // Auto-scroll callback for typewriter
   const handleTypewriterScroll = () => {
+    // On mobile, don't auto-scroll if user is typing to prevent keyboard issues
+    if (isMobile && isUserTyping) {
+      return;
+    }
+    
     if (scrollAreaRef.current) {
       // Use requestAnimationFrame for better performance and reliability
       requestAnimationFrame(() => {
@@ -578,9 +584,8 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
               <div className="flex justify-start w-full">
                 <SmoothTypewriter
                   content={content}
-                  isActive={shouldShowTypewriter || hasCompletedTyping}
+                  isActive={(shouldShowTypewriter || hasCompletedTyping) && !(isMobile && isUserTyping)}
                   onComplete={handleTypingComplete}
-                  speed={80}
                   className={isMobile ? "w-full" : "max-w-[90%]"}
                   onScroll={handleTypewriterScroll}
                 />
@@ -624,6 +629,15 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                   onChange={(e) => setSenderEmail(e.target.value)}
                   onFocus={() => {
                     if (stopAutoSequence) stopAutoSequence();
+                    if (isMobile) {
+                      setIsUserTyping(true);
+                      setShouldShowTypewriter(false); // Stop typewriter on mobile when user types
+                    }
+                  }}
+                  onBlur={() => {
+                    if (isMobile) {
+                      setIsUserTyping(false);
+                    }
                   }}
                   placeholder="your.email@example.com"
                   className="w-full px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
@@ -649,9 +663,18 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                 onKeyPress={handleKeyPress}
                 onFocus={() => {
                   if (stopAutoSequence) stopAutoSequence();
+                  if (isMobile) {
+                    setIsUserTyping(true);
+                    setShouldShowTypewriter(false); // Stop typewriter on mobile when user types
+                  }
                   // Show email field when user focuses on message input and has content
                   if (message.length > 0 && !showEmailField) {
                     setShowEmailField(true);
+                  }
+                }}
+                onBlur={() => {
+                  if (isMobile) {
+                    setIsUserTyping(false);
                   }
                 }}
                 placeholder="Send me a message..."
