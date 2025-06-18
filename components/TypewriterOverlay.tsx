@@ -99,36 +99,50 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   // Update chat history when content changes
   useEffect(() => {
     const windowState = getWindowState(id);
+    let timeoutIds: NodeJS.Timeout[] = [];
     
     if (content && windowState?.transitionState === 'typing') {
       const lines = content.split('\n');
       
-      // Clear existing content first
+      // Clear existing content
       setChatHistory([]);
       
-      // Process each line with a delay
+      // Start typing new content with delays
       let currentIndex = 0;
+      const lineDelay = 800; // Delay between lines
       
       const processNextLine = () => {
         if (currentIndex < lines.length) {
-          setChatHistory(prev => [...prev, { text: lines[currentIndex], type: 'system' }]);
-          currentIndex++;
+          const timeoutId = setTimeout(() => {
+            setChatHistory(prev => [...prev, { 
+              text: lines[currentIndex],
+              type: 'system'
+            }]);
+            
+            currentIndex++;
+            if (currentIndex < lines.length) {
+              const nextTimeoutId = setTimeout(processNextLine, lineDelay);
+              timeoutIds.push(nextTimeoutId);
+            } else if (onTypingComplete) {
+              const completionTimeoutId = setTimeout(onTypingComplete, lineDelay);
+              timeoutIds.push(completionTimeoutId);
+            }
+          }, currentIndex === 0 ? 0 : lineDelay);
           
-          // Schedule next line with a delay for typewriter effect
-          if (currentIndex < lines.length) {
-            setTimeout(processNextLine, 100);
-          } else if (onTypingComplete) {
-            onTypingComplete();
-          }
+          timeoutIds.push(timeoutId);
         }
       };
       
-      // Start processing lines
       processNextLine();
     } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
       // Clear chat history when window becomes inactive
       setChatHistory([]);
     }
+    
+    // Cleanup timeouts on unmount or content change
+    return () => {
+      timeoutIds.forEach(id => clearTimeout(id));
+    };
   }, [content, isActive, id, getWindowState, onTypingComplete]);
 
   // Cleanup on unmount or window close

@@ -142,38 +142,56 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         return acc;
       }, {} as Record<SectionId, Position>);
 
-      // Open windows with pre-calculated positions in sequence
-      WINDOW_ORDER.forEach((id, index) => {
-        setTimeout(() => {
+      // Initialize all windows as minimized first
+      setWindowStates(prev => {
+        const newStates = { ...prev };
+        WINDOW_ORDER.forEach(id => {
+          newStates[id] = {
+            ...newStates[id],
+            isVisible: false,
+            isActive: false,
+            isMinimized: true,
+            transitionState: 'idle'
+          };
+        });
+        return newStates;
+      });
+
+      // Then start the cascade sequence
+      let currentIndex = WINDOW_ORDER.length - 1; // Start from last window (ai-instructor)
+      
+      const activateNextWindow = () => {
+        if (currentIndex >= 0) {
+          const id = WINDOW_ORDER[currentIndex];
+          
+          // Update position first
           updatePosition(id, positions[id]);
           
-          // For the first window, we need to set up the initial state
-          if (index === 0) {
-            setWindowStates(prev => ({
-              ...prev,
-              [id]: {
-                ...prev[id],
-                isVisible: true,
-                isActive: true,
-                transitionState: 'typing'
-              }
-            }));
-            setOverlayStack(prev => [...prev, id]);
-          } else {
-            // For subsequent windows, we need to minimize them immediately
-            setWindowStates(prev => ({
-              ...prev,
-              [id]: {
-                ...prev[id],
-                isVisible: true,
-                isActive: false,
-                isMinimized: true
-              }
-            }));
+          // Then update window state
+          setWindowStates(prev => ({
+            ...prev,
+            [id]: {
+              ...prev[id],
+              isVisible: true,
+              isActive: true,
+              isMinimized: false,
+              transitionState: 'typing'
+            }
+          }));
+
+          // Add to overlay stack
+          setOverlayStack(prev => [...prev, id]);
+          
+          // Schedule next window
+          currentIndex--;
+          if (currentIndex >= 0) {
+            setTimeout(activateNextWindow, WINDOW_APPEAR_DELAY);
           }
-        }, index * WINDOW_APPEAR_DELAY);
-      });
-      
+        }
+      };
+
+      // Start the cascade
+      activateNextWindow();
       setHasInitialized(true);
     }
   }, [isReady, hasInitialized, updatePosition, setWindowStates]);
