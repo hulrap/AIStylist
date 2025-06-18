@@ -64,33 +64,21 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState<Position>(initialPosition || { x: 32, y: 32 });
   const [size, setSize] = useState<Size>(initialSize || { width: 420, height: 540 });
-  const [isTyping, setIsTyping] = useState(false);
   const [message, setMessage] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [hasStartedTyping, setHasStartedTyping] = useState(false);
   const [preMaximizeState, setPreMaximizeState] = useState<{ position: Position; size: Size } | null>(null);
   
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const currentLineRef = useRef<number>(0);
 
   const windowState = getWindowState(id);
   const isWindowMaximized = windowState?.isMaximized || false;
-
-  // Clear typing timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, []);
+  const isMinimized = windowState?.isMinimized || false;
 
   useEffect(() => {
     const savedPosition = getPosition(id);
@@ -106,84 +94,15 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
-  // Reset state when window becomes inactive or minimized
+  // Update chat history when content changes
   useEffect(() => {
-    const windowState = getWindowState(id);
-    if (!isActive || windowState?.isMinimized) {
-      setHasStartedTyping(false);
+    if (content) {
+      const lines = content.split('\n');
+      setChatHistory(lines.map(line => ({ text: line, type: 'system' })));
+    } else {
       setChatHistory([]);
-      currentLineRef.current = 0;
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
     }
-  }, [isActive, id, getWindowState]);
-
-  // Start typing when window becomes active and visible
-  useEffect(() => {
-    const windowState = getWindowState(id);
-    if ((isActive || showInitialContent) && !hasStartedTyping && content && !windowState?.isMinimized) {
-      setHasStartedTyping(true);
-      // Clear any existing history before starting
-      setChatHistory([]);
-      currentLineRef.current = 0;
-      startTyping();
-    }
-  }, [isActive, showInitialContent, content, id, getWindowState]);
-
-  const startTyping = () => {
-    if (!content) return;
-    
-    setIsTyping(true);
-    const lines = content.split('\n');
-    let currentCharIndex = 0;
-    let currentText = '';
-    
-    const typeNextCharacter = () => {
-      // If we've finished all lines, stop typing
-      if (currentLineRef.current >= lines.length) {
-        setIsTyping(false);
-        return;
-      }
-
-      const currentLine = lines[currentLineRef.current];
-      
-      if (currentCharIndex < currentLine.length) {
-        // Still typing current line
-        currentText = currentLine.substring(0, currentCharIndex + 1);
-        setChatHistory(prev => {
-          const newHistory = [...prev];
-          if (newHistory.length <= currentLineRef.current) {
-            newHistory.push({ text: currentText, type: 'system' });
-          } else {
-            newHistory[currentLineRef.current] = { text: currentText, type: 'system' };
-          }
-          return newHistory;
-        });
-        
-        currentCharIndex++;
-        typingTimeoutRef.current = setTimeout(typeNextCharacter, 25);
-      } else {
-        // Move to next line and add it immediately if it's empty
-        currentLineRef.current++;
-        if (currentLineRef.current < lines.length) {
-          if (lines[currentLineRef.current].trim() === '') {
-            setChatHistory(prev => {
-              const newHistory = [...prev];
-              newHistory.push({ text: '', type: 'system' });
-              return newHistory;
-            });
-            currentLineRef.current++;
-          }
-        }
-        currentCharIndex = 0;
-        currentText = '';
-        typingTimeoutRef.current = setTimeout(typeNextCharacter, 250);
-      }
-    };
-
-    typeNextCharacter();
-  };
+  }, [content]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isWindowMaximized) return;
@@ -255,12 +174,13 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
       window.addEventListener('mousemove', handleGlobalMouseMove);
       window.addEventListener('mouseup', handleGlobalMouseUp);
+
       return () => {
         window.removeEventListener('mousemove', handleGlobalMouseMove);
         window.removeEventListener('mouseup', handleGlobalMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragOffset, isWindowMaximized, id, updatePosition]);
+  }, [isDragging, isResizing, dragOffset, id, isWindowMaximized, updatePosition]);
 
   const handleLocalMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (overlayRef.current) {
@@ -275,17 +195,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
-    // If we don't have the sender's email yet, show the email input
-    if (!senderEmail) {
-      setShowEmailInput(true);
-      setChatHistory(prev => [...prev, {
-        text: "Please enter your email address so I can get back to you!",
-        type: 'system'
-      }]);
-      return;
-    }
-
     setIsSending(true);
+    setChatHistory(prev => [...prev, { text: message, type: 'user' }]);
+    setMessage('');
 
     try {
       const response = await fetch('/api/send-email', {
@@ -295,8 +207,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         },
         body: JSON.stringify({
           message,
-          senderEmail,
-          section: title,
+          email: senderEmail,
         }),
       });
 
@@ -304,20 +215,15 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         throw new Error('Failed to send message');
       }
 
-      // Add message to chat history
       setChatHistory(prev => [
         ...prev,
-        { text: message, type: 'user' },
-        { text: "Message sent! I'll get back to you soon.", type: 'system' }
+        { text: 'Message sent! I will get back to you within 24 hours.', type: 'system' }
       ]);
-
-      // Clear input
-      setMessage('');
     } catch (error) {
-      setChatHistory(prev => [...prev, {
-        text: "Failed to send message. Please try again.",
-        type: 'system'
-      }]);
+      setChatHistory(prev => [
+        ...prev,
+        { text: 'Failed to send message. Please try again.', type: 'system' }
+      ]);
     } finally {
       setIsSending(false);
     }
@@ -355,62 +261,51 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     closeOverlay(id);
   };
 
+  const zIndex = stackIndex * 10;
+
+  if (isMinimized) {
+    return null;
+  }
+
   return (
     <div
       ref={overlayRef}
-      className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
-        isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
-      } ${forceVisible && !windowState?.isMinimized ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+      className={`fixed bg-black/80 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden shadow-2xl transition-transform ${
+        isActive ? 'shadow-purple-500/20' : ''
+      }`}
       style={{
-        left: isWindowMaximized ? 0 : position.x,
-        top: isWindowMaximized ? 0 : position.y,
         width: isWindowMaximized ? '100%' : size.width,
         height: isWindowMaximized ? '100%' : size.height,
-        transform: `${isWindowMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
-        transition: isDragging ? 'none' : 'all 0.2s ease-out'
+        transform: isWindowMaximized ? 'none' : `translate(${position.x}px, ${position.y}px)`,
+        zIndex,
+        opacity: forceVisible || isActive ? 1 : 0.7,
+        cursor: isDragging ? 'grabbing' : 'default',
       }}
-      onMouseMove={handleLocalMouseMove}
       onMouseDown={handleMouseDown}
+      onMouseMove={handleLocalMouseMove}
     >
-      {/* Light Effect */}
-      <div 
-        className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-300"
-        style={{
-          background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.2), transparent 50%)`
-        }}
-      />
-
-      {/* Glass Background */}
-      <div className="absolute inset-0 bg-white/10 backdrop-blur-md" />
-
-      {/* Window Titlebar */}
-      <div className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-black/20 border-b border-white/20">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
+      {/* Window Title Bar */}
+      <div className="window-titlebar h-10 px-3 flex items-center justify-between bg-black/50 border-b border-white/20">
+        <div className="flex items-center space-x-2">
+          <div className="flex space-x-2">
             <button
               onClick={handleClose}
-              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center group"
-            >
-              <span className="text-red-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">×</span>
-            </button>
+              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
+            />
             <button
               onClick={handleMinimize}
-              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors flex items-center justify-center group"
-            >
-              <span className="text-yellow-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">−</span>
-            </button>
+              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
+            />
             <button
               onClick={handleMaximize}
-              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group"
-            >
-              <span className="text-green-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">{isWindowMaximized ? '□' : '+'}</span>
-            </button>
+              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
+            />
           </div>
-          <span className="text-sm text-white/80 ml-2">{title}</span>
+          <span className="text-white/60 text-sm font-medium ml-2">{title}</span>
         </div>
       </div>
 
-      {/* Content Area */}
+      {/* Window Content */}
       <div className="flex flex-col h-[calc(100%-2.5rem)]">
         <div className="flex-1 p-6 overflow-y-auto">
           {/* Chat Messages */}
