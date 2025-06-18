@@ -16,6 +16,9 @@ interface ContactProps {
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
   stopAutoSequence?: () => void;
+  isMobile?: boolean;
+  className?: string;
+  'data-stack'?: string;
 }
 
 export const Contact: React.FC<ContactProps> = ({
@@ -32,11 +35,14 @@ export const Contact: React.FC<ContactProps> = ({
   onUnmaximize,
   onTypingComplete,
   stopAutoSequence,
+  isMobile,
+  className,
+  'data-stack': dataStack,
 }) => {
-  const content = `READY TO BECOME MORE POWERFUL?
+  const content = `Ready to become more powerful?
 Send me a message in any window.
 I'll get back to you within 24 hours.
-And we'll make YOU more powerful. Together.`.trim();
+And we'll make you more powerful. Together.`.trim();
 
   return (
     <TypewriterOverlay
@@ -55,6 +61,9 @@ And we'll make YOU more powerful. Together.`.trim();
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
       stopAutoSequence={stopAutoSequence}
+      isMobile={isMobile}
+      className={className}
+      data-stack={dataStack}
     />
   );
 }; 

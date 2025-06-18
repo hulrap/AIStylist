@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DesktopIcon } from './DesktopIcon';
-import { TaskBar } from './TaskBar';
+
 import { TypewriterOverlay } from './TypewriterOverlay';
 import { Problem } from './Problem';
 import { Category } from './Category';
@@ -17,7 +17,7 @@ interface Position {
   y: number;
 }
 
-const WINDOW_APPEAR_DELAY = 200;
+const WINDOW_APPEAR_DELAY = 150;
 
 // Base window sizes (will be adjusted per window)
 const BASE_WINDOW_WIDTH = 520;
@@ -107,18 +107,49 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isAutoSequenceActive, setIsAutoSequenceActive] = useState(false);
+  const [hasCompletedAutoSequence, setHasCompletedAutoSequence] = useState(false);
+  const [processedCompletions, setProcessedCompletions] = useState<Set<SectionId>>(new Set());
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Add mobile body class when windows are open
+  useEffect(() => {
+    if (isMobile && overlayStack.length > 0) {
+      document.body.classList.add('mobile-no-scroll');
+    } else {
+      document.body.classList.remove('mobile-no-scroll');
+    }
+    
+    return () => {
+      document.body.classList.remove('mobile-no-scroll');
+    };
+  }, [isMobile, overlayStack.length]);
 
   // Function to stop automatic sequence when user interacts
   const stopAutoSequence = () => {
     if (isAutoSequenceActive) {
       setIsAutoSequenceActive(false);
-      console.log('Auto sequence stopped due to user interaction');
+      setHasCompletedAutoSequence(true); // Mark as completed to prevent it from ever restarting
+      console.log('Auto sequence stopped due to user interaction - will never restart');
     }
   };
 
   useEffect(() => {
     // Only start cascade animation when isReady is true and hasn't initialized yet
-    if (isReady && !hasInitialized) {
+    // CRITICAL: Never start if auto-sequence has already been completed
+    if (isReady && !hasInitialized && !hasCompletedAutoSequence) {
+      console.log('Starting initial auto-sequence - this will only happen once');
       // Pre-calculate all positions to ensure consistency
       const positions = CASCADE_ORDER.reduce((acc, id) => {
         acc[id] = getInitialPosition(id);
@@ -176,7 +207,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                   transitionState: 'typing'
                 }
               }));
-            }, 500); // Longer delay to ensure window is fully rendered
+            }, 375); // Longer delay to ensure window is fully rendered
           }
           
           // Schedule next window
@@ -190,18 +221,44 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
       // Start the cascade
       activateNextWindow();
       setHasInitialized(true);
+    } else if (isReady && !hasInitialized && hasCompletedAutoSequence) {
+      console.log('Auto-sequence already completed - skipping initialization');
+      setHasInitialized(true);
     }
-  }, [isReady, hasInitialized, updatePosition, setWindowStates]);
+  }, [isReady, hasInitialized, hasCompletedAutoSequence, updatePosition, setWindowStates]);
 
   const handleTypingComplete = (id: SectionId) => {
-    // Only process automatic sequence windows
-    if (!isAutoSequenceActive || !TYPING_SEQUENCE.includes(id)) {
-      return; // Ignore typing completion for manually opened windows or when sequence is not active
+    // CRITICAL: Only process automatic sequence windows during the initial sequence
+    if (!isAutoSequenceActive || !TYPING_SEQUENCE.includes(id) || hasCompletedAutoSequence) {
+      console.log(`Ignoring typing completion for ${id}: autoSequenceActive=${isAutoSequenceActive}, inSequence=${TYPING_SEQUENCE.includes(id)}, completed=${hasCompletedAutoSequence}`);
+      return; // Ignore typing completion for manually opened windows or when sequence is not active/already completed
     }
+    
+    // CRITICAL: Prevent processing the same completion multiple times
+    if (processedCompletions.has(id)) {
+      console.log(`DUPLICATE: Already processed completion for ${id} - ignoring`);
+      return;
+    }
+    
+    console.log(`Processing auto-sequence typing completion for: ${id}`);
+    
+    // Mark as processed immediately
+    setProcessedCompletions(prev => new Set(prev).add(id));
 
-    // Special handling for Contact window - end the automatic sequence
+    // Mark this window as having completed its auto-sequence typing
+    setWindowStates(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        hasCompletedAutoSequenceTyping: true
+      }
+    }));
+
+    // Special handling for Contact window - end the automatic sequence FOREVER
     if (id === 'contact') {
+      console.log('Auto-sequence completed at contact window - this will never run again');
       setIsAutoSequenceActive(false); // End the automatic typing sequence
+      setHasCompletedAutoSequence(true); // Mark as permanently completed
       return;
     }
 
@@ -209,62 +266,76 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     const currentIndex = TYPING_SEQUENCE.indexOf(id);
     const nextIndex = currentIndex + 1;
     
+    console.log(`Current window: ${id} (index ${currentIndex}), Next index: ${nextIndex}`);
+    
     if (nextIndex < TYPING_SEQUENCE.length) {
       const nextId = TYPING_SEQUENCE[nextIndex];
+      console.log(`Transitioning from ${id} to ${nextId}`);
       
       // Start minimizing current window
       startWindowTransition(id, 'minimizing');
       
-      // Use a timeout to ensure state updates happen in sequence
-      setTimeout(() => {
-        // First minimize the current window
-        setWindowStates(prevStates => ({
-          ...prevStates,
-          [id]: {
-            ...prevStates[id],
-            isActive: false,
-            isMinimized: true,
-            transitionState: 'idle',
-            isVisible: true // Keep the window visible in the background
-          }
-        }));
-        
-        // Add to minimized windows list
-        minimizeWindow(id, getLabelForSection(id), id);
-        
-        // Then after a longer delay, activate the next window
+              // Use a timeout to ensure state updates happen in sequence
         setTimeout(() => {
-          // Deactivate all windows first
+          // CRITICAL: Double-check that auto-sequence is still active before proceeding
+          if (!isAutoSequenceActive || hasCompletedAutoSequence) {
+            console.log(`ABORT: Auto-sequence transition blocked - active: ${isAutoSequenceActive}, completed: ${hasCompletedAutoSequence}`);
+            return;
+          }
+          
+          // Single state update to minimize current and activate next window
           setWindowStates(prevStates => {
             const newStates = { ...prevStates };
+            
+            // First minimize the current window and mark it as completed
+            newStates[id] = {
+              ...newStates[id],
+              isActive: false,
+              isMinimized: true,
+              transitionState: 'idle',
+              isVisible: true, // Keep the window visible in the background
+              hasCompletedAutoSequenceTyping: true // CRITICAL: Mark as completed to prevent reactivation
+            };
+            
+            // Deactivate all other windows to prevent conflicts
             Object.keys(newStates).forEach(windowId => {
-              if (newStates[windowId as SectionId].isActive) {
-                newStates[windowId as SectionId] = {
-                  ...newStates[windowId as SectionId],
+              const winId = windowId as SectionId;
+              if (winId !== id && winId !== nextId && newStates[winId].isActive) {
+                newStates[winId] = {
+                  ...newStates[winId],
                   isActive: false
                 };
               }
             });
             
-            // Then activate the next window
-            newStates[nextId] = {
-              ...newStates[nextId],
-              isVisible: true,
-              isActive: true,
-              isMinimized: false,
-              transitionState: 'typing'
-            };
+            // Then activate the next window ONLY if it hasn't completed auto-sequence
+            if (!newStates[nextId]?.hasCompletedAutoSequenceTyping) {
+              newStates[nextId] = {
+                ...newStates[nextId],
+                isVisible: true,
+                isActive: true,
+                isMinimized: false,
+                transitionState: 'typing'
+              };
+            } else {
+              console.log(`SKIP: ${nextId} already completed auto-sequence typing`);
+            }
             
             return newStates;
           });
+        
+        // Add to minimized windows list
+        minimizeWindow(id, getLabelForSection(id), id);
 
-          // Reorder overlay stack manually (without calling bringToFront to avoid state conflicts)
+        // Update overlay stack to bring next window to front
+        setTimeout(() => {
           setOverlayStack(prev => {
             const newStack = prev.filter(windowId => windowId !== nextId);
             return [...newStack, nextId];
           });
-        }, 500); // Longer delay to ensure proper transition and visibility
-      }, 800); // Longer delay to allow minimization animation to complete
+        }, 50); // Small delay to ensure state is consistent
+        
+      }, 300); // Reduced delay - halved from 600ms to 300ms as requested
     }
   };
 
@@ -282,10 +353,11 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
             ...prev,
             [id]: {
               ...prev[id],
-              transitionState: 'typing'
+              transitionState: 'typing',
+              hasCompletedAutoSequenceTyping: false // Reset to allow typing when manually restored
             }
           }));
-        }, 100);
+        }, 75);
       } else {
         // If window is open and visible, close it (toggle behavior)
         closeOverlay(id);
@@ -299,7 +371,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
           isVisible: true,
           isActive: true,
           isMinimized: false,
-          transitionState: 'opening'
+          transitionState: 'opening',
+          hasCompletedAutoSequenceTyping: false // Reset to allow typing for manually opened windows
         }
       }));
       
@@ -315,7 +388,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
             transitionState: 'typing'
           }
         }));
-      }, 100);
+      }, 75);
     }
   };
 
@@ -364,16 +437,17 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     const windowState = getWindowState(id);
     if (windowState?.isMinimized) {
       restoreWindow(id);
-      // Start typing when restored
-      setTimeout(() => {
-        setWindowStates(prev => ({
-          ...prev,
-          [id]: {
-            ...prev[id],
-            transitionState: 'typing'
-          }
-        }));
-      }, 100);
+          // Start typing when restored
+    setTimeout(() => {
+      setWindowStates(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          transitionState: 'typing',
+          hasCompletedAutoSequenceTyping: false // Reset to allow typing when manually restored
+        }
+      }));
+    }, 75);
     }
   };
 
@@ -447,18 +521,56 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* Desktop Icons */}
-      <div className="absolute inset-0 p-4 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] gap-1">
-        {CASCADE_ORDER.map((id) => (
-          <DesktopIcon
-            key={id}
-            id={id}
-            label={getLabelForSection(id)}
-            icon={id}
-            onClick={() => handleIconClick(id)}
-          />
-        ))}
-      </div>
+      {/* Mobile Window Tabs - Only show on mobile when windows are open */}
+      {isMobile && overlayStack.length > 0 && (
+        <div className="mobile-window-tabs">
+          {overlayStack.map((id) => {
+            const windowState = getWindowState(id);
+            const isActive = id === activeOverlay;
+            return (
+              <div
+                key={id}
+                className={`mobile-window-tab ${isActive ? 'active' : ''}`}
+                onClick={() => bringToFront(id, stopAutoSequence)}
+              >
+                {getLabelForSection(id)}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Desktop Icons - Different layout for mobile vs desktop */}
+      {isMobile ? (
+        // Mobile Icon Grid
+        <div className="mobile-icon-grid">
+          {CASCADE_ORDER.map((id) => (
+            <button
+              key={id}
+              className="mobile-desktop-icon"
+              onClick={() => handleIconClick(id)}
+            >
+              <div className="icon-container">
+                {React.createElement(getIconForSection(id), { className: 'text-white/80' })}
+              </div>
+              <span className="text-white/80">{getLabelForSection(id)}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        // Desktop Icon Grid
+        <div className="absolute inset-0 p-4 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] gap-1">
+          {CASCADE_ORDER.map((id) => (
+            <DesktopIcon
+              key={id}
+              id={id}
+              label={getLabelForSection(id)}
+              icon={id}
+              onClick={() => handleIconClick(id)}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Windows */}
       {CASCADE_ORDER.map((id) => {
@@ -470,149 +582,51 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
 
         if (!isOpen(id)) return null;
 
+        // Mobile-specific window props
+        const mobileProps = isMobile ? {
+          className: `mobile-window-stack ${isActive ? 'active' : ''}`,
+          'data-stack': stackIndex.toString(),
+        } : {};
+
+        const commonProps = {
+          key: id,
+          id,
+          stackIndex,
+          isActive,
+          forceVisible: isVisible,
+          initialPosition: isMobile ? { x: 10, y: 20 } : getInitialPosition(id),
+          initialSize: isMobile ? { width: window.innerWidth - 20, height: window.innerHeight - 120 } : getInitialSize(id),
+          isMaximized,
+          onMinimize: () => handleMinimize(id),
+          onMaximize: () => handleMaximize(id),
+          onUnmaximize: () => handleUnmaximize(id),
+          onTypingComplete: () => handleTypingComplete(id),
+          stopAutoSequence,
+          isMobile,
+          ...mobileProps
+        };
+
         switch (id) {
           case 'ai-instructor':
-            return (
-              <Hero
-                key={id}
-                id={id}
-                stackIndex={stackIndex}
-                isActive={isActive}
-                forceVisible={isVisible}
-                initialPosition={getInitialPosition(id)}
-                initialSize={getInitialSize(id)}
-                isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id)}
-                onMaximize={() => handleMaximize(id)}
-                onUnmaximize={() => handleUnmaximize(id)}
-                onTypingComplete={() => handleTypingComplete(id)}
-                stopAutoSequence={stopAutoSequence}
-              />
-            );
+            return React.createElement(Hero, commonProps);
           case 'problem':
-            return (
-              <Problem
-                key={id}
-                id={id}
-                stackIndex={stackIndex}
-                isActive={isActive}
-                forceVisible={isVisible}
-                initialPosition={getInitialPosition(id)}
-                initialSize={getInitialSize(id)}
-                showContent={isActive}
-                isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id)}
-                onMaximize={() => handleMaximize(id)}
-                onUnmaximize={() => handleUnmaximize(id)}
-                onTypingComplete={() => handleTypingComplete(id)}
-                stopAutoSequence={stopAutoSequence}
-              />
-            );
+            return React.createElement(Problem, { ...commonProps, showContent: isActive });
           case 'first':
-            return (
-              <Category
-                key={id}
-                id={id}
-                stackIndex={stackIndex}
-                isActive={isActive}
-                forceVisible={isVisible}
-                initialPosition={getInitialPosition(id)}
-                initialSize={getInitialSize(id)}
-                showContent={isActive}
-                isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id)}
-                onMaximize={() => handleMaximize(id)}
-                onUnmaximize={() => handleUnmaximize(id)}
-                onTypingComplete={() => handleTypingComplete(id)}
-                stopAutoSequence={stopAutoSequence}
-              />
-            );
+            return React.createElement(Category, { ...commonProps, showContent: isActive });
           case 'experience':
-            return (
-              <Experience
-                key={id}
-                id={id}
-                stackIndex={stackIndex}
-                isActive={isActive}
-                forceVisible={isVisible}
-                initialPosition={getInitialPosition(id)}
-                initialSize={getInitialSize(id)}
-                showContent={isActive}
-                isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id)}
-                onMaximize={() => handleMaximize(id)}
-                onUnmaximize={() => handleUnmaximize(id)}
-                onTypingComplete={() => handleTypingComplete(id)}
-                stopAutoSequence={stopAutoSequence}
-              />
-            );
+            return React.createElement(Experience, { ...commonProps, showContent: isActive });
           case 'packages':
-            return (
-              <Packages
-                key={id}
-                id={id}
-                stackIndex={stackIndex}
-                isActive={isActive}
-                forceVisible={isVisible}
-                initialPosition={getInitialPosition(id)}
-                initialSize={getInitialSize(id)}
-                showContent={isActive}
-                isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id)}
-                onMaximize={() => handleMaximize(id)}
-                onUnmaximize={() => handleUnmaximize(id)}
-                onTypingComplete={() => handleTypingComplete(id)}
-                stopAutoSequence={stopAutoSequence}
-              />
-            );
+            return React.createElement(Packages, { ...commonProps, showContent: isActive });
           case 'contact':
-            return (
-              <Contact
-                key={id}
-                id={id}
-                stackIndex={stackIndex}
-                isActive={isActive}
-                forceVisible={isVisible}
-                initialPosition={getInitialPosition(id)}
-                initialSize={getInitialSize(id)}
-                showContent={isActive}
-                isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id)}
-                onMaximize={() => handleMaximize(id)}
-                onUnmaximize={() => handleUnmaximize(id)}
-                onTypingComplete={() => handleTypingComplete(id)}
-                stopAutoSequence={stopAutoSequence}
-              />
-            );
+            return React.createElement(Contact, { ...commonProps, showContent: isActive });
           case 'imprint':
-            return (
-              <Imprint
-                key={id}
-                id={id}
-                stackIndex={stackIndex}
-                isActive={isActive}
-                forceVisible={isVisible}
-                initialPosition={getInitialPosition(id)}
-                initialSize={getInitialSize(id)}
-                showContent={isActive}
-                isMaximized={isMaximized}
-                onMinimize={() => handleMinimize(id)}
-                onMaximize={() => handleMaximize(id)}
-                onUnmaximize={() => handleUnmaximize(id)}
-                onTypingComplete={() => handleTypingComplete(id)}
-                stopAutoSequence={stopAutoSequence}
-              />
-            );
+            return React.createElement(Imprint, { ...commonProps, showContent: isActive });
           default:
             return null;
         }
       })}
 
-      {/* Taskbar */}
-      <TaskBar
-        minimizedWindows={minimizedWindows}
-        onRestore={handleRestore}
-      />
+
     </div>
   );
 };

@@ -34,6 +34,7 @@ export interface WindowState {
   icon: string;
   position?: { x: number; y: number };
   size?: { width: number; height: number };
+  hasCompletedAutoSequenceTyping?: boolean;
 }
 
 export interface OverlayStackContextType {
@@ -76,13 +77,13 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [positions, setPositions] = useState<Record<SectionId, Position>>(initialPositions);
   const [windowStates, setWindowStates] = useState<Record<SectionId, WindowState>>(() => {
     const initial: Record<SectionId, WindowState> = {
-      'ai-instructor': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'ai-instructor' },
-      'problem': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'problem' },
-      'first': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'first' },
-      'experience': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'experience' },
-      'packages': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'packages' },
-      'contact': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'contact' },
-      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'imprint' }
+      'ai-instructor': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'ai-instructor', hasCompletedAutoSequenceTyping: false },
+      'problem': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'problem', hasCompletedAutoSequenceTyping: false },
+      'first': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'first', hasCompletedAutoSequenceTyping: false },
+      'experience': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'experience', hasCompletedAutoSequenceTyping: false },
+      'packages': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'packages', hasCompletedAutoSequenceTyping: false },
+      'contact': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'contact', hasCompletedAutoSequenceTyping: false },
+      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, transitionState: 'idle', label: '', icon: 'imprint', hasCompletedAutoSequenceTyping: false }
     };
     return initial;
   });
@@ -195,7 +196,7 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
             transitionState: 'typing'
           }
         }));
-      }, 100);
+      }, 75);
     }
   }, [overlayStack, deactivateAllWindows]);
 
@@ -235,7 +236,7 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
           transitionState: 'idle'
         }
       }));
-    }, 100);
+    }, 75);
   }, [maximizedWindow]);
 
   const bringToFront = useCallback((id: SectionId, stopAutoSequence?: () => void) => {
@@ -256,16 +257,23 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return [...newStack, id];
     });
     
-    // Update window state
-    setWindowStates(prev => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        isVisible: true,
-        isActive: true,
-        transitionState: 'typing'
-      }
-    }));
+    // Update window state - only set to typing if not already completed auto-sequence typing
+    setWindowStates(prev => {
+      const currentWindow = prev[id];
+      const shouldStartTyping = !currentWindow?.hasCompletedAutoSequenceTyping;
+      
+      console.log(`bringToFront: ${id}, shouldStartTyping: ${shouldStartTyping}, hasCompleted: ${currentWindow?.hasCompletedAutoSequenceTyping}`);
+      
+      return {
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isVisible: true,
+          isActive: true,
+          transitionState: shouldStartTyping ? 'typing' : 'idle'
+        }
+      };
+    });
   }, [deactivateAllWindows, startWindowTransition]);
 
   const updatePosition = (id: SectionId, position: Position) => {
@@ -326,7 +334,7 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
           transitionState: 'idle'
         }
       }));
-    }, 300);
+    }, 225);
   }, []);
 
   const unmaximizeWindow = useCallback((id: SectionId) => {
@@ -354,7 +362,7 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
           transitionState: 'idle'
         }
       }));
-    }, 300);
+    }, 225);
   }, []);
 
   const restoreWindow = useCallback((id: SectionId) => {
@@ -385,10 +393,11 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
         [id]: {
           ...prev[id],
           isMinimized: false,
-          transitionState: 'typing'
+          transitionState: 'typing',
+          hasCompletedAutoSequenceTyping: false // Reset to allow typing when restored
         }
       }));
-    }, 300);
+    }, 225);
   }, []);
 
   const getWindowState = (id: SectionId) => windowStates[id];

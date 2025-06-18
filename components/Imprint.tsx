@@ -16,6 +16,9 @@ interface ImprintProps {
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
   stopAutoSequence?: () => void;
+  isMobile?: boolean;
+  className?: string;
+  'data-stack'?: string;
 }
 
 export const Imprint: React.FC<ImprintProps> = ({
@@ -32,8 +35,11 @@ export const Imprint: React.FC<ImprintProps> = ({
   onUnmaximize,
   onTypingComplete,
   stopAutoSequence,
+  isMobile,
+  className,
+  'data-stack': dataStack,
 }) => {
-  const content = `LEGAL INFORMATION
+  const content = `Legal information
 
 AI Instructor
 Raphael Hulan
@@ -65,6 +71,9 @@ VAT ID: ATU81854646
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
       stopAutoSequence={stopAutoSequence}
+      isMobile={isMobile}
+      className={className}
+      data-stack={dataStack}
     />
   );
 }; 

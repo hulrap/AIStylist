@@ -16,6 +16,9 @@ interface PackagesProps {
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
   stopAutoSequence?: () => void;
+  isMobile?: boolean;
+  className?: string;
+  'data-stack'?: string;
 }
 
 export const Packages: React.FC<PackagesProps> = ({
@@ -32,6 +35,9 @@ export const Packages: React.FC<PackagesProps> = ({
   onUnmaximize,
   onTypingComplete,
   stopAutoSequence,
+  isMobile,
+  className,
+  'data-stack': dataStack,
 }) => {
   const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
 
@@ -58,6 +64,9 @@ THE FRIENDSHIP: Ongoing text support, questions answered immediately, your AI in
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
       stopAutoSequence={stopAutoSequence}
+      isMobile={isMobile}
+      className={className}
+      data-stack={dataStack}
     />
   );
 }; 

@@ -7,7 +7,7 @@ interface LoadingScreenProps {
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const [text, setText] = useState<string[]>([]);
   const lines = [
-    "I am not a software,",
+    "I am not a software or AI,",
     "I will visit you",
     "with pizza."
   ];
@@ -36,13 +36,13 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
             setCurrentLine(prev => prev + 1);
             setCurrentChar(0);
             timeoutId = setTimeout(typeNextCharacter, 50);
-          }, 200); // Pause between lines
+          }, 150); // Pause between lines
         }
       } else {
         // All lines complete
         setTimeout(() => {
           setIsVisible(false);
-        }, 1000);
+        }, 750);
       }
     };
 
@@ -54,8 +54,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
       setText(lines);
       setTimeout(() => {
         setIsVisible(false);
-      }, 1000);
-    }, 3000);
+      }, 750);
+    }, 2250);
 
     return () => {
       clearTimeout(timeoutId);
@@ -71,7 +71,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] backdrop-blur-xl bg-black/50 flex items-center justify-center transition-opacity duration-700 ${
+      className={`fixed inset-0 z-[9999] backdrop-blur-xl bg-black/50 flex items-center justify-center transition-opacity duration-500 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
       onTransitionEnd={handleTransitionEnd}

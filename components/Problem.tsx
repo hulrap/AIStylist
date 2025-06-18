@@ -16,6 +16,9 @@ interface ProblemProps {
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
   stopAutoSequence?: () => void;
+  isMobile?: boolean;
+  className?: string;
+  'data-stack'?: string;
 }
 
 export const Problem: React.FC<ProblemProps> = ({
@@ -32,10 +35,11 @@ export const Problem: React.FC<ProblemProps> = ({
   onUnmaximize,
   onTypingComplete,
   stopAutoSequence,
+  isMobile,
+  className,
+  'data-stack': dataStack,
 }) => {
-  const content = `THE PROBLEM:
-AI is not about making businesses more efficient. It's about making humans more powerful.
-But most AI experts treat you like a company.
+  const content = `But most AI experts treat you like a company.
 They want to optimize your processes, make you more productive, make you more efficient.
 But they don't want to make you more powerful as a person. They don't want to make you more human.
 I do.`.trim();
@@ -57,6 +61,9 @@ I do.`.trim();
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
       stopAutoSequence={stopAutoSequence}
+      isMobile={isMobile}
+      className={className}
+      data-stack={dataStack}
     />
   );
 }; 

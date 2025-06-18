@@ -16,6 +16,9 @@ interface ExperienceProps {
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
   stopAutoSequence?: () => void;
+  isMobile?: boolean;
+  className?: string;
+  'data-stack'?: string;
 }
 
 export const Experience: React.FC<ExperienceProps> = ({
@@ -32,8 +35,11 @@ export const Experience: React.FC<ExperienceProps> = ({
   onUnmaximize,
   onTypingComplete,
   stopAutoSequence,
+  isMobile,
+  className,
+  'data-stack': dataStack,
 }) => {
-  const content = `WHAT TO EXPECT:
+  const content = `What to expect?
 I come to your place, we sit on your couch or at your work desk.
 I will listen to your pain points, and goals and we will try to fit as much as we can into the time we have.
 No efficiency metrics. Just individualized instruction and mentoring. And real AI superpowers.`.trim();
@@ -55,6 +61,9 @@ No efficiency metrics. Just individualized instruction and mentoring. And real A
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
       stopAutoSequence={stopAutoSequence}
+      isMobile={isMobile}
+      className={className}
+      data-stack={dataStack}
     />
   );
 }; 

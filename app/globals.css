@@ -255,6 +255,20 @@
   .bg-gradient-angle {
     background: linear-gradient(120deg, var(--brand-accent) 0%, var(--brand-accent-dark) 100%);
   }
+  .bg-technical-grid {
+    background-image: 
+      linear-gradient(to right, #ffffff08 1px, transparent 1px),
+      linear-gradient(to bottom, #ffffff08 1px, transparent 1px),
+      linear-gradient(to right, var(--brand-accent)06 1px, transparent 1px),
+      linear-gradient(to bottom, var(--brand-accent)06 1px, transparent 1px);
+    background-size: 50px 50px, 50px 50px, 250px 250px, 250px 250px;
+  }
+  .bg-technical-grid-fine {
+    background-image: 
+      linear-gradient(to right, #ffffff04 0.5px, transparent 0.5px),
+      linear-gradient(to bottom, #ffffff04 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
+  }
 }
 
 /* === MICRO-INTERACTIONS & ANIMATIONS === */
@@ -626,7 +640,7 @@
 }
 
 .window-minimizing {
-  animation: minimize-to-taskbar 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: minimize-to-taskbar 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   pointer-events: none;
   z-index: 9999 !important; /* Ensure minimizing window appears above all others */
   filter: blur(0px);
@@ -663,7 +677,7 @@
 }
 
 .window-restoring {
-  animation: restore-from-taskbar 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: restore-from-taskbar 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   z-index: 9999 !important; /* Ensure restoring window appears above all others */
 }
 
@@ -695,4 +709,209 @@
   background: rgba(255, 255, 255, 0.1);
   margin-right: auto;
   border-bottom-left-radius: 0.25rem;
+}
+
+/* === MOBILE RESPONSIVE STYLES === */
+@layer utilities {
+  /* Mobile-specific window positioning - layered in viewport */
+  @media (max-width: 768px) {
+    .mobile-window-stack {
+      position: fixed !important;
+      left: 10px !important;
+      right: 10px !important;
+      width: calc(100vw - 20px) !important;
+      max-width: none !important;
+      height: calc(100vh - 120px) !important; /* Leave space for icons at bottom */
+      max-height: none !important;
+      border-radius: 12px 12px 0 0 !important; /* Round top corners only */
+    }
+    
+    /* Stack windows with different z-indexes and slight offsets */
+    .mobile-window-stack[data-stack="0"] {
+      top: 20px !important;
+      z-index: 1000 !important;
+    }
+    
+    .mobile-window-stack[data-stack="1"] {
+      top: 25px !important;
+      z-index: 999 !important;
+    }
+    
+    .mobile-window-stack[data-stack="2"] {
+      top: 30px !important;
+      z-index: 998 !important;
+    }
+    
+    .mobile-window-stack[data-stack="3"] {
+      top: 35px !important;
+      z-index: 997 !important;
+    }
+    
+    .mobile-window-stack[data-stack="4"] {
+      top: 40px !important;
+      z-index: 996 !important;
+    }
+    
+    .mobile-window-stack[data-stack="5"] {
+      top: 45px !important;
+      z-index: 995 !important;
+    }
+    
+    .mobile-window-stack[data-stack="6"] {
+      top: 50px !important;
+      z-index: 994 !important;
+    }
+
+    /* Active window always on top */
+    .mobile-window-stack.active {
+      z-index: 1001 !important;
+      top: 15px !important;
+    }
+
+    /* Mobile window controls - larger touch targets */
+    .mobile-window-controls button {
+      width: 18px !important;
+      height: 18px !important;
+      font-size: 12px !important;
+    }
+
+    /* Hide drag functionality on mobile */
+    .window-titlebar {
+      cursor: default !important;
+      -webkit-app-region: none !important;
+      -moz-app-region: none !important;
+      app-region: none !important;
+    }
+
+    /* Hide resize handle on mobile */
+    .resize-handle {
+      display: none !important;
+    }
+
+    /* Mobile desktop icons - centered grid */
+    .mobile-icon-grid {
+      position: fixed !important;
+      bottom: 20px !important;
+      left: 20px !important;
+      right: 20px !important;
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 15px !important;
+      padding: 15px !important;
+      background: rgba(0, 0, 0, 0.3) !important;
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+      -moz-backdrop-filter: blur(10px) !important;
+      border-radius: 20px !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Mobile icon styling */
+    .mobile-desktop-icon {
+      width: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 10px 5px !important;
+      border-radius: 12px !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .mobile-desktop-icon:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      transform: scale(1.05) !important;
+    }
+
+    .mobile-desktop-icon .icon-container {
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 8px !important;
+      background: rgba(255, 255, 255, 0.1) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .mobile-desktop-icon .icon-container svg {
+      width: 18px !important;
+      height: 18px !important;
+    }
+
+    .mobile-desktop-icon span {
+      font-size: 10px !important;
+      text-align: center !important;
+      line-height: 1.2 !important;
+      max-width: 100% !important;
+      word-break: break-word !important;
+    }
+
+    /* Hide taskbar on mobile */
+    .taskbar {
+      display: none !important;
+    }
+
+    /* Mobile window titlebar tabs */
+    .mobile-window-tabs {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      height: 15px !important;
+      background: rgba(0, 0, 0, 0.8) !important;
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+      -moz-backdrop-filter: blur(10px) !important;
+      display: flex !important;
+      overflow-x: auto !important;
+      z-index: 1002 !important;
+    }
+
+    .mobile-window-tab {
+      flex-shrink: 0 !important;
+      padding: 2px 8px !important;
+      font-size: 8px !important;
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: rgba(255, 255, 255, 0.7) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      min-width: 60px !important;
+      max-width: 100px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .mobile-window-tab.active {
+      background: rgba(255, 255, 255, 0.2) !important;
+      color: white !important;
+    }
+
+    .mobile-window-tab:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    /* Adjust main content area for tabs */
+    .mobile-content-with-tabs {
+      padding-top: 15px !important;
+    }
+
+    /* Prevent body scroll on mobile when windows are open */
+    .mobile-no-scroll {
+      overflow: hidden !important;
+      touch-action: none !important;
+    }
+  }
+
+  /* Tablet adjustments */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .mobile-icon-grid {
+      grid-template-columns: repeat(5, 1fr) !important;
+    }
+  }
 } 

@@ -16,6 +16,9 @@ interface HeroProps {
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
   stopAutoSequence?: () => void;
+  isMobile?: boolean;
+  className?: string;
+  'data-stack'?: string;
 }
 
 export const Hero: React.FC<HeroProps> = ({
@@ -32,10 +35,13 @@ export const Hero: React.FC<HeroProps> = ({
   onUnmaximize,
   onTypingComplete,
   stopAutoSequence,
+  isMobile,
+  className,
+  'data-stack': dataStack,
 }) => {
   const content = `Finally.
 An AI expert who sees you and comes to your place instead of your office.
-With pizza. And coffee, tea, beer,or wine if you want to. And zero corporate vibes.
+With pizza. And coffee, tea, beer, or wine if you want to. And zero corporate vibes.
 I treat you like a human, not a company.
 Because AI isn't about making businesses more efficient.
 It's about making YOU more powerful.`.trim();
@@ -57,6 +63,9 @@ It's about making YOU more powerful.`.trim();
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
       stopAutoSequence={stopAutoSequence}
+      isMobile={isMobile}
+      className={className}
+      data-stack={dataStack}
     />
   );
 }; 

@@ -16,6 +16,9 @@ interface CategoryProps {
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
   stopAutoSequence?: () => void;
+  isMobile?: boolean;
+  className?: string;
+  'data-stack'?: string;
 }
 
 export const Category: React.FC<CategoryProps> = ({
@@ -32,6 +35,9 @@ export const Category: React.FC<CategoryProps> = ({
   onUnmaximize,
   onTypingComplete,
   stopAutoSequence,
+  isMobile,
+  className,
+  'data-stack': dataStack,
 }) => {
   const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
 Not software, not a course, not some agentic AI, a real person who comes to you.
@@ -55,6 +61,9 @@ An AI Instructor teaches you how to master the digital future. For you personall
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
       stopAutoSequence={stopAutoSequence}
+      isMobile={isMobile}
+      className={className}
+      data-stack={dataStack}
     />
   );
 }; 

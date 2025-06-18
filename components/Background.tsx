@@ -15,13 +15,29 @@ export const Background: React.FC = () => {
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a1a]/90 via-[#1a1a1a]/70 to-[#1a1a1a]/90" />
       
-      {/* Subtle Grid Pattern */}
+      {/* Technical Grid Pattern */}
       <div 
         className="absolute inset-0"
         style={{
-          backgroundImage: `linear-gradient(to right, #ffffff03 1px, transparent 1px),
-                           linear-gradient(to bottom, #ffffff03 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
+          backgroundImage: `
+            linear-gradient(to right, #ffffff08 1px, transparent 1px),
+            linear-gradient(to bottom, #ffffff08 1px, transparent 1px),
+            linear-gradient(to right, #ffb36606 1px, transparent 1px),
+            linear-gradient(to bottom, #ffb36606 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px, 50px 50px, 250px 250px, 250px 250px'
+        }}
+      />
+      
+      {/* Fine Technical Grid Overlay */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, #ffffff04 0.5px, transparent 0.5px),
+            linear-gradient(to bottom, #ffffff04 0.5px, transparent 0.5px)
+          `,
+          backgroundSize: '20px 20px'
         }}
       />
 

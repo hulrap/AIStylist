@@ -81,9 +81,13 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
       // Check if we've completed all lines
       if (currentLineIndex >= linesRef.current.length) {
         setIsTyping(false);
-        setHasCompleted(true);
-        if (onComplete) {
-          setTimeout(onComplete, 2000);
+        // CRITICAL: Only call onComplete once per typing session
+        if (!hasCompleted) {
+          setHasCompleted(true);
+          if (onComplete) {
+            console.log('SmoothTypewriter: Calling onComplete after delay');
+            setTimeout(onComplete, 1500);
+          }
         }
         return;
       }
@@ -98,7 +102,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
       if (currentLine.isComplete) {
         currentLineIndexRef.current++;
         currentCharIndexRef.current = 0;
-        timeoutRef.current = setTimeout(typeNextCharacter, 1000);
+        timeoutRef.current = setTimeout(typeNextCharacter, 750);
         return;
       }
 
@@ -119,7 +123,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
         currentCharIndexRef.current++;
         
         // Auto-scroll to follow typing progress
-        setTimeout(scrollToBottom, 50);
+        setTimeout(scrollToBottom, 38);
         
         timeoutRef.current = setTimeout(typeNextCharacter, speed);
       } else {
@@ -138,14 +142,14 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
         currentCharIndexRef.current = 0;
         
         // Auto-scroll when line completes
-        setTimeout(scrollToBottom, 100);
+        setTimeout(scrollToBottom, 75);
         
-        timeoutRef.current = setTimeout(typeNextCharacter, 1500); // Longer pause after line completion for processing
+        timeoutRef.current = setTimeout(typeNextCharacter, 1125); // Longer pause after line completion for processing
       }
     };
 
     // Start typing
-    timeoutRef.current = setTimeout(typeNextCharacter, 100);
+    timeoutRef.current = setTimeout(typeNextCharacter, 75);
   }, [speed, onComplete, isTyping]);
 
   // Initialize lines when content changes
@@ -161,7 +165,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
     if (isActive && linesRef.current.length > 0 && !isTyping) {
       setTimeout(() => {
         startTyping();
-      }, 200);
+      }, 150);
     }
   }, [isActive, startTyping, isTyping]);
 
@@ -200,7 +204,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
     currentLineIndexRef.current = 0;
     currentCharIndexRef.current = 0;
     initializeLines();
-    setTimeout(() => startTyping(), 200);
+    setTimeout(() => startTyping(), 150);
   }, [startTyping, initializeLines]);
 
   if (lines.length === 0) {

@@ -35,6 +35,9 @@ interface TypewriterOverlayProps {
   showInitialContent?: boolean;
   onTypingComplete?: () => void;
   stopAutoSequence?: () => void;
+  isMobile?: boolean;
+  className?: string;
+  'data-stack'?: string;
 }
 
 export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
@@ -53,6 +56,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   showInitialContent = false,
   onTypingComplete,
   stopAutoSequence,
+  isMobile,
+  className,
+  'data-stack': dataStack,
 }) => {
   const { 
     closeOverlay, 
@@ -110,13 +116,31 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   useEffect(() => {
     const windowState = getWindowState(id);
     
+    console.log(`TypewriterOverlay useEffect - ${id}: transitionState=${windowState?.transitionState}, isActive=${isActive}, shouldShow=${shouldShowTypewriter}, hasCompleted=${hasCompletedTyping}, autoSeqCompleted=${windowState?.hasCompletedAutoSequenceTyping}`);
+    
     if (windowState?.transitionState === 'typing' && content) {
+      console.log(`Setting shouldShowTypewriter=true for ${id}`);
       setShouldShowTypewriter(true);
     } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
+      console.log(`Window ${id} became inactive, resetting typewriter state`);
       setShouldShowTypewriter(false);
-      setHasCompletedTyping(false); // Reset when window becomes inactive
+      
+      // CRITICAL: Only reset completion state if window hasn't completed auto-sequence
+      // This prevents the endless loop issue
+      if (!windowState?.hasCompletedAutoSequenceTyping) {
+        setHasCompletedTyping(false); // Reset when window becomes inactive
+        completionCalledRef.current = false; // Reset ref as well
+      } else {
+        console.log(`NOT resetting completion state for ${id} - auto-sequence already completed`);
+      }
     }
-  }, [isActive, content, id, getWindowState]);
+    
+    // If window has completed auto-sequence typing and is now active, show the completed content
+    if (windowState?.hasCompletedAutoSequenceTyping && isActive && !shouldShowTypewriter && !hasCompletedTyping) {
+      console.log(`Showing completed content for ${id} (auto-sequence already completed)`);
+      setHasCompletedTyping(true);
+    }
+  }, [isActive, content, id, getWindowState, shouldShowTypewriter, hasCompletedTyping]);
 
   // Force trigger typewriter when window becomes active and has typing state
   useEffect(() => {
@@ -132,7 +156,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     const windowState = getWindowState(id);
     
     if (windowState?.transitionState === 'opening') {
+      console.log(`Resetting completion state for manually opened window: ${id}`);
       setHasCompletedTyping(false);
+      completionCalledRef.current = false; // Reset ref for manual interactions
     }
   }, [id, getWindowState]);
 
@@ -149,7 +175,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       // Stop animation after it completes
       setTimeout(() => {
         setIsAnimatingMinimize(false);
-      }, 800); // Match animation duration
+      }, 600); // Match animation duration
       
     } else if (previouslyMinimized && !currentlyMinimized) {
       // Window is being restored
@@ -159,19 +185,31 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       // Stop animation after it completes
       setTimeout(() => {
         setIsAnimatingRestore(false);
-      }, 600); // Match animation duration
+      }, 450); // Match animation duration
     }
     
     // Update the ref for next comparison
     wasMinimized.current = currentlyMinimized;
   }, [isMinimized]);
 
-  // Handle typing completion
+  // Handle typing completion - USE REF TO PREVENT MULTIPLE CALLS
+  const completionCalledRef = useRef(false);
+  
   const handleTypingComplete = () => {
+    console.log(`TypewriterOverlay: Typing completed for ${id}, hasCompletedTyping: ${hasCompletedTyping}, alreadyCalled: ${completionCalledRef.current}`);
+    
+    // Prevent multiple calls to onTypingComplete for the same completion using REF
+    if (hasCompletedTyping || completionCalledRef.current) {
+      console.log(`TypewriterOverlay: Ignoring duplicate typing completion for ${id}`);
+      return;
+    }
+    
+    // Mark as called IMMEDIATELY to prevent race conditions
+    completionCalledRef.current = true;
     setHasCompletedTyping(true); // Mark as completed to prevent restarts
-    // Keep typewriter visible after completion (don't hide it)
     
     if (onTypingComplete) {
+      console.log(`TypewriterOverlay: Calling onTypingComplete for ${id} - ONLY ONCE`);
       onTypingComplete();
     }
   };
@@ -384,7 +422,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         isAnimatingMinimize ? 'window-minimizing' : ''
       } ${
         isAnimatingRestore ? 'window-restoring' : ''
-      }`}
+      } ${className || ''}`}
       style={{
         left: isWindowMaximized ? 0 : position.x,
         top: isWindowMaximized ? 0 : position.y,
@@ -397,9 +435,16 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       onClick={(e) => {
         e.stopPropagation();
         if (stopAutoSequence) stopAutoSequence();
-        setHasCompletedTyping(false); // Reset completion state to allow restart
+        
+        // Only reset completion state if window hasn't completed auto-sequence typing
+        const windowState = getWindowState(id);
+        if (!windowState?.hasCompletedAutoSequenceTyping) {
+          setHasCompletedTyping(false); // Reset completion state to allow restart
+        }
+        
         bringToFront(id, stopAutoSequence);
       }}
+      data-stack={dataStack}
     >
       {/* Light Effect */}
       <div 
@@ -418,16 +463,16 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         onMouseDown={handleMouseDown}
       >
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
+          <div className={`flex items-center gap-1.5 ${isMobile ? 'mobile-window-controls' : ''}`}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 if (stopAutoSequence) stopAutoSequence();
                 handleClose();
               }}
-              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center group"
+              className={`${isMobile ? 'w-5 h-5' : 'w-3 h-3'} rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center group`}
             >
-              <span className="text-red-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">×</span>
+              <span className={`text-red-900 opacity-0 group-hover:opacity-100 ${isMobile ? 'text-xs' : 'text-[8px]'} font-bold`}>×</span>
             </button>
             <button
               onClick={(e) => {
@@ -435,9 +480,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                 if (stopAutoSequence) stopAutoSequence();
                 handleMinimize();
               }}
-              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors flex items-center justify-center group"
+              className={`${isMobile ? 'w-5 h-5' : 'w-3 h-3'} rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors flex items-center justify-center group`}
             >
-              <span className="text-yellow-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">−</span>
+              <span className={`text-yellow-900 opacity-0 group-hover:opacity-100 ${isMobile ? 'text-xs' : 'text-[8px]'} font-bold`}>−</span>
             </button>
             <button
               onClick={(e) => {
@@ -445,9 +490,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                 if (stopAutoSequence) stopAutoSequence();
                 handleMaximize();
               }}
-              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group"
+              className={`${isMobile ? 'w-5 h-5' : 'w-3 h-3'} rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group`}
             >
-              <span className="text-green-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">{isWindowMaximized ? '□' : '+'}</span>
+              <span className={`text-green-900 opacity-0 group-hover:opacity-100 ${isMobile ? 'text-xs' : 'text-[8px]'} font-bold`}>{isWindowMaximized ? '□' : '+'}</span>
             </button>
           </div>
           <span className="text-sm text-white/80 ml-2">{title}</span>
@@ -473,7 +518,13 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
             if (!isInput && !isButton) {
               e.stopPropagation();
               if (stopAutoSequence) stopAutoSequence();
-              setHasCompletedTyping(false); // Reset completion state to allow restart
+              
+              // Only reset completion state if window hasn't completed auto-sequence typing
+              const windowState = getWindowState(id);
+              if (!windowState?.hasCompletedAutoSequenceTyping) {
+                setHasCompletedTyping(false); // Reset completion state to allow restart
+              }
+              
               bringToFront(id, stopAutoSequence);
             }
           }}
