@@ -445,7 +445,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   return (
     <div
       ref={overlayRef}
-      className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
+      className={`fixed backdrop-blur-lg ${isMobile ? 'rounded-[12px]' : 'rounded-lg'} shadow-2xl overflow-hidden transition-all duration-200 group ${
         isActive ? 'z-[999]' : `z-[${zIndex}]`
       } ${forceVisible || !windowState?.isMinimized ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'} ${
         isAnimatingMinimize ? 'window-minimizing' : ''

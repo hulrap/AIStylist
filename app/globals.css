@@ -726,7 +726,21 @@
       backdrop-filter: blur(16px) !important;
       -webkit-backdrop-filter: blur(16px) !important;
       border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      overflow: visible !important;
+      overflow: hidden !important;
+    }
+
+    /* === MOBILE WINDOW BORDER RADIUS FIX === */
+    .mobile-window-stack .window-titlebar {
+      border-top-left-radius: 12px !important;
+      border-top-right-radius: 12px !important;
+      border-bottom-left-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+
+    .mobile-window-stack .window-content-container {
+      border-bottom-left-radius: 12px !important;
+      border-bottom-right-radius: 12px !important;
+      overflow: hidden !important;
     }
     
     /* Window stacking positions */
