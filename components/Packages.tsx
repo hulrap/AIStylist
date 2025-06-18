@@ -32,6 +32,7 @@ export const Packages: React.FC<PackagesProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
+  const contentRef = useRef('');
 
   const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
 
@@ -45,14 +46,18 @@ THE FRIENDSHIP:
 Ongoing text support, questions answered immediately, your AI instructor for as long as you need refining, for €50/month`;
 
   const startTypewriter = useCallback(() => {
-    let currentText = '';
-    let currentIndex = 0;
+    if (isTypingRef.current) return;
+    
     isTypingRef.current = true;
+    contentRef.current = '';
+    let currentIndex = 0;
 
     const typeNextCharacter = () => {
+      if (!isTypingRef.current) return;
+
       if (currentIndex < content.length) {
-        currentText += content[currentIndex];
-        setDisplayedContent(currentText);
+        contentRef.current += content[currentIndex];
+        setDisplayedContent(contentRef.current);
         currentIndex++;
         typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
       } else {
@@ -64,23 +69,24 @@ Ongoing text support, questions answered immediately, your AI instructor for as 
   }, [content]);
 
   useEffect(() => {
-    // Start typing when window becomes active
     if (isActive && !isTypingRef.current) {
       startTypewriter();
     }
-    
-    // Clear content when window becomes inactive
+
     if (!isActive) {
+      isTypingRef.current = false;
       if (typewriterTimeoutRef.current) {
         clearTimeout(typewriterTimeoutRef.current);
+        typewriterTimeoutRef.current = null;
       }
+      contentRef.current = '';
       setDisplayedContent('');
-      isTypingRef.current = false;
     }
 
     return () => {
       if (typewriterTimeoutRef.current) {
         clearTimeout(typewriterTimeoutRef.current);
+        typewriterTimeoutRef.current = null;
       }
     };
   }, [isActive, startTypewriter]);

@@ -32,6 +32,7 @@ export const Imprint: React.FC<ImprintProps> = ({
   const [displayedContent, setDisplayedContent] = useState('');
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
+  const contentRef = useRef('');
 
   const content = `QUEER MEDIA LITERACY e.V.
 ZVR Number: 1689372191
@@ -41,14 +42,18 @@ Jurisdiction: Landespolizeidirektion Wien
 Contact: admin@queer-alliance.com`;
 
   const startTypewriter = useCallback(() => {
-    let currentText = '';
-    let currentIndex = 0;
+    if (isTypingRef.current) return;
+    
     isTypingRef.current = true;
+    contentRef.current = '';
+    let currentIndex = 0;
 
     const typeNextCharacter = () => {
+      if (!isTypingRef.current) return;
+
       if (currentIndex < content.length) {
-        currentText += content[currentIndex];
-        setDisplayedContent(currentText);
+        contentRef.current += content[currentIndex];
+        setDisplayedContent(contentRef.current);
         currentIndex++;
         typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
       } else {
@@ -60,23 +65,24 @@ Contact: admin@queer-alliance.com`;
   }, [content]);
 
   useEffect(() => {
-    // Start typing when window becomes active
     if (isActive && !isTypingRef.current) {
       startTypewriter();
     }
-    
-    // Clear content when window becomes inactive
+
     if (!isActive) {
+      isTypingRef.current = false;
       if (typewriterTimeoutRef.current) {
         clearTimeout(typewriterTimeoutRef.current);
+        typewriterTimeoutRef.current = null;
       }
+      contentRef.current = '';
       setDisplayedContent('');
-      isTypingRef.current = false;
     }
 
     return () => {
       if (typewriterTimeoutRef.current) {
         clearTimeout(typewriterTimeoutRef.current);
+        typewriterTimeoutRef.current = null;
       }
     };
   }, [isActive, startTypewriter]);
