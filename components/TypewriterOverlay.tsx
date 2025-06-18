@@ -286,17 +286,17 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     >
       {/* Light Effect */}
       <div 
-        className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-300"
+        className="absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-300 pointer-events-none"
         style={{
-          background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.2), transparent 50%)`
+          background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.15), transparent 70%)`
         }}
       />
 
       {/* Glass Background */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-white/5 backdrop-blur-md border border-white/10" />
 
       {/* Window Titlebar */}
-      <div className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-black/20 border-b border-white/20">
+      <div className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-white/5 border-b border-white/10">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <button
@@ -349,7 +349,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
         {/* Chat Interface */}
         {(isActive || showInitialContent) && (
-          <div className="p-4 bg-black/30 border-t border-white/20">
+          <div className="p-4 bg-white/5 border-t border-white/10">
             <div className="flex items-center gap-2">
               <input
                 type="text"
