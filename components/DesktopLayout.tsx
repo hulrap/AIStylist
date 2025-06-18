@@ -18,6 +18,7 @@ interface Position {
 }
 
 const WINDOW_APPEAR_DELAY = 150;
+const MOBILE_WINDOW_APPEAR_DELAY = 100;
 
 // Base window sizes (will be adjusted per window)
 const BASE_WINDOW_WIDTH = 520;
@@ -209,13 +210,13 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                   transitionState: 'typing'
                 }
               }));
-            }, 375); // Longer delay to ensure window is fully rendered
+            }, isMobile ? 250 : 375); // Shorter delay on mobile for better responsiveness
           }
           
           // Schedule next window
           currentIndex++;
           if (currentIndex < CASCADE_ORDER.length) {
-            setTimeout(activateNextWindow, WINDOW_APPEAR_DELAY);
+            setTimeout(activateNextWindow, isMobile ? MOBILE_WINDOW_APPEAR_DELAY : WINDOW_APPEAR_DELAY);
           }
         }
       };
@@ -337,7 +338,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
           });
         }, 50); // Small delay to ensure state is consistent
         
-      }, 300); // Reduced delay - halved from 600ms to 300ms as requested
+      }, isMobile ? 150 : 300); // Faster transitions on mobile for better UX
     }
   };
 
@@ -359,7 +360,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
               hasCompletedAutoSequenceTyping: false // Reset to allow typing when manually restored
             }
           }));
-        }, 75);
+        }, isMobile ? 50 : 75);
       } else {
         // If window is open and visible, close it (toggle behavior)
         closeOverlay(id);
@@ -390,7 +391,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
             transitionState: 'typing'
           }
         }));
-      }, 75);
+      }, isMobile ? 50 : 75);
     }
   };
 
@@ -449,7 +450,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
           hasCompletedAutoSequenceTyping: false // Reset to allow typing when manually restored
         }
       }));
-    }, 75);
+    }, isMobile ? 50 : 75);
     }
   };
 
