@@ -485,16 +485,20 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       }}
       data-stack={dataStack}
     >
-      {/* Light Effect */}
-      <div 
-        className="absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-300 pointer-events-none"
-        style={{
-          background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.15), transparent 70%)`
-        }}
-      />
+      {/* Light Effect - Desktop only */}
+      {!isMobile && (
+        <div 
+          className="absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-300 pointer-events-none rounded-lg"
+          style={{
+            background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.15), transparent 70%)`
+          }}
+        />
+      )}
 
-      {/* Glass Background */}
-      <div className="absolute inset-0 bg-white/5 backdrop-blur-md border border-white/10 pointer-events-none" />
+      {/* Glass Background - Desktop only */}
+      {!isMobile && (
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-md border border-white/10 pointer-events-none rounded-lg" />
+      )}
 
       {/* Window Titlebar */}
       <div 
