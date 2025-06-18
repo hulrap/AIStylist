@@ -262,26 +262,6 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
       console.log('Auto-sequence completed at contact window - this will never run again');
       setIsAutoSequenceActive(false); // End the automatic typing sequence
       setHasCompletedAutoSequence(true); // Mark as permanently completed
-      
-      // Still allow Contact to minimize with animation even though sequence ends
-      startWindowTransition(id, 'minimizing');
-      
-      setTimeout(() => {
-        setWindowStates(prev => ({
-          ...prev,
-          [id]: {
-            ...prev[id],
-            isActive: false,
-            isMinimized: true,
-            transitionState: 'idle',
-            isVisible: true
-          }
-        }));
-        
-        // Add to minimized windows list
-        minimizeWindow(id, getLabelForSection(id), id);
-      }, isMobile ? 150 : 300);
-      
       return;
     }
 
