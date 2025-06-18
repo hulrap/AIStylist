@@ -529,7 +529,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-col h-[calc(100%-2.5rem)]" style={{ minHeight: 0 }}>
+      <div className={`flex flex-col h-[calc(100%-2.5rem)] ${isMobile ? 'window-content-container' : ''}`} style={{ minHeight: 0 }}>
         <div 
           ref={scrollAreaRef} 
           className="flex-1 p-6 overflow-y-scroll window-scroll window-content-area"
