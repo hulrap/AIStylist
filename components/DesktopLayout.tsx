@@ -150,8 +150,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     // CRITICAL: Never start if auto-sequence has already been completed
     if (isReady && !hasInitialized && !hasCompletedAutoSequence) {
       console.log('Starting initial auto-sequence - this will only happen once');
-      // Pre-calculate all positions to ensure consistency
-      const positions = CASCADE_ORDER.reduce((acc, id) => {
+      // Pre-calculate positions for desktop only (mobile uses stacking CSS)
+      const positions: Record<SectionId, Position> = isMobile ? {} as Record<SectionId, Position> : CASCADE_ORDER.reduce((acc, id) => {
         acc[id] = getInitialPosition(id);
         return acc;
       }, {} as Record<SectionId, Position>);
@@ -178,8 +178,10 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         if (currentIndex < CASCADE_ORDER.length) {
           const id = CASCADE_ORDER[currentIndex];
           
-          // Update position first
-          updatePosition(id, positions[id]);
+          // Update position only for desktop (mobile uses CSS positioning)
+          if (!isMobile && positions[id]) {
+            updatePosition(id, positions[id]);
+          }
           
           // Then update window state
           setWindowStates(prev => ({
