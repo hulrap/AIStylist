@@ -228,7 +228,8 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   }, [id, getWindowState]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isWindowMaximized) return;
+    // Disable dragging on mobile or when maximized
+    if (isWindowMaximized || isMobile) return;
     
     if (e.target instanceof HTMLElement) {
       const isInput = e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea';
@@ -239,7 +240,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         return;
       }
 
-      // Only allow dragging from titlebar
+      // Only allow dragging from titlebar on desktop
       setIsDragging(true);
       const rect = overlayRef.current?.getBoundingClientRect();
       if (rect) {
@@ -451,16 +452,17 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         isAnimatingMinimize ? 'window-minimizing' : ''
       } ${
         isAnimatingRestore ? 'window-restoring' : ''
-      } ${className || ''}`}
+      } ${className || ''} ${isMobile ? 'mobile-window-stack' : ''}`}
       style={{
-        left: isWindowMaximized ? 0 : position.x,
-        top: isWindowMaximized ? 0 : position.y,
-        width: isWindowMaximized ? '100%' : size.width,
-        height: isWindowMaximized ? '100%' : size.height,
-        transform: (isAnimatingMinimize || isAnimatingRestore) ? 'none' : `${isWindowMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
-        transition: (isDragging || isAnimatingMinimize || isAnimatingRestore) ? 'none' : 'all 0.2s ease-out'
+        left: isWindowMaximized ? 0 : (isMobile ? 10 : position.x),
+        top: isWindowMaximized ? 0 : (isMobile ? 20 + (stackIndex * 5) : position.y),
+        width: isWindowMaximized ? '100%' : (isMobile ? 'calc(100vw - 20px)' : size.width),
+        height: isWindowMaximized ? '100%' : (isMobile ? 'calc(100vh - 120px)' : size.height),
+        transform: (isAnimatingMinimize || isAnimatingRestore || isMobile) ? 'none' : `${isWindowMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
+        transition: (isDragging || isAnimatingMinimize || isAnimatingRestore) ? 'none' : 'all 0.2s ease-out',
+        zIndex: isMobile && isActive ? 1001 : (isMobile ? 1000 - stackIndex : zIndex)
       }}
-      onMouseMove={handleLocalMouseMove}
+      onMouseMove={isMobile ? undefined : handleLocalMouseMove}
       onClick={(e) => {
         e.stopPropagation();
         if (stopAutoSequence) stopAutoSequence();
@@ -492,16 +494,16 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         onMouseDown={handleMouseDown}
       >
         <div className="flex items-center gap-2">
-          <div className={`flex items-center gap-1.5 ${isMobile ? 'mobile-window-controls' : ''}`}>
+          <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-1.5'} ${isMobile ? 'mobile-window-controls' : ''}`}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 if (stopAutoSequence) stopAutoSequence();
                 handleClose();
               }}
-              className={`${isMobile ? 'w-5 h-5' : 'w-3 h-3'} rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center group`}
+              className={`${isMobile ? 'w-8 h-8' : 'w-3 h-3'} rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center group`}
             >
-              <span className={`text-red-900 opacity-0 group-hover:opacity-100 ${isMobile ? 'text-xs' : 'text-[8px]'} font-bold`}>×</span>
+              <span className={`text-red-900 opacity-0 group-hover:opacity-100 ${isMobile ? 'text-sm opacity-100' : 'text-[8px]'} font-bold`}>×</span>
             </button>
             <button
               onClick={(e) => {
@@ -509,9 +511,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                 if (stopAutoSequence) stopAutoSequence();
                 handleMinimize();
               }}
-              className={`${isMobile ? 'w-5 h-5' : 'w-3 h-3'} rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors flex items-center justify-center group`}
+              className={`${isMobile ? 'w-8 h-8' : 'w-3 h-3'} rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors flex items-center justify-center group`}
             >
-              <span className={`text-yellow-900 opacity-0 group-hover:opacity-100 ${isMobile ? 'text-xs' : 'text-[8px]'} font-bold`}>−</span>
+              <span className={`text-yellow-900 opacity-0 group-hover:opacity-100 ${isMobile ? 'text-sm opacity-100' : 'text-[8px]'} font-bold`}>−</span>
             </button>
             <button
               onClick={(e) => {
@@ -519,9 +521,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                 if (stopAutoSequence) stopAutoSequence();
                 handleMaximize();
               }}
-              className={`${isMobile ? 'w-5 h-5' : 'w-3 h-3'} rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group`}
+              className={`${isMobile ? 'w-8 h-8' : 'w-3 h-3'} rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group`}
             >
-              <span className={`text-green-900 opacity-0 group-hover:opacity-100 ${isMobile ? 'text-xs' : 'text-[8px]'} font-bold`}>{isWindowMaximized ? '□' : '+'}</span>
+              <span className={`text-green-900 opacity-0 group-hover:opacity-100 ${isMobile ? 'text-sm opacity-100' : 'text-[8px]'} font-bold`}>{isWindowMaximized ? '□' : '+'}</span>
             </button>
           </div>
           <span className="text-sm text-white/80 ml-2">{title}</span>
@@ -673,8 +675,8 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         )}
       </div>
 
-      {/* Resize Handle */}
-      {!isWindowMaximized && (
+      {/* Resize Handle - Hidden on mobile */}
+      {!isWindowMaximized && !isMobile && (
         <div 
           className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" 
           onMouseDown={handleResizeMouseDown}
