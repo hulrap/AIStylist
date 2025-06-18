@@ -181,10 +181,23 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
         ...prev,
         [id]: {
           ...prev[id],
+          isVisible: true,
+          isActive: true,
           label: '',
           icon: id
         }
       }));
+
+      // Schedule transition to typing state
+      requestAnimationFrame(() => {
+        setWindowStates(prev => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            transitionState: 'typing'
+          }
+        }));
+      });
     }
   }, [overlayStack, deactivateAllWindows, startWindowTransition]);
 
@@ -220,9 +233,17 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return [...newStack, id];
     });
     
-    // Complete the transition
-    completeWindowTransition(id);
-  }, [deactivateAllWindows, startWindowTransition, completeWindowTransition]);
+    // Update window state
+    setWindowStates(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        isVisible: true,
+        isActive: true,
+        transitionState: 'typing'
+      }
+    }));
+  }, [deactivateAllWindows, startWindowTransition]);
 
   const updatePosition = (id: SectionId, position: Position) => {
     setPositions(prev => ({ ...prev, [id]: position }));

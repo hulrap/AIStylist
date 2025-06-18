@@ -147,12 +147,25 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         setTimeout(() => {
           updatePosition(id, positions[id]);
           openOverlay(id);
+          
+          // For the first window (ai-instructor), ensure it starts in typing state
+          if (index === 0) {
+            setWindowStates(prev => ({
+              ...prev,
+              [id]: {
+                ...prev[id],
+                isVisible: true,
+                isActive: true,
+                transitionState: 'typing'
+              }
+            }));
+          }
         }, index * WINDOW_APPEAR_DELAY);
       });
       
       setHasInitialized(true);
     }
-  }, [isReady, hasInitialized, openOverlay, updatePosition]);
+  }, [isReady, hasInitialized, openOverlay, updatePosition, setWindowStates]);
 
   const handleIconClick = (id: SectionId) => {
     if (isOpen(id)) {
