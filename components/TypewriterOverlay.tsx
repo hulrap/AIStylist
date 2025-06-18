@@ -270,42 +270,59 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   return (
     <div
       ref={overlayRef}
-      className={`fixed bg-black/80 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden shadow-2xl transition-transform ${
-        isActive ? 'shadow-purple-500/20' : ''
-      }`}
+      className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
+        isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
+      } ${forceVisible || !windowState?.isMinimized ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
       style={{
+        left: isWindowMaximized ? 0 : position.x,
+        top: isWindowMaximized ? 0 : position.y,
         width: isWindowMaximized ? '100%' : size.width,
         height: isWindowMaximized ? '100%' : size.height,
-        transform: isWindowMaximized ? 'none' : `translate(${position.x}px, ${position.y}px)`,
-        zIndex,
-        opacity: forceVisible || isActive ? 1 : 0.7,
-        cursor: isDragging ? 'grabbing' : 'default',
+        transform: `${isWindowMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
+        transition: isDragging ? 'none' : 'all 0.2s ease-out'
       }}
-      onMouseDown={handleMouseDown}
       onMouseMove={handleLocalMouseMove}
+      onMouseDown={handleMouseDown}
     >
-      {/* Window Title Bar */}
-      <div className="window-titlebar h-10 px-3 flex items-center justify-between bg-black/50 border-b border-white/20">
-        <div className="flex items-center space-x-2">
-          <div className="flex space-x-2">
+      {/* Light Effect */}
+      <div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.2), transparent 50%)`
+        }}
+      />
+
+      {/* Glass Background */}
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+
+      {/* Window Titlebar */}
+      <div className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-black/20 border-b border-white/20">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={handleClose}
-              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
-            />
+              className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center group"
+            >
+              <span className="text-red-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">×</span>
+            </button>
             <button
               onClick={handleMinimize}
-              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
-            />
+              className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors flex items-center justify-center group"
+            >
+              <span className="text-yellow-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">−</span>
+            </button>
             <button
               onClick={handleMaximize}
-              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors"
-            />
+              className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group"
+            >
+              <span className="text-green-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">{isWindowMaximized ? '□' : '+'}</span>
+            </button>
           </div>
-          <span className="text-white/60 text-sm font-medium ml-2">{title}</span>
+          <span className="text-sm text-white/80 ml-2">{title}</span>
         </div>
       </div>
 
-      {/* Window Content */}
+      {/* Content Area */}
       <div className="flex flex-col h-[calc(100%-2.5rem)]">
         <div className="flex-1 p-6 overflow-y-auto">
           {/* Chat Messages */}
