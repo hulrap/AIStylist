@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
-import { SectionId } from './OverlayStackContext';
+import { SectionId, useOverlayStack } from './OverlayStackContext';
 
 interface CategoryProps {
   id: SectionId;
@@ -35,6 +35,7 @@ export const Category: React.FC<CategoryProps> = ({
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
+  const { getWindowState } = useOverlayStack();
 
   const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
 Not software. Not a course.
@@ -78,8 +79,14 @@ Not for your company. Personal instruction for YOU.`.trim();
       startTypewriter();
     }
 
-    // Only clear typing state if the window becomes inactive AND is not minimizing
+    // Only clear typing state if the window becomes inactive AND is not in transition
     if (!isActive) {
+      const windowState = getWindowState(id);
+      // Don't clear state if window is in transition
+      if (windowState?.isMinimizing) {
+        return;
+      }
+
       const timeoutId = setTimeout(() => {
         isTypingRef.current = false;
         if (typewriterTimeoutRef.current) {
@@ -88,7 +95,7 @@ Not for your company. Personal instruction for YOU.`.trim();
         }
         contentRef.current = '';
         setDisplayedContent('');
-      }, 150); // Delay clearing the state to allow for transitions
+      }, 200); // Increased delay to ensure proper sequencing
 
       return () => {
         clearTimeout(timeoutId);
@@ -101,7 +108,7 @@ Not for your company. Personal instruction for YOU.`.trim();
         typewriterTimeoutRef.current = null;
       }
     };
-  }, [isActive, startTypewriter]);
+  }, [isActive, startTypewriter, id, getWindowState]);
 
   return (
     <TypewriterOverlay

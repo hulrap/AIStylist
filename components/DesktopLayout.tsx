@@ -71,12 +71,6 @@ const WINDOW_ORDER: SectionId[] = [
   'ai-instructor'
 ];
 
-interface MinimizedWindow {
-  id: SectionId;
-  label: string;
-  icon: string;
-}
-
 interface DesktopLayoutProps {
   isReady: boolean;
 }
@@ -115,12 +109,36 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
       
       // Skip Contact and Imprint windows when finding the next window to activate
       if (nextId !== 'contact' && nextId !== 'imprint') {
-        // First bring the next window to front
-        bringToFront(nextId);
-        
-        // Then minimize the current window after a short delay
+        // First update window states to ensure proper transition
+        setWindowStates((prevStates: Record<SectionId, WindowState>) => ({
+          ...prevStates,
+          [id]: {
+            ...prevStates[id],
+            isMinimizing: true // Add a transitioning state
+          }
+        }));
+
+        // Delay the actual state changes to ensure proper sequencing
         setTimeout(() => {
+          // First minimize the current window
           handleMinimize(id);
+          
+          // Then after a short delay, bring the next window to front
+          setTimeout(() => {
+            setWindowStates((prevStates: Record<SectionId, WindowState>) => ({
+              ...prevStates,
+              [nextId]: {
+                ...prevStates[nextId],
+                isVisible: true,
+                isActive: true
+              },
+              [id]: {
+                ...prevStates[id],
+                isMinimizing: false // Clear the transitioning state
+              }
+            }));
+            bringToFront(nextId);
+          }, 50);
         }, 100);
       }
     }
@@ -164,20 +182,6 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     // Remove from overlay stack to make next window active
     setOverlayStack((prev: SectionId[]) => {
       const newStack = prev.filter((windowId: SectionId) => windowId !== id);
-      // If there are windows left, make the last one active
-      if (newStack.length > 0) {
-        const lastWindow = newStack[newStack.length - 1];
-        const windowState = getWindowState(lastWindow);
-        if (windowState) {
-          setWindowStates((prevStates: Record<SectionId, WindowState>) => ({
-            ...prevStates,
-            [lastWindow]: {
-              ...windowState,
-              isVisible: true
-            }
-          }));
-        }
-      }
       return newStack;
     });
     minimizeWindow(id, getLabelForSection(id), getLabelForSection(id));
@@ -291,6 +295,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
             return (
               <Hero
                 key={id}
+                id={id}
                 stackIndex={stackIndex}
                 isActive={isActive}
                 forceVisible={isVisible}

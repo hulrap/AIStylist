@@ -18,8 +18,12 @@ export interface WindowState {
   isMinimized: boolean;
   isMaximized: boolean;
   isVisible: boolean;
+  isActive: boolean;
+  isMinimizing: boolean;
   label: string;
   icon: string;
+  position?: { x: number; y: number };
+  size?: { width: number; height: number };
 }
 
 export interface OverlayStackContextType {
@@ -59,13 +63,13 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [positions, setPositions] = useState<Record<SectionId, Position>>(initialPositions);
   const [windowStates, setWindowStates] = useState<Record<SectionId, WindowState>>(() => {
     const initial: Record<SectionId, WindowState> = {
-      'ai-instructor': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'ai-instructor' },
-      'problem': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'problem' },
-      'first': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'first' },
-      'experience': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'experience' },
-      'packages': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'packages' },
-      'contact': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'contact' },
-      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'imprint' }
+      'ai-instructor': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'ai-instructor' },
+      'problem': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'problem' },
+      'first': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'first' },
+      'experience': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'experience' },
+      'packages': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'packages' },
+      'contact': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'contact' },
+      'imprint': { isMinimized: false, isMaximized: false, isVisible: false, isActive: false, isMinimizing: false, label: '', icon: 'imprint' }
     };
     return initial;
   });
@@ -81,6 +85,8 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
           isMinimized: false,
           isMaximized: false,
           isVisible: true,
+          isActive: false,
+          isMinimizing: false,
           label: '',
           icon: 'ai-instructor'
         }
@@ -125,6 +131,8 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
           ...prev[id],
           isMinimized: true,
           isVisible: false,
+          isActive: false,
+          isMinimizing: false,
           label,
           icon
         }

@@ -39,6 +39,7 @@ export const Imprint: React.FC<ImprintProps> = ({
   const content = `LEGAL INFORMATION
 
 AI Instructor
+Raphael Hulan
 Raw Fiction e.U.
 Wien, Austria
 

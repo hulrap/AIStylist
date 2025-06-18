@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
-import { SectionId } from './OverlayStackContext';
+import { SectionId, useOverlayStack } from './OverlayStackContext';
 
 interface ExperienceProps {
   id: SectionId;
@@ -35,6 +35,7 @@ export const Experience: React.FC<ExperienceProps> = ({
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
+  const { getWindowState } = useOverlayStack();
 
   const content = `WHAT TO EXPECT:
 I come to your place, we sit on your couch. I bring pizza, coffee, tea, beer or wine if you want to.
@@ -75,8 +76,14 @@ This is personal AI instruction.`.trim();
       startTypewriter();
     }
 
-    // Only clear typing state if the window becomes inactive AND is not minimizing
+    // Only clear typing state if the window becomes inactive AND is not in transition
     if (!isActive) {
+      const windowState = getWindowState(id);
+      // Don't clear state if window is in transition
+      if (windowState?.isMinimizing) {
+        return;
+      }
+
       const timeoutId = setTimeout(() => {
         isTypingRef.current = false;
         if (typewriterTimeoutRef.current) {
@@ -85,7 +92,7 @@ This is personal AI instruction.`.trim();
         }
         contentRef.current = '';
         setDisplayedContent('');
-      }, 150); // Delay clearing the state to allow for transitions
+      }, 200); // Increased delay to ensure proper sequencing
 
       return () => {
         clearTimeout(timeoutId);
@@ -98,7 +105,7 @@ This is personal AI instruction.`.trim();
         typewriterTimeoutRef.current = null;
       }
     };
-  }, [isActive, startTypewriter]);
+  }, [isActive, startTypewriter, id, getWindowState]);
 
   return (
     <TypewriterOverlay

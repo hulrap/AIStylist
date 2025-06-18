@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
-import { SectionId } from './OverlayStackContext';
+import { SectionId, useOverlayStack } from './OverlayStackContext';
 
 interface PackagesProps {
   id: SectionId;
@@ -35,6 +35,7 @@ export const Packages: React.FC<PackagesProps> = ({
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
+  const { getWindowState } = useOverlayStack();
 
   const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
 
@@ -78,8 +79,14 @@ Ongoing text support, questions answered immediately, your AI instructor for as 
       startTypewriter();
     }
 
-    // Only clear typing state if the window becomes inactive AND is not minimizing
+    // Only clear typing state if the window becomes inactive AND is not in transition
     if (!isActive) {
+      const windowState = getWindowState(id);
+      // Don't clear state if window is in transition
+      if (windowState?.isMinimizing) {
+        return;
+      }
+
       const timeoutId = setTimeout(() => {
         isTypingRef.current = false;
         if (typewriterTimeoutRef.current) {
@@ -88,7 +95,7 @@ Ongoing text support, questions answered immediately, your AI instructor for as 
         }
         contentRef.current = '';
         setDisplayedContent('');
-      }, 150); // Delay clearing the state to allow for transitions
+      }, 200); // Increased delay to ensure proper sequencing
 
       return () => {
         clearTimeout(timeoutId);
@@ -101,7 +108,7 @@ Ongoing text support, questions answered immediately, your AI instructor for as 
         typewriterTimeoutRef.current = null;
       }
     };
-  }, [isActive, startTypewriter]);
+  }, [isActive, startTypewriter, id, getWindowState]);
 
   return (
     <TypewriterOverlay

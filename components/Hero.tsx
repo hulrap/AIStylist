@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TypewriterOverlay } from './TypewriterOverlay';
-import { SectionId } from './OverlayStackContext';
+import { SectionId, useOverlayStack } from './OverlayStackContext';
 
 interface HeroProps {
+  id: SectionId;
   stackIndex: number;
   isActive: boolean;
   forceVisible?: boolean;
   initialPosition?: { x: number; y: number };
+  initialSize?: { width: number; height: number };
+  showContent?: boolean;
   isMaximized?: boolean;
   onMinimize?: () => void;
   onMaximize?: () => void;
@@ -15,10 +18,13 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({
+  id,
   stackIndex,
   isActive,
   forceVisible = false,
   initialPosition,
+  initialSize,
+  showContent = false,
   isMaximized = false,
   onMinimize,
   onMaximize,
@@ -29,6 +35,7 @@ export const Hero: React.FC<HeroProps> = ({
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
+  const { getWindowState } = useOverlayStack();
 
   const content = `Finally.
 An AI expert who sees you.
@@ -74,8 +81,14 @@ And you can access it.`.trim();
       startTypewriter();
     }
 
-    // Only clear typing state if the window becomes inactive AND is not minimizing
+    // Only clear typing state if the window becomes inactive AND is not in transition
     if (!isActive) {
+      const windowState = getWindowState(id);
+      // Don't clear state if window is in transition
+      if (windowState?.isMinimizing) {
+        return;
+      }
+
       const timeoutId = setTimeout(() => {
         isTypingRef.current = false;
         if (typewriterTimeoutRef.current) {
@@ -84,7 +97,7 @@ And you can access it.`.trim();
         }
         contentRef.current = '';
         setDisplayedContent('');
-      }, 150); // Delay clearing the state to allow for transitions
+      }, 200); // Increased delay to ensure proper sequencing
 
       return () => {
         clearTimeout(timeoutId);
@@ -97,7 +110,7 @@ And you can access it.`.trim();
         typewriterTimeoutRef.current = null;
       }
     };
-  }, [isActive, startTypewriter]);
+  }, [isActive, startTypewriter, id, getWindowState]);
 
   return (
     <TypewriterOverlay
