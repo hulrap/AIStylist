@@ -34,6 +34,9 @@ export const Contact: React.FC<ContactProps> = ({
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const { getWindowState } = useOverlayStack();
+  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
+  const contentRef = useRef('');
 
   const content = `READY TO BECOME MORE POWERFUL?
 Send me a message.
@@ -44,18 +47,54 @@ I'll get back to you within 24 hours.
 And we'll make YOU more powerful.
 Together.`.trim();
 
+  const startTypewriter = useCallback(() => {
+    if (isTypingRef.current) return;
+    
+    isTypingRef.current = true;
+    contentRef.current = '';
+    let currentIndex = 0;
+
+    const typeNextCharacter = () => {
+      if (!isTypingRef.current) return;
+
+      if (currentIndex < content.length) {
+        contentRef.current += content[currentIndex];
+        setDisplayedContent(contentRef.current);
+        currentIndex++;
+        typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
+      } else {
+        isTypingRef.current = false;
+        if (onTypingComplete) {
+          onTypingComplete();
+        }
+      }
+    };
+
+    typeNextCharacter();
+  }, [content, onTypingComplete]);
+
   useEffect(() => {
     const windowState = getWindowState(id);
     
-    if (windowState?.transitionState === 'typing') {
-      setDisplayedContent(content);
-      if (onTypingComplete) {
-        onTypingComplete();
-      }
+    if (windowState?.transitionState === 'typing' && !isTypingRef.current) {
+      startTypewriter();
     } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
+      isTypingRef.current = false;
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+        typewriterTimeoutRef.current = null;
+      }
+      contentRef.current = '';
       setDisplayedContent('');
     }
-  }, [isActive, content, id, getWindowState, onTypingComplete]);
+
+    return () => {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+        typewriterTimeoutRef.current = null;
+      }
+    };
+  }, [isActive, id, getWindowState, startTypewriter]);
 
   return (
     <TypewriterOverlay
