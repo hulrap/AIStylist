@@ -98,38 +98,42 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   const [hasInitialized, setHasInitialized] = useState(false);
 
   const handleTypingComplete = (id: SectionId) => {
-    // Don't auto-minimize Contact or Imprint windows
-    if (id === 'contact' || id === 'imprint') return;
+    // Don't auto-minimize Contact window
+    if (id === 'contact') return;
 
-    // Find the next window in the sequence that isn't Contact or Imprint
+    // Find the next window in the sequence
     const currentIndex = WINDOW_ORDER.indexOf(id);
     const nextIndex = currentIndex - 1; // Since WINDOW_ORDER is reversed
     
     if (nextIndex >= 0) {
       const nextId = WINDOW_ORDER[nextIndex];
       
-      // Skip Contact and Imprint windows when finding the next window to activate
-      if (nextId !== 'contact' && nextId !== 'imprint') {
-        // Start transition for current window
-        startWindowTransition(id, 'minimizing');
-        
-        // Update window states in correct order
-        setWindowStates(prevStates => ({
-          ...prevStates,
-          [nextId]: {
-            ...prevStates[nextId],
-            isVisible: true,
-            isActive: true,
-            transitionState: 'typing'
-          }
-        }));
-
-        // Bring next window to front
-        bringToFront(nextId);
-        
-        // Complete the transition for current window
+      // Start minimizing current window
+      startWindowTransition(id, 'minimizing');
+      
+      // Use a timeout to ensure state updates happen in sequence
+      setTimeout(() => {
+        // First minimize the current window
         handleMinimize(id);
-      }
+        
+        // Then after a short delay, activate the next window
+        setTimeout(() => {
+          // Update window states in correct order
+          setWindowStates(prevStates => ({
+            ...prevStates,
+            [nextId]: {
+              ...prevStates[nextId],
+              isVisible: true,
+              isActive: true,
+              isMinimized: false,
+              transitionState: 'typing'
+            }
+          }));
+
+          // Bring next window to front
+          bringToFront(nextId);
+        }, 100); // Small delay to ensure proper transition
+      }, 200); // Delay to allow minimization animation to start
     }
   };
 
@@ -142,7 +146,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         return acc;
       }, {} as Record<SectionId, Position>);
 
-      // Initialize all windows as minimized first
+      // Initialize all windows as minimized and inactive first
       setWindowStates(prev => {
         const newStates = { ...prev };
         WINDOW_ORDER.forEach(id => {
@@ -173,9 +177,9 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
             [id]: {
               ...prev[id],
               isVisible: true,
-              isActive: true,
-              isMinimized: false,
-              transitionState: 'typing'
+              isActive: id === 'ai-instructor', // Only AI Instructor starts as active
+              isMinimized: id !== 'ai-instructor', // Only AI Instructor starts unminimized
+              transitionState: id === 'ai-instructor' ? 'typing' : 'idle'
             }
           }));
 
