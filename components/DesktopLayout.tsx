@@ -77,7 +77,11 @@ interface MinimizedWindow {
   icon: string;
 }
 
-export const DesktopLayout: React.FC = () => {
+interface DesktopLayoutProps {
+  isReady: boolean;
+}
+
+export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   const { 
     openOverlay, 
     closeOverlay, 
@@ -99,8 +103,8 @@ export const DesktopLayout: React.FC = () => {
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    // Initial cascade animation
-    if (!hasInitialized) {
+    // Only start cascade animation when isReady is true and hasn't initialized yet
+    if (isReady && !hasInitialized) {
       // Pre-calculate all positions to ensure consistency
       const positions = WINDOW_ORDER.reduce((acc, id) => {
         acc[id] = getInitialPosition(id);
@@ -117,7 +121,7 @@ export const DesktopLayout: React.FC = () => {
       
       setHasInitialized(true);
     }
-  }, [hasInitialized, openOverlay, updatePosition]);
+  }, [isReady, hasInitialized, openOverlay, updatePosition]);
 
   const handleIconClick = (id: SectionId) => {
     if (isOpen(id)) {

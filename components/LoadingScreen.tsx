@@ -17,11 +17,9 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         currentIndex++;
       } else {
         clearInterval(typeInterval);
-        // Start fade out after text is complete
+        // Keep text visible for a moment after completion
         setTimeout(() => {
           setIsVisible(false);
-          // Call onComplete after fade animation
-          setTimeout(onComplete, 500);
         }, 1000);
       }
     }, 50);
@@ -30,21 +28,30 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
     const timeout = setTimeout(() => {
       clearInterval(typeInterval);
       setText(fullText);
-      setIsVisible(false);
-      setTimeout(onComplete, 500);
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 1000);
     }, 3000);
 
     return () => {
       clearInterval(typeInterval);
       clearTimeout(timeout);
     };
-  }, [onComplete]);
+  }, []);
+
+  // Handle transition end to trigger onComplete
+  const handleTransitionEnd = () => {
+    if (!isVisible) {
+      onComplete();
+    }
+  };
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] backdrop-blur-xl bg-black/50 flex items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[9999] backdrop-blur-xl bg-black/50 flex items-center justify-center transition-opacity duration-700 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
+      onTransitionEnd={handleTransitionEnd}
     >
       <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white text-center px-4 max-w-4xl">
         {text}

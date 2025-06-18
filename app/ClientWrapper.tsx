@@ -15,7 +15,7 @@ const ClientWrapper: React.FC = () => {
       <OverlayStackProvider>
         <Background />
         <main className={`relative min-h-screen text-[#f8f8f8] overflow-hidden transition-opacity duration-500 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
-          <DesktopLayout />
+          <DesktopLayout isReady={!isLoading} />
         </main>
       </OverlayStackProvider>
     </>
