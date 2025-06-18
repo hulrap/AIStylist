@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useOverlayStack, SectionId } from './OverlayStackContext';
 import { HiOutlinePaperAirplane } from 'react-icons/hi';
+import { SmoothTypewriter } from './SmoothTypewriter';
 
 interface Position {
   x: number;
@@ -73,6 +74,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [preMaximizeState, setPreMaximizeState] = useState<{ position: Position; size: Size } | null>(null);
+  const [shouldShowTypewriter, setShouldShowTypewriter] = useState(false);
   
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -96,54 +98,23 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
-  // Update chat history when content changes
+  // Handle typewriter display logic
   useEffect(() => {
     const windowState = getWindowState(id);
-    let timeoutIds: NodeJS.Timeout[] = [];
     
-    if (content && windowState?.transitionState === 'typing') {
-      const lines = content.split('\n');
-      
-      // Clear existing content
-      setChatHistory([]);
-      
-      // Start typing new content with delays
-      let currentIndex = 0;
-      const lineDelay = 800; // Delay between lines
-      
-      const processNextLine = () => {
-        if (currentIndex < lines.length) {
-          const timeoutId = setTimeout(() => {
-            setChatHistory(prev => [...prev, { 
-              text: lines[currentIndex],
-              type: 'system'
-            }]);
-            
-            currentIndex++;
-            if (currentIndex < lines.length) {
-              const nextTimeoutId = setTimeout(processNextLine, lineDelay);
-              timeoutIds.push(nextTimeoutId);
-            } else if (onTypingComplete) {
-              const completionTimeoutId = setTimeout(onTypingComplete, lineDelay);
-              timeoutIds.push(completionTimeoutId);
-            }
-          }, currentIndex === 0 ? 0 : lineDelay);
-          
-          timeoutIds.push(timeoutId);
-        }
-      };
-      
-      processNextLine();
+    if (windowState?.transitionState === 'typing' && content) {
+      setShouldShowTypewriter(true);
     } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
-      // Clear chat history when window becomes inactive
-      setChatHistory([]);
+      setShouldShowTypewriter(false);
     }
-    
-    // Cleanup timeouts on unmount or content change
-    return () => {
-      timeoutIds.forEach(id => clearTimeout(id));
-    };
-  }, [content, isActive, id, getWindowState, onTypingComplete]);
+  }, [isActive, content, id, getWindowState]);
+
+  // Handle typing completion
+  const handleTypingComplete = () => {
+    if (onTypingComplete) {
+      onTypingComplete();
+    }
+  };
 
   // Cleanup on unmount or window close
   useEffect(() => {
@@ -151,6 +122,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       const windowState = getWindowState(id);
       if (windowState?.transitionState === 'closing') {
         setChatHistory([]);
+        setShouldShowTypewriter(false);
       }
     };
   }, [id, getWindowState]);
@@ -162,9 +134,10 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       const isResizeHandle = e.target.closest('.resize-handle');
       const isTitlebar = e.target.closest('.window-titlebar');
       const isInput = e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea';
+      const isButton = e.target.tagName.toLowerCase() === 'button' || e.target.closest('button');
 
-      if (isInput) {
-        // Don't initiate dragging for input fields
+      if (isInput || isButton) {
+        // Don't initiate dragging for input fields or buttons
         return;
       }
 
@@ -182,6 +155,14 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         }
       }
       // Always bring to front on any click inside the window
+      bringToFront(id);
+    }
+  };
+
+  // Handle window content clicks to restart typing
+  const handleContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isActive) {
       bringToFront(id);
     }
   };
@@ -338,6 +319,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         transition: isDragging ? 'none' : 'all 0.2s ease-out'
       }}
       onMouseMove={handleLocalMouseMove}
+      onMouseDown={handleMouseDown}
     >
       {/* Light Effect */}
       <div 
@@ -353,7 +335,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       {/* Window Titlebar */}
       <div 
         className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-white/5 border-b border-white/10"
-        onMouseDown={handleMouseDown}
       >
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
@@ -381,10 +362,23 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-col h-[calc(100%-2.5rem)]">
+      <div className="flex flex-col h-[calc(100%-2.5rem)]" onClick={handleContentClick}>
         <div className="flex-1 p-6 overflow-y-auto">
-          {/* Chat Messages */}
+          {/* Smooth Typewriter Content */}
           <div className="space-y-4">
+            {shouldShowTypewriter && content && (
+              <div className="flex justify-start">
+                <SmoothTypewriter
+                  content={content}
+                  isActive={shouldShowTypewriter && isActive}
+                  onComplete={handleTypingComplete}
+                  speed={30}
+                  className="max-w-[90%]"
+                />
+              </div>
+            )}
+            
+            {/* User chat messages */}
             {chatHistory.map((msg, i) => (
               <div
                 key={i}

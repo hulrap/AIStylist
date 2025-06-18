@@ -31,7 +31,6 @@ export const Category: React.FC<CategoryProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const [displayedContent, setDisplayedContent] = useState('');
   const { getWindowState } = useOverlayStack();
 
   const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
@@ -45,24 +44,11 @@ A Dance Instructor, teaches your body to move with rhythm and a Swimming Instruc
 An AI Instructor, teaches you to master the digital future.
 Not for your company. Personal instruction for YOU.`.trim();
 
-  useEffect(() => {
-    const windowState = getWindowState(id);
-    
-    if (windowState?.transitionState === 'typing') {
-      setDisplayedContent(content);
-      if (onTypingComplete) {
-        onTypingComplete();
-      }
-    } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
-      setDisplayedContent('');
-    }
-  }, [isActive, content, id, getWindowState, onTypingComplete]);
-
   return (
     <TypewriterOverlay
       id={id}
       title="First Personal AI Instructor"
-      content={displayedContent}
+      content={content}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}

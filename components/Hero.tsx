@@ -31,33 +31,23 @@ export const Hero: React.FC<HeroProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const [displayedContent, setDisplayedContent] = useState('');
   const { getWindowState } = useOverlayStack();
 
   const content = `Finally.
 An AI expert who sees you.
 And comes to YOUR place.
 Not your office. Your home.
-With pizza. And beer or wine if your want to.
+With pizza. And beer or wine if you want to.
 And zero corporate bs.
 I treat you like a human, not a company.
-Because AI isn't about making businesses more efficient.`.trim();
-
-  useEffect(() => {
-    const windowState = getWindowState(id);
-    
-    if (windowState?.transitionState === 'typing') {
-      setDisplayedContent(content);
-    } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
-      setDisplayedContent('');
-    }
-  }, [isActive, content, id, getWindowState]);
+Because AI isn't about making businesses more efficient.
+It's about making YOU more powerful.`.trim();
 
   return (
     <TypewriterOverlay
       id={id}
       title="AI Instructor"
-      content={displayedContent}
+      content={content}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}

@@ -32,7 +32,6 @@ export const Problem: React.FC<ProblemProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const [displayedContent, setDisplayedContent] = useState('');
   const { getWindowState } = useOverlayStack();
 
   const content = `THE PROBLEM:
@@ -47,24 +46,11 @@ They don't want to make you more creative.
 They don't want to make you more human.
 I do.`;
 
-  useEffect(() => {
-    const windowState = getWindowState(id);
-    
-    if (windowState?.transitionState === 'typing') {
-      setDisplayedContent(content);
-      if (onTypingComplete) {
-        onTypingComplete();
-      }
-    } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
-      setDisplayedContent('');
-    }
-  }, [isActive, content, id, getWindowState, onTypingComplete]);
-
   return (
     <TypewriterOverlay
       id={id}
       title="The Problem"
-      content={displayedContent}
+      content={content}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}

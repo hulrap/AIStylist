@@ -61,14 +61,25 @@ const WINDOW_POSITIONS: Record<SectionId, { x: number; y: number }> = {
   'imprint': SCREEN_SECTIONS.bottomRight
 };
 
-const WINDOW_ORDER: SectionId[] = [
+// Cascade order - windows appear in this order, ai-instructor opens last
+const CASCADE_ORDER: SectionId[] = [
   'imprint',
-  'contact',
+  'contact', 
   'packages',
   'experience',
   'first',
   'problem',
-  'ai-instructor'
+  'ai-instructor' // Opens last
+];
+
+// Typing sequence - starts with ai-instructor, then goes backwards through the list
+const TYPING_SEQUENCE: SectionId[] = [
+  'ai-instructor',
+  'problem',
+  'first', 
+  'experience',
+  'packages',
+  'contact' // Final window, doesn't minimize after typing
 ];
 
 interface DesktopLayoutProps {
@@ -78,7 +89,7 @@ interface DesktopLayoutProps {
 export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   const { 
     openOverlay, 
-    closeOverlay, 
+    closeOverlay,
     isOpen, 
     activeOverlay, 
     bringToFront, 
@@ -101,7 +112,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     // Only start cascade animation when isReady is true and hasn't initialized yet
     if (isReady && !hasInitialized) {
       // Pre-calculate all positions to ensure consistency
-      const positions = WINDOW_ORDER.reduce((acc, id) => {
+      const positions = CASCADE_ORDER.reduce((acc, id) => {
         acc[id] = getInitialPosition(id);
         return acc;
       }, {} as Record<SectionId, Position>);
@@ -109,7 +120,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
       // Initialize all windows as visible but inactive
       setWindowStates(prev => {
         const newStates = { ...prev };
-        WINDOW_ORDER.forEach(id => {
+        CASCADE_ORDER.forEach(id => {
           newStates[id] = {
             ...newStates[id],
             isVisible: false, // Start invisible for cascade effect
@@ -121,12 +132,12 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         return newStates;
       });
 
-      // Then start the cascade sequence from first to last
-      let currentIndex = 0; // Start from beginning of WINDOW_ORDER
+      // Start the cascade sequence from first to last in CASCADE_ORDER
+      let currentIndex = 0;
       
       const activateNextWindow = () => {
-        if (currentIndex < WINDOW_ORDER.length) {
-          const id = WINDOW_ORDER[currentIndex];
+        if (currentIndex < CASCADE_ORDER.length) {
+          const id = CASCADE_ORDER[currentIndex];
           
           // Update position first
           updatePosition(id, positions[id]);
@@ -137,9 +148,9 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
             [id]: {
               ...prev[id],
               isVisible: true,
-              isActive: currentIndex === WINDOW_ORDER.length - 1, // Only last window (ai-instructor) starts as active
+              isActive: currentIndex === CASCADE_ORDER.length - 1, // Only ai-instructor (last) starts as active
               isMinimized: false,
-              transitionState: currentIndex === WINDOW_ORDER.length - 1 ? 'typing' : 'idle'
+              transitionState: currentIndex === CASCADE_ORDER.length - 1 ? 'typing' : 'idle'
             }
           }));
 
@@ -148,7 +159,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
           
           // Schedule next window
           currentIndex++;
-          if (currentIndex < WINDOW_ORDER.length) {
+          if (currentIndex < CASCADE_ORDER.length) {
             setTimeout(activateNextWindow, WINDOW_APPEAR_DELAY);
           }
         }
@@ -161,22 +172,24 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   }, [isReady, hasInitialized, updatePosition, setWindowStates]);
 
   const handleTypingComplete = (id: SectionId) => {
-    // Don't auto-minimize Contact window
-    if (id === 'contact') return;
+    // Special handling for Contact window - don't minimize, it's the final destination
+    if (id === 'contact') {
+      return;
+    }
 
-    // Find the next window in the sequence
-    const currentIndex = WINDOW_ORDER.indexOf(id);
-    const nextIndex = currentIndex - 1; // Since we want to go backwards through WINDOW_ORDER
+    // Find the next window in the typing sequence
+    const currentIndex = TYPING_SEQUENCE.indexOf(id);
+    const nextIndex = currentIndex + 1;
     
-    if (nextIndex >= 0) {
-      const nextId = WINDOW_ORDER[nextIndex];
+    if (nextIndex < TYPING_SEQUENCE.length) {
+      const nextId = TYPING_SEQUENCE[nextIndex];
       
       // Start minimizing current window
       startWindowTransition(id, 'minimizing');
       
       // Use a timeout to ensure state updates happen in sequence
       setTimeout(() => {
-        // First minimize the current window but keep it visible
+        // First minimize the current window
         setWindowStates(prevStates => ({
           ...prevStates,
           [id]: {
@@ -189,7 +202,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         }));
         
         // Add to minimized windows list
-        minimizeWindow(id, getLabelForSection(id), getLabelForSection(id));
+        minimizeWindow(id, getLabelForSection(id), id);
         
         // Then after a short delay, activate the next window
         setTimeout(() => {
@@ -217,24 +230,33 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     
     if (isOpen(id)) {
       if (windowState?.isMinimized) {
-        // If window is minimized, restore it
+        // If window is minimized, restore it and start typing
         restoreWindow(id);
+        setTimeout(() => {
+          setWindowStates(prev => ({
+            ...prev,
+            [id]: {
+              ...prev[id],
+              transitionState: 'typing'
+            }
+          }));
+        }, 100);
       } else {
-        // If window is open but not minimized, just bring it to front and start typing
+        // If window is open and visible, close it (toggle behavior)
+        closeOverlay(id);
+      }
+    } else {
+      // If window is not open, open it and start typing
+      openOverlay(id);
+      setTimeout(() => {
         setWindowStates(prev => ({
           ...prev,
           [id]: {
             ...prev[id],
-            isActive: true,
-            isVisible: true,
             transitionState: 'typing'
           }
         }));
-        bringToFront(id);
-      }
-    } else {
-      // If window is not open, open it
-      openOverlay(id);
+      }, 200);
     }
   };
 
@@ -253,7 +275,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
           transitionState: 'idle'
         }
       }));
-      minimizeWindow(id, getLabelForSection(id), getLabelForSection(id));
+      minimizeWindow(id, getLabelForSection(id), id);
     }
   };
 
@@ -275,6 +297,16 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     const windowState = getWindowState(id);
     if (windowState?.isMinimized) {
       restoreWindow(id);
+      // Start typing when restored
+      setTimeout(() => {
+        setWindowStates(prev => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            transitionState: 'typing'
+          }
+        }));
+      }, 100);
     }
   };
 
@@ -348,7 +380,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     <div className="relative w-full h-screen overflow-hidden">
       {/* Desktop Icons */}
       <div className="absolute inset-0 p-4 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] gap-1">
-        {WINDOW_ORDER.map((id) => (
+        {CASCADE_ORDER.map((id) => (
           <DesktopIcon
             key={id}
             id={id}
@@ -360,7 +392,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
       </div>
 
       {/* Windows */}
-      {WINDOW_ORDER.map((id) => {
+      {CASCADE_ORDER.map((id) => {
         const isActive = id === activeOverlay;
         const windowState = getWindowState(id);
         const isVisible = windowState?.isVisible ?? false;

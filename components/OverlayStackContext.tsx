@@ -206,7 +206,8 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
       [id]: {
         ...prev[id],
         transitionState: 'closing',
-        isActive: false
+        isActive: false,
+        isVisible: false
       }
     }));
     
@@ -218,20 +219,23 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setMaximizedWindow(null);
     }
     
-    // Complete the transition and remove from stack after animation
+    // Remove from stack immediately
+    setOverlayStack(prev => prev.filter(windowId => windowId !== id));
+    
+    // Reset window state after a short delay
     setTimeout(() => {
-      setOverlayStack(prev => prev.filter(windowId => windowId !== id));
       setWindowStates(prev => ({
         ...prev,
         [id]: {
           ...prev[id],
           isVisible: false,
+          isActive: false,
           isMinimized: false,
           isMaximized: false,
           transitionState: 'idle'
         }
       }));
-    }, 300);
+    }, 100);
   }, [maximizedWindow]);
 
   const bringToFront = useCallback((id: SectionId) => {

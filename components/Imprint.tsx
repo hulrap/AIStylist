@@ -31,11 +31,6 @@ export const Imprint: React.FC<ImprintProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const [displayedContent, setDisplayedContent] = useState('');
-  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isTypingRef = useRef(false);
-  const contentRef = useRef('');
-
   const content = `LEGAL INFORMATION
 
 AI Instructor
@@ -51,67 +46,11 @@ VAT ID: ATU81854646
 
 © 2025 Raw Fiction e.U. All rights reserved.`.trim();
 
-  const startTypewriter = useCallback(() => {
-    if (isTypingRef.current) return;
-    
-    isTypingRef.current = true;
-    contentRef.current = '';
-    let currentIndex = 0;
-
-    const typeNextCharacter = () => {
-      if (!isTypingRef.current) return;
-
-      if (currentIndex < content.length) {
-        contentRef.current += content[currentIndex];
-        setDisplayedContent(contentRef.current);
-        currentIndex++;
-        typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
-      } else {
-        isTypingRef.current = false;
-        if (onTypingComplete) {
-          onTypingComplete();
-        }
-      }
-    };
-
-    typeNextCharacter();
-  }, [content, onTypingComplete]);
-
-  useEffect(() => {
-    if (isActive && !isTypingRef.current) {
-      startTypewriter();
-    }
-
-    // Only clear typing state if the window becomes inactive AND is not minimizing
-    if (!isActive) {
-      const timeoutId = setTimeout(() => {
-        isTypingRef.current = false;
-        if (typewriterTimeoutRef.current) {
-          clearTimeout(typewriterTimeoutRef.current);
-          typewriterTimeoutRef.current = null;
-        }
-        contentRef.current = '';
-        setDisplayedContent('');
-      }, 150); // Delay clearing the state to allow for transitions
-
-      return () => {
-        clearTimeout(timeoutId);
-      };
-    }
-
-    return () => {
-      if (typewriterTimeoutRef.current) {
-        clearTimeout(typewriterTimeoutRef.current);
-        typewriterTimeoutRef.current = null;
-      }
-    };
-  }, [isActive, startTypewriter]);
-
   return (
     <TypewriterOverlay
       id={id}
       title="Imprint"
-      content={displayedContent}
+      content={content}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}

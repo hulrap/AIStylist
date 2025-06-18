@@ -31,7 +31,6 @@ export const Packages: React.FC<PackagesProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const [displayedContent, setDisplayedContent] = useState('');
   const { getWindowState } = useOverlayStack();
 
   const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
@@ -45,24 +44,11 @@ THE IMMERSION:
 THE FRIENDSHIP:
 Ongoing text support, questions answered immediately, your AI instructor for as long as you need refining, for €50/month`.trim();
 
-  useEffect(() => {
-    const windowState = getWindowState(id);
-    
-    if (windowState?.transitionState === 'typing') {
-      setDisplayedContent(content);
-      if (onTypingComplete) {
-        onTypingComplete();
-      }
-    } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
-      setDisplayedContent('');
-    }
-  }, [isActive, content, id, getWindowState, onTypingComplete]);
-
   return (
     <TypewriterOverlay
       id={id}
       title="Packages"
-      content={displayedContent}
+      content={content}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}

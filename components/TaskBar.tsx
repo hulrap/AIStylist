@@ -7,6 +7,20 @@ interface TaskBarProps {
   onRestore: (id: SectionId) => void;
 }
 
+// Helper function to get label for each section
+const getLabelForSection = (id: SectionId): string => {
+  switch (id) {
+    case 'ai-instructor': return 'AI Instructor';
+    case 'problem': return 'The Problem';
+    case 'first': return 'The First';
+    case 'experience': return 'The Experience';
+    case 'packages': return 'Three Ways';
+    case 'contact': return 'Start Now';
+    case 'imprint': return 'Imprint';
+    default: return id;
+  }
+};
+
 export const TaskBar: React.FC<TaskBarProps> = ({ minimizedWindows, onRestore }) => {
   const { overlayStack, getWindowState } = useOverlayStack();
 
@@ -15,8 +29,8 @@ export const TaskBar: React.FC<TaskBarProps> = ({ minimizedWindows, onRestore })
     const state = getWindowState(id);
     return {
       id,
-      label: state?.label || '',
-      icon: state?.icon || id,
+      label: getLabelForSection(id),
+      icon: id,
       isMinimized: state?.isMinimized || false,
       isActive: state?.isActive || false
     };
@@ -39,7 +53,7 @@ export const TaskBar: React.FC<TaskBarProps> = ({ minimizedWindows, onRestore })
             }`}
           >
             <Icon className="w-4 h-4" />
-            <span>{window.label || window.id}</span>
+            <span>{window.label}</span>
           </button>
         );
       })}

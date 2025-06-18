@@ -31,7 +31,6 @@ export const Experience: React.FC<ExperienceProps> = ({
   onUnmaximize,
   onTypingComplete,
 }) => {
-  const [displayedContent, setDisplayedContent] = useState('');
   const { getWindowState } = useOverlayStack();
 
   const content = `WHAT TO EXPECT:
@@ -42,24 +41,11 @@ Just real human connection and real AI superpowers.
 For YOUR life, or YOUR goals, or YOUR dreams.
 This is personal AI instruction.`.trim();
 
-  useEffect(() => {
-    const windowState = getWindowState(id);
-    
-    if (windowState?.transitionState === 'typing') {
-      setDisplayedContent(content);
-      if (onTypingComplete) {
-        onTypingComplete();
-      }
-    } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
-      setDisplayedContent('');
-    }
-  }, [isActive, content, id, getWindowState, onTypingComplete]);
-
   return (
     <TypewriterOverlay
       id={id}
       title="The Experience"
-      content={displayedContent}
+      content={content}
       stackIndex={stackIndex}
       isActive={isActive}
       forceVisible={forceVisible}
