@@ -14,6 +14,7 @@ interface ContactProps {
   onMinimize?: () => void;
   onMaximize?: () => void;
   onUnmaximize?: () => void;
+  onTypingComplete?: () => void;
 }
 
 export const Contact: React.FC<ContactProps> = ({
@@ -28,6 +29,7 @@ export const Contact: React.FC<ContactProps> = ({
   onMinimize,
   onMaximize,
   onUnmaximize,
+  onTypingComplete,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -62,11 +64,15 @@ Together.`;
         typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
       } else {
         isTypingRef.current = false;
+        // Contact window should stay open after typing
+        if (onTypingComplete) {
+          onTypingComplete();
+        }
       }
     };
 
     typeNextCharacter();
-  }, [content]);
+  }, [content, onTypingComplete]);
 
   useEffect(() => {
     if (isActive && !isTypingRef.current) {
@@ -106,6 +112,7 @@ Together.`;
       onMinimize={onMinimize}
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
+      onTypingComplete={onTypingComplete}
     />
   );
 }; 

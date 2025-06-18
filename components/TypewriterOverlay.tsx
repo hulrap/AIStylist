@@ -32,6 +32,7 @@ interface TypewriterOverlayProps {
   onMaximize?: () => void;
   onUnmaximize?: () => void;
   showInitialContent?: boolean;
+  onTypingComplete?: () => void;
 }
 
 export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
@@ -48,6 +49,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   onMaximize,
   onUnmaximize,
   showInitialContent = false,
+  onTypingComplete,
 }) => {
   const { 
     closeOverlay, 

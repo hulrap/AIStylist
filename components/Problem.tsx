@@ -14,6 +14,7 @@ interface ProblemProps {
   onMinimize?: () => void;
   onMaximize?: () => void;
   onUnmaximize?: () => void;
+  onTypingComplete?: () => void;
 }
 
 export const Problem: React.FC<ProblemProps> = ({
@@ -28,6 +29,7 @@ export const Problem: React.FC<ProblemProps> = ({
   onMinimize,
   onMaximize,
   onUnmaximize,
+  onTypingComplete,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,11 +65,14 @@ I do.`;
         typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
       } else {
         isTypingRef.current = false;
+        if (onTypingComplete) {
+          onTypingComplete();
+        }
       }
     };
 
     typeNextCharacter();
-  }, [content]);
+  }, [content, onTypingComplete]);
 
   useEffect(() => {
     if (isActive && !isTypingRef.current) {
@@ -107,6 +112,7 @@ I do.`;
       onMinimize={onMinimize}
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
+      onTypingComplete={onTypingComplete}
     />
   );
 }; 

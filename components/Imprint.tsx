@@ -14,6 +14,7 @@ interface ImprintProps {
   onMinimize?: () => void;
   onMaximize?: () => void;
   onUnmaximize?: () => void;
+  onTypingComplete?: () => void;
 }
 
 export const Imprint: React.FC<ImprintProps> = ({
@@ -28,18 +29,27 @@ export const Imprint: React.FC<ImprintProps> = ({
   onMinimize,
   onMaximize,
   onUnmaximize,
+  onTypingComplete,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
 
-  const content = `QUEER MEDIA LITERACY e.V.
-ZVR Number: 1689372191
-Founded: 21.09.2024
-Address: c/o 1060 Wien, Mariahilfer Straße 49/15
-Jurisdiction: Landespolizeidirektion Wien
-Contact: admin@queer-alliance.com`;
+  const content = `LEGAL INFORMATION
+
+AI Stylist
+123 Fashion Street
+New York, NY 10001
+United States
+
+Email: contact@aistylist.com
+Phone: +1 (555) 123-4567
+
+Business Registration: NY12345
+VAT ID: US987654321
+
+© 2024 AI Stylist. All rights reserved.`;
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -58,11 +68,14 @@ Contact: admin@queer-alliance.com`;
         typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
       } else {
         isTypingRef.current = false;
+        if (onTypingComplete) {
+          onTypingComplete();
+        }
       }
     };
 
     typeNextCharacter();
-  }, [content]);
+  }, [content, onTypingComplete]);
 
   useEffect(() => {
     if (isActive && !isTypingRef.current) {
@@ -102,6 +115,7 @@ Contact: admin@queer-alliance.com`;
       onMinimize={onMinimize}
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
+      onTypingComplete={onTypingComplete}
     />
   );
 }; 

@@ -11,6 +11,7 @@ interface HeroProps {
   onMinimize?: () => void;
   onMaximize?: () => void;
   onUnmaximize?: () => void;
+  onTypingComplete?: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
@@ -22,6 +23,7 @@ export const Hero: React.FC<HeroProps> = ({
   onMinimize,
   onMaximize,
   onUnmaximize,
+  onTypingComplete,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -58,11 +60,14 @@ You can access my cognitive knowledge base.`.trim();
         typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
       } else {
         isTypingRef.current = false;
+        if (onTypingComplete) {
+          onTypingComplete();
+        }
       }
     };
 
     typeNextCharacter();
-  }, [content]);
+  }, [content, onTypingComplete]);
 
   useEffect(() => {
     if (isActive && !isTypingRef.current) {
@@ -101,6 +106,7 @@ You can access my cognitive knowledge base.`.trim();
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
       showInitialContent={true}
+      onTypingComplete={onTypingComplete}
     />
   );
 }; 

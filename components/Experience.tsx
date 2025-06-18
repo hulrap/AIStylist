@@ -14,6 +14,7 @@ interface ExperienceProps {
   onMinimize?: () => void;
   onMaximize?: () => void;
   onUnmaximize?: () => void;
+  onTypingComplete?: () => void;
 }
 
 export const Experience: React.FC<ExperienceProps> = ({
@@ -28,6 +29,7 @@ export const Experience: React.FC<ExperienceProps> = ({
   onMinimize,
   onMaximize,
   onUnmaximize,
+  onTypingComplete,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -65,11 +67,14 @@ This is personal AI instruction.`;
         typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
       } else {
         isTypingRef.current = false;
+        if (onTypingComplete) {
+          onTypingComplete();
+        }
       }
     };
 
     typeNextCharacter();
-  }, [content]);
+  }, [content, onTypingComplete]);
 
   useEffect(() => {
     if (isActive && !isTypingRef.current) {
@@ -97,7 +102,7 @@ This is personal AI instruction.`;
   return (
     <TypewriterOverlay
       id={id}
-      title="The Experience"
+      title="Experience"
       content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
@@ -109,6 +114,7 @@ This is personal AI instruction.`;
       onMinimize={onMinimize}
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
+      onTypingComplete={onTypingComplete}
     />
   );
 }; 

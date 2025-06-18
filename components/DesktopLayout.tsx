@@ -102,6 +102,30 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
 
+  const handleTypingComplete = (id: SectionId) => {
+    // Don't auto-minimize Contact or Imprint windows
+    if (id === 'contact' || id === 'imprint') return;
+
+    // Find the next window in the sequence that isn't Contact or Imprint
+    const currentIndex = WINDOW_ORDER.indexOf(id);
+    const nextIndex = currentIndex - 1; // Since WINDOW_ORDER is reversed
+    
+    if (nextIndex >= 0) {
+      const nextId = WINDOW_ORDER[nextIndex];
+      
+      // Skip Contact and Imprint windows when finding the next window to activate
+      if (nextId !== 'contact' && nextId !== 'imprint') {
+        // Minimize current window
+        handleMinimize(id);
+        
+        // Activate next window
+        setTimeout(() => {
+          bringToFront(nextId);
+        }, 300); // Wait for minimization animation
+      }
+    }
+  };
+
   useEffect(() => {
     // Only start cascade animation when isReady is true and hasn't initialized yet
     if (isReady && !hasInitialized) {
@@ -275,6 +299,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
+                onTypingComplete={() => handleTypingComplete(id)}
               />
             );
           case 'problem':
@@ -292,6 +317,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
+                onTypingComplete={() => handleTypingComplete(id)}
               />
             );
           case 'first':
@@ -309,6 +335,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
+                onTypingComplete={() => handleTypingComplete(id)}
               />
             );
           case 'experience':
@@ -326,6 +353,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
+                onTypingComplete={() => handleTypingComplete(id)}
               />
             );
           case 'packages':
@@ -343,6 +371,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
+                onTypingComplete={() => handleTypingComplete(id)}
               />
             );
           case 'contact':
@@ -360,6 +389,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
+                onTypingComplete={() => handleTypingComplete(id)}
               />
             );
           case 'imprint':
@@ -377,6 +407,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
+                onTypingComplete={() => handleTypingComplete(id)}
               />
             );
           default:

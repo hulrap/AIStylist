@@ -14,6 +14,7 @@ interface CategoryProps {
   onMinimize?: () => void;
   onMaximize?: () => void;
   onUnmaximize?: () => void;
+  onTypingComplete?: () => void;
 }
 
 export const Category: React.FC<CategoryProps> = ({
@@ -28,43 +29,21 @@ export const Category: React.FC<CategoryProps> = ({
   onMinimize,
   onMaximize,
   onUnmaximize,
+  onTypingComplete,
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
   const contentRef = useRef('');
 
-  const content = `WHAT I CAN TEACH YOU:
+  const content = `FIRST THINGS FIRST
 
-1. PERSONAL AI ASSISTANTS
-- ChatGPT, Claude, Copilot
-- Custom GPTs and AI Agents
-- Voice Assistants
-- Task Automation
+Let's understand your style.
+What do you like to wear?
+What makes you feel confident?
+What's your lifestyle?
 
-2. CREATIVE AI TOOLS
-- Midjourney, DALL-E, Stable Diffusion
-- Adobe Firefly
-- Runway
-- Leonardo AI
-
-3. AUDIO & VIDEO AI
-- ElevenLabs
-- Descript
-- RunwayML
-- D-ID
-
-4. PRODUCTIVITY AI
-- Notion AI
-- Otter.ai
-- Mem.ai
-- Taskade
-
-5. CODING AI
-- GitHub Copilot
-- Amazon CodeWhisperer
-- Cursor
-- Replit`;
+I'll help you find your perfect style.`;
 
   const startTypewriter = useCallback(() => {
     if (isTypingRef.current) return;
@@ -83,11 +62,14 @@ export const Category: React.FC<CategoryProps> = ({
         typewriterTimeoutRef.current = setTimeout(typeNextCharacter, 50);
       } else {
         isTypingRef.current = false;
+        if (onTypingComplete) {
+          onTypingComplete();
+        }
       }
     };
 
     typeNextCharacter();
-  }, [content]);
+  }, [content, onTypingComplete]);
 
   useEffect(() => {
     if (isActive && !isTypingRef.current) {
@@ -115,7 +97,7 @@ export const Category: React.FC<CategoryProps> = ({
   return (
     <TypewriterOverlay
       id={id}
-      title="The First"
+      title="First Steps"
       content={displayedContent}
       stackIndex={stackIndex}
       isActive={isActive}
@@ -127,6 +109,7 @@ export const Category: React.FC<CategoryProps> = ({
       onMinimize={onMinimize}
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
+      onTypingComplete={onTypingComplete}
     />
   );
 }; 
