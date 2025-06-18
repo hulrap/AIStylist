@@ -121,11 +121,11 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         return newStates;
       });
 
-      // Then start the cascade sequence
-      let currentIndex = WINDOW_ORDER.length - 1; // Start from last window (ai-instructor)
+      // Then start the cascade sequence from first to last
+      let currentIndex = 0; // Start from beginning of WINDOW_ORDER
       
       const activateNextWindow = () => {
-        if (currentIndex >= 0) {
+        if (currentIndex < WINDOW_ORDER.length) {
           const id = WINDOW_ORDER[currentIndex];
           
           // Update position first
@@ -137,9 +137,9 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
             [id]: {
               ...prev[id],
               isVisible: true,
-              isActive: id === 'ai-instructor', // Only AI Instructor starts as active
-              isMinimized: false, // All windows start unminimized
-              transitionState: id === 'ai-instructor' ? 'typing' : 'idle'
+              isActive: currentIndex === WINDOW_ORDER.length - 1, // Only last window (ai-instructor) starts as active
+              isMinimized: false,
+              transitionState: currentIndex === WINDOW_ORDER.length - 1 ? 'typing' : 'idle'
             }
           }));
 
@@ -147,8 +147,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
           setOverlayStack(prev => [...prev, id]);
           
           // Schedule next window
-          currentIndex--;
-          if (currentIndex >= 0) {
+          currentIndex++;
+          if (currentIndex < WINDOW_ORDER.length) {
             setTimeout(activateNextWindow, WINDOW_APPEAR_DELAY);
           }
         }
@@ -166,7 +166,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
 
     // Find the next window in the sequence
     const currentIndex = WINDOW_ORDER.indexOf(id);
-    const nextIndex = currentIndex - 1; // Since WINDOW_ORDER is reversed
+    const nextIndex = currentIndex - 1; // Since we want to go backwards through WINDOW_ORDER
     
     if (nextIndex >= 0) {
       const nextId = WINDOW_ORDER[nextIndex];
@@ -184,8 +184,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
             isActive: false,
             isMinimized: true,
             transitionState: 'idle',
-            // Keep the window visible in the background
-            isVisible: true
+            isVisible: true // Keep the window visible in the background
           }
         }));
         
