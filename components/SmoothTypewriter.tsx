@@ -19,7 +19,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
   content,
   isActive,
   onComplete,
-  speed = 80, // Optimal speed: 80ms per character (12.5 chars/sec) for readability
+  speed = 70, // Optimal speed: 80ms per character (12.5 chars/sec) for readability
   className = '',
   onScroll
 }) => {
@@ -102,7 +102,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
       if (currentLine.isComplete) {
         currentLineIndexRef.current++;
         currentCharIndexRef.current = 0;
-        timeoutRef.current = setTimeout(typeNextCharacter, 750);
+        timeoutRef.current = setTimeout(typeNextCharacter, 100);
         return;
       }
 
@@ -144,7 +144,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
         // Auto-scroll when line completes
         setTimeout(scrollToBottom, 75);
         
-        timeoutRef.current = setTimeout(typeNextCharacter, 1125); // Longer pause after line completion for processing
+        timeoutRef.current = setTimeout(typeNextCharacter, 150); // Longer pause after line completion for processing
       }
     };
 
@@ -165,7 +165,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
     if (isActive && linesRef.current.length > 0 && !isTyping) {
       setTimeout(() => {
         startTyping();
-      }, 150);
+      }, 75);
     }
   }, [isActive, startTyping, isTyping]);
 

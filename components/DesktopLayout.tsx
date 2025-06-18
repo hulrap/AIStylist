@@ -18,7 +18,7 @@ interface Position {
 }
 
 const WINDOW_APPEAR_DELAY = 150;
-const MOBILE_WINDOW_APPEAR_DELAY = 100;
+const MOBILE_WINDOW_APPEAR_DELAY = 50;
 
 // Base window sizes (will be adjusted per window)
 const BASE_WINDOW_WIDTH = 520;
@@ -210,7 +210,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                   transitionState: 'typing'
                 }
               }));
-            }, isMobile ? 250 : 375); // Shorter delay on mobile for better responsiveness
+            }, isMobile ? 125 : 187); // Shorter delay on mobile for better responsiveness
           }
           
           // Schedule next window
