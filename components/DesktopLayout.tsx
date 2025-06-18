@@ -41,7 +41,7 @@ const SCREEN_SECTIONS = {
 
 // Size multipliers for different windows (1 = base size)
 const WINDOW_SIZE_MULTIPLIERS: Record<SectionId, { width: number; height: number }> = {
-  'ai-stylist': { width: 1.5, height: 1.5 }, // Largest window
+  'ai-instructor': { width: 1.5, height: 1.5 }, // Largest window
   'problem': { width: 1.2, height: 1.2 },
   'first': { width: 1.1, height: 1.1 },
   'experience': { width: 1, height: 1 },
@@ -52,7 +52,7 @@ const WINDOW_SIZE_MULTIPLIERS: Record<SectionId, { width: number; height: number
 
 // Window positions mapping
 const WINDOW_POSITIONS: Record<SectionId, { x: number; y: number }> = {
-  'ai-stylist': SCREEN_SECTIONS.center,
+  'ai-instructor': SCREEN_SECTIONS.center,
   'problem': SCREEN_SECTIONS.topLeft,
   'first': SCREEN_SECTIONS.topRight,
   'experience': SCREEN_SECTIONS.centerLeft,
@@ -68,7 +68,7 @@ const WINDOW_ORDER: SectionId[] = [
   'experience',
   'first',
   'problem',
-  'ai-stylist'
+  'ai-instructor'
 ];
 
 interface MinimizedWindow {
@@ -185,12 +185,12 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     const windowWidth = BASE_WINDOW_WIDTH * sizeMultiplier.width;
     const windowHeight = BASE_WINDOW_HEIGHT * sizeMultiplier.height;
 
-    // Ensure AI Stylist doesn't exceed 2/3 of screen size
+    // Ensure AI Instructor doesn't exceed 2/3 of screen size
     const maxWidth = screenWidth * 0.66;
     const maxHeight = screenHeight * 0.66;
     
-    const finalWidth = id === 'ai-stylist' ? Math.min(windowWidth, maxWidth) : windowWidth;
-    const finalHeight = id === 'ai-stylist' ? Math.min(windowHeight, maxHeight) : windowHeight;
+    const finalWidth = id === 'ai-instructor' ? Math.min(windowWidth, maxWidth) : windowWidth;
+    const finalHeight = id === 'ai-instructor' ? Math.min(windowHeight, maxHeight) : windowHeight;
 
     // Get position ratio for this window
     const position = WINDOW_POSITIONS[id];
@@ -226,8 +226,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     const width = BASE_WINDOW_WIDTH * sizeMultiplier.width;
     const height = BASE_WINDOW_HEIGHT * sizeMultiplier.height;
 
-    // Ensure AI Stylist doesn't exceed 2/3 of screen size
-    if (id === 'ai-stylist') {
+    // Ensure AI Instructor doesn't exceed 2/3 of screen size
+    if (id === 'ai-instructor') {
       return {
         width: Math.min(width, screenWidth * 0.66),
         height: Math.min(height, screenHeight * 0.66)
@@ -263,7 +263,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         if (!isOpen(id)) return null;
 
         switch (id) {
-          case 'ai-stylist':
+          case 'ai-instructor':
             return (
               <Hero
                 key={id}
@@ -396,7 +396,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
 // Helper function to get label for each section
 const getLabelForSection = (id: SectionId): string => {
   switch (id) {
-    case 'ai-stylist': return 'AI Stylist';
+    case 'ai-instructor': return 'AI Instructor';
     case 'problem': return 'The Problem';
     case 'first': return 'The First';
     case 'experience': return 'The Experience';

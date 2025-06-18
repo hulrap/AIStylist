@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 
 export type SectionId = 
-  | 'ai-stylist'
+  | 'ai-instructor'
   | 'problem'
   | 'first'
   | 'experience'
@@ -45,7 +45,7 @@ export interface OverlayStackContextType {
 const OverlayStackContext = createContext<OverlayStackContextType | undefined>(undefined);
 
 const initialPositions: Record<SectionId, Position> = {
-  'ai-stylist': { x: 0, y: 0 },
+  'ai-instructor': { x: 0, y: 0 },
   'problem': { x: 0, y: 0 },
   'first': { x: 0, y: 0 },
   'experience': { x: 0, y: 0 },
@@ -59,7 +59,7 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [positions, setPositions] = useState<Record<SectionId, Position>>(initialPositions);
   const [windowStates, setWindowStates] = useState<Record<SectionId, WindowState>>(() => {
     const initial: Record<SectionId, WindowState> = {
-      'ai-stylist': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'ai-stylist' },
+      'ai-instructor': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'ai-instructor' },
       'problem': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'problem' },
       'first': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'first' },
       'experience': { isMinimized: false, isMaximized: false, isVisible: false, label: '', icon: 'experience' },
@@ -82,7 +82,7 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
           isMaximized: false,
           isVisible: true,
           label: '',
-          icon: 'ai-stylist'
+          icon: 'ai-instructor'
         }
       }));
     }

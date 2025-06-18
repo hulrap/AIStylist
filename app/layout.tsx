@@ -6,7 +6,7 @@ import { Background } from '@/components/Background';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AI Stylist - Your Personal AI Mentor',
+  title: 'AI Instructor - Your Personal AI Mentor',
   description: 'The first personal AI mentor who comes to your place. No corporate bullshit, just real help with AI.',
   keywords: 'AI mentor, personal AI, AI consultant, Vienna, Austria',
 };

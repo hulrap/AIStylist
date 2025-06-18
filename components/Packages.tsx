@@ -46,7 +46,7 @@ THE DISCOVERY:
 THE IMMERSION:
 6x90 minutes at your place, one week, one day, two days, up to you, complete AI transformation, for €1,080
 THE FRIENDSHIP:
-Ongoing text support, questions answered immediately, your AI stylist for as long as you need refining, for €50/month`;
+Ongoing text support, questions answered immediately, your AI instructor for as long as you need refining, for €50/month`;
 
       let currentText = '';
       let currentIndex = 0;

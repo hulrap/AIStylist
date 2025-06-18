@@ -53,7 +53,7 @@ I'm not a consultant. I'm your friend.
 I would not even charge if I wouldn't have to earn a living too.
 Text me when you have questions later.
 No invoice for a 2-minute answer.
-Because I'm your AI stylist, not your vendor.`;
+Because I'm your AI instructor, not your vendor.`;
 
       let currentText = '';
       let currentIndex = 0;

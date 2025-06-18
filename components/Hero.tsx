@@ -40,8 +40,8 @@ You can access my cognitive knowledge base.
 
   return (
     <TypewriterOverlay
-      id="ai-stylist"
-      title="AI Stylist"
+      id="ai-instructor"
+      title="AI Instructor"
       content={content}
       stackIndex={stackIndex}
       isActive={isActive}

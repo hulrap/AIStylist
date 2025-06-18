@@ -46,7 +46,7 @@ You can also directly email me: hulanraphael@gmail.com
 No need for formal greetings, no need for video calls, no need for any sort of work related stress.
 No forms. No 'business inquiries.' No corporate bullshit.
 Just message me like you'd message a friend, English or German:
-'I think I need an AI Stylist.'
+'I think I need an AI Instructor.'
 I'll come to you.`;
 
       let currentText = '';

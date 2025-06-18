@@ -39,15 +39,16 @@ export const Category: React.FC<CategoryProps> = ({
 
   useEffect(() => {
     if (showContent && isActive && !displayedContent) {
-      const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI STYLIST
-Not a software, not a tool. A person that will visit you.
-A Personal Stylist → Makes you look amazing
-A Personal Trainer → Makes you physically strong
-A Life Coach → Makes you mentally resilient
-A Singing Teacher → Makes you musically gifted
-A Language Tutor → Makes you multilingual
-An AI Stylist → Makes you technologically powerful
-Not for your company. Mentorship for YOU as a person.`;
+      const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
+Not software. Not a course. A real person who comes to you.
+A Fitness Instructor → Teaches your body to be strong
+A Piano Instructor → Teaches your fingers to make music  
+A Driving Instructor → Teaches your mind to navigate roads
+A Cooking Instructor → Teaches your hands to create meals
+A Dance Instructor → Teaches your body to move with rhythm
+A Swimming Instructor → Teaches you to master water
+An AI Instructor → Teaches you to master the digital future
+Not for your company. Personal instruction for YOU.`;
 
       let currentText = '';
       let currentIndex = 0;

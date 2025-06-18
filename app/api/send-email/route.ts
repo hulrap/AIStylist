@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
     // Construct email using Resend
     const emailData = {
-      from: 'AI Stylist <notifications@aistylist.at>',
+      from: 'AI Instructor <notifications@ai-instructor.me>',
       to: 'hulanraphael@gmail.com',
       subject: `New Message from ${section}`,
       text: `Message from: ${senderEmail}\n\n${message}`,

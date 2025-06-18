@@ -49,7 +49,7 @@ export const ImprintIcon: React.FC<IconProps> = ({ className = "w-6 h-6" }) => (
 
 export const getIconForSection = (id: string) => {
   switch (id) {
-    case 'ai-stylist':
+    case 'ai-instructor':
       return AIIcon;
     case 'problem':
       return ProblemIcon;
