@@ -15,6 +15,7 @@ interface ContactProps {
   onMaximize?: () => void;
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
+  stopAutoSequence?: () => void;
 }
 
 export const Contact: React.FC<ContactProps> = ({
@@ -30,6 +31,7 @@ export const Contact: React.FC<ContactProps> = ({
   onMaximize,
   onUnmaximize,
   onTypingComplete,
+  stopAutoSequence,
 }) => {
   const content = `READY TO BECOME MORE POWERFUL?
 Send me a message in any window.
@@ -54,6 +56,7 @@ Together.`.trim();
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
+      stopAutoSequence={stopAutoSequence}
     />
   );
 }; 

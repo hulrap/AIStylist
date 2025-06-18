@@ -15,6 +15,7 @@ interface HeroProps {
   onMaximize?: () => void;
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
+  stopAutoSequence?: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
@@ -30,11 +31,11 @@ export const Hero: React.FC<HeroProps> = ({
   onMaximize,
   onUnmaximize,
   onTypingComplete,
+  stopAutoSequence,
 }) => {
   const content = `Finally.
 An AI expert who sees you.
-And comes to your place.
-Not your office. Your home.
+And comes to your place instead of your office.
 With pizza. And coffee, tea, beer,or wine if you want to.
 And zero corporate bs.
 I treat you like a human, not a company.
@@ -57,6 +58,7 @@ It's about making YOU more powerful.`.trim();
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
+      stopAutoSequence={stopAutoSequence}
     />
   );
 }; 

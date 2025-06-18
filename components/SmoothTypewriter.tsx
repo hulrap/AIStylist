@@ -25,6 +25,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
 }) => {
   const [lines, setLines] = useState<TypedLine[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [hasCompleted, setHasCompleted] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentLineIndexRef = useRef(0);
   const currentCharIndexRef = useRef(0);
@@ -38,15 +39,17 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
 
   // Auto-scroll to bottom when new text appears
   const scrollToBottom = useCallback(() => {
+    // Call the parent's scroll handler first (this scrolls the main window area)
+    if (onScroll) {
+      onScroll();
+    }
+    // Then scroll this component into view if needed
     if (containerRef.current) {
       containerRef.current.scrollIntoView({ 
         behavior: 'smooth', 
         block: 'nearest',
         inline: 'nearest'
       });
-    }
-    if (onScroll) {
-      onScroll();
     }
   }, [onScroll]);
 
@@ -78,6 +81,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
       // Check if we've completed all lines
       if (currentLineIndex >= linesRef.current.length) {
         setIsTyping(false);
+        setHasCompleted(true);
         if (onComplete) {
           setTimeout(onComplete, 2000);
         }
@@ -147,6 +151,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
   // Initialize lines when content changes
   useEffect(() => {
     if (content) {
+      setHasCompleted(false); // Reset completion state for new content
       initializeLines();
     }
   }, [content, initializeLines]);
@@ -160,9 +165,9 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
     }
   }, [isActive, startTyping, isTyping]);
 
-  // Reset when becomes inactive
+  // Reset when becomes inactive (but only if not completed)
   useEffect(() => {
-    if (!isActive) {
+    if (!isActive && !hasCompleted) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -173,7 +178,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
       setLines([]);
       linesRef.current = [];
     }
-  }, [isActive]);
+  }, [isActive, hasCompleted]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -191,6 +196,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
       timeoutRef.current = null;
     }
     setIsTyping(false);
+    setHasCompleted(false); // Reset completion state
     currentLineIndexRef.current = 0;
     currentCharIndexRef.current = 0;
     initializeLines();
@@ -202,7 +208,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
   }
 
   return (
-    <div ref={containerRef} className="space-y-3">
+    <div ref={containerRef} className="space-y-3 flex flex-col items-center">
       {lines.map((line, index) => {
         const currentLineIndex = currentLineIndexRef.current;
         const shouldShow = index <= currentLineIndex || line.isComplete;
@@ -216,7 +222,7 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
             key={index}
             className={`bg-white/10 text-white/90 font-mono text-sm leading-relaxed px-4 py-2 rounded-2xl cursor-pointer hover:bg-white/15 transition-colors min-h-[2.5rem] flex items-start ${className}`}
             style={{ 
-              width: 'calc(100vw * 0.3)', // Fixed width relative to viewport width (30% of screen width)
+              width: 'calc(100vw - 20vw)', // Window width minus 10vw spacing on each side
               maxWidth: '400px', // Maximum width cap for very large screens
               minWidth: '250px', // Minimum width for very small screens
               minHeight: '2.5rem'

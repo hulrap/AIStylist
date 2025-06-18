@@ -34,6 +34,7 @@ interface TypewriterOverlayProps {
   onUnmaximize?: () => void;
   showInitialContent?: boolean;
   onTypingComplete?: () => void;
+  stopAutoSequence?: () => void;
 }
 
 export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
@@ -51,6 +52,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   onUnmaximize,
   showInitialContent = false,
   onTypingComplete,
+  stopAutoSequence,
 }) => {
   const { 
     closeOverlay, 
@@ -73,6 +75,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [shouldShowTypewriter, setShouldShowTypewriter] = useState(false);
+  const [isAnimatingMinimize, setIsAnimatingMinimize] = useState(false);
+  const [isAnimatingRestore, setIsAnimatingRestore] = useState(false);
+  const [hasCompletedTyping, setHasCompletedTyping] = useState(false);
   
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -82,6 +87,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   const windowState = getWindowState(id);
   const isWindowMaximized = windowState?.isMaximized || false;
   const isMinimized = windowState?.isMinimized || false;
+  const wasMinimized = useRef(isMinimized);
 
   useEffect(() => {
     const savedPosition = getPosition(id);
@@ -94,7 +100,10 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   }, [id, initialPosition, getPosition, updatePosition]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Scroll to bottom when chat history changes
+    if (chatHistory.length > 0) {
+      handleTypewriterScroll();
+    }
   }, [chatHistory]);
 
   // Handle typewriter display logic
@@ -105,6 +114,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       setShouldShowTypewriter(true);
     } else if (!isActive && windowState?.transitionState !== 'minimizing' && windowState?.transitionState !== 'closing') {
       setShouldShowTypewriter(false);
+      setHasCompletedTyping(false); // Reset when window becomes inactive
     }
   }, [isActive, content, id, getWindowState]);
 
@@ -117,8 +127,50 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     }
   }, [isActive, content, id, getWindowState, shouldShowTypewriter]);
 
+  // Reset typing completion state when window opens (for manual interactions)
+  useEffect(() => {
+    const windowState = getWindowState(id);
+    
+    if (windowState?.transitionState === 'opening') {
+      setHasCompletedTyping(false);
+    }
+  }, [id, getWindowState]);
+
+  // Handle minimize/restore animations
+  useEffect(() => {
+    const previouslyMinimized = wasMinimized.current;
+    const currentlyMinimized = isMinimized;
+    
+    if (!previouslyMinimized && currentlyMinimized) {
+      // Window is being minimized
+      setIsAnimatingMinimize(true);
+      setIsAnimatingRestore(false);
+      
+      // Stop animation after it completes
+      setTimeout(() => {
+        setIsAnimatingMinimize(false);
+      }, 800); // Match animation duration
+      
+    } else if (previouslyMinimized && !currentlyMinimized) {
+      // Window is being restored
+      setIsAnimatingRestore(true);
+      setIsAnimatingMinimize(false);
+      
+      // Stop animation after it completes
+      setTimeout(() => {
+        setIsAnimatingRestore(false);
+      }, 600); // Match animation duration
+    }
+    
+    // Update the ref for next comparison
+    wasMinimized.current = currentlyMinimized;
+  }, [isMinimized]);
+
   // Handle typing completion
   const handleTypingComplete = () => {
+    setHasCompletedTyping(true); // Mark as completed to prevent restarts
+    // Keep typewriter visible after completion (don't hide it)
+    
     if (onTypingComplete) {
       onTypingComplete();
     }
@@ -139,8 +191,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     if (isWindowMaximized) return;
     
     if (e.target instanceof HTMLElement) {
-      const isResizeHandle = e.target.closest('.resize-handle');
-      const isTitlebar = e.target.closest('.window-titlebar');
       const isInput = e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea';
       const isButton = e.target.tagName.toLowerCase() === 'button' || e.target.closest('button');
 
@@ -149,31 +199,28 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         return;
       }
 
-      if (isResizeHandle) {
-        setIsResizing(true);
-        e.preventDefault();
-      } else if (isTitlebar) {
-        setIsDragging(true);
-        const rect = overlayRef.current?.getBoundingClientRect();
-        if (rect) {
-          setDragOffset({
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top,
-          });
-        }
+      // Only allow dragging from titlebar
+      setIsDragging(true);
+      const rect = overlayRef.current?.getBoundingClientRect();
+      if (rect) {
+        setDragOffset({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
       }
-      // Always bring to front on any click inside the window
-      bringToFront(id);
+      e.preventDefault(); // Prevent text selection while dragging
     }
   };
 
-  // Handle window content clicks to restart typing
-  const handleContentClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isActive) {
-      bringToFront(id);
-    }
+  // Separate handler for resize handle
+  const handleResizeMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isWindowMaximized) return;
+    setIsResizing(true);
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event from bubbling to parent
   };
+
+
 
   useEffect(() => {
     if (isDragging || isResizing) {
@@ -311,11 +358,20 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   // Auto-scroll callback for typewriter
   const handleTypewriterScroll = () => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      // Use requestAnimationFrame for better performance and reliability
+      requestAnimationFrame(() => {
+        if (scrollAreaRef.current) {
+          scrollAreaRef.current.scrollTo({
+            top: scrollAreaRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      });
     }
   };
 
-  if (isMinimized) {
+  // Show window during animations, hide only when fully minimized and not animating
+  if (isMinimized && !isAnimatingMinimize && !isAnimatingRestore) {
     return null;
   }
 
@@ -324,17 +380,26 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       ref={overlayRef}
       className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
         isActive ? 'z-[999]' : `z-[${zIndex}]`
-      } ${forceVisible || !windowState?.isMinimized ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+      } ${forceVisible || !windowState?.isMinimized ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'} ${
+        isAnimatingMinimize ? 'window-minimizing' : ''
+      } ${
+        isAnimatingRestore ? 'window-restoring' : ''
+      }`}
       style={{
         left: isWindowMaximized ? 0 : position.x,
         top: isWindowMaximized ? 0 : position.y,
         width: isWindowMaximized ? '100%' : size.width,
         height: isWindowMaximized ? '100%' : size.height,
-        transform: `${isWindowMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
-        transition: isDragging ? 'none' : 'all 0.2s ease-out'
+        transform: (isAnimatingMinimize || isAnimatingRestore) ? 'none' : `${isWindowMaximized ? '' : 'perspective(1000px)'} rotateX(${isDragging ? mousePosition.y * 0.05 : 0}deg) rotateY(${isDragging ? mousePosition.x * 0.05 : 0}deg)`,
+        transition: (isDragging || isAnimatingMinimize || isAnimatingRestore) ? 'none' : 'all 0.2s ease-out'
       }}
       onMouseMove={handleLocalMouseMove}
-      onMouseDown={handleMouseDown}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (stopAutoSequence) stopAutoSequence();
+        setHasCompletedTyping(false); // Reset completion state to allow restart
+        bringToFront(id, stopAutoSequence);
+      }}
     >
       {/* Light Effect */}
       <div 
@@ -345,28 +410,41 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       />
 
       {/* Glass Background */}
-      <div className="absolute inset-0 bg-white/5 backdrop-blur-md border border-white/10" />
+      <div className="absolute inset-0 bg-white/5 backdrop-blur-md border border-white/10 pointer-events-none" />
 
       {/* Window Titlebar */}
       <div 
         className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-white/5 border-b border-white/10"
+        onMouseDown={handleMouseDown}
       >
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <button
-              onClick={handleClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (stopAutoSequence) stopAutoSequence();
+                handleClose();
+              }}
               className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center group"
             >
               <span className="text-red-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">×</span>
             </button>
             <button
-              onClick={handleMinimize}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (stopAutoSequence) stopAutoSequence();
+                handleMinimize();
+              }}
               className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors flex items-center justify-center group"
             >
               <span className="text-yellow-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">−</span>
             </button>
             <button
-              onClick={handleMaximize}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (stopAutoSequence) stopAutoSequence();
+                handleMaximize();
+              }}
               className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center group"
             >
               <span className="text-green-900 opacity-0 group-hover:opacity-100 text-[8px] font-bold">{isWindowMaximized ? '□' : '+'}</span>
@@ -377,17 +455,38 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-col h-[calc(100%-2.5rem)]" onClick={handleContentClick}>
-        <div ref={scrollAreaRef} className="flex-1 p-6 overflow-y-auto">
+      <div className="flex flex-col h-[calc(100%-2.5rem)]" style={{ minHeight: 0 }}>
+        <div 
+          ref={scrollAreaRef} 
+          className="flex-1 p-6 overflow-y-scroll window-scroll window-content-area"
+          style={{ 
+            userSelect: 'text',
+            minHeight: 0,
+            maxHeight: '100%'
+          }}
+          onClick={(e) => {
+            // Only trigger typing if clicking in the content area (not in input fields)
+            const target = e.target as HTMLElement;
+            const isInput = target.tagName.toLowerCase() === 'input' || target.tagName.toLowerCase() === 'textarea';
+            const isButton = target.tagName.toLowerCase() === 'button' || target.closest('button');
+            
+            if (!isInput && !isButton) {
+              e.stopPropagation();
+              if (stopAutoSequence) stopAutoSequence();
+              setHasCompletedTyping(false); // Reset completion state to allow restart
+              bringToFront(id, stopAutoSequence);
+            }
+          }}
+        >
           {/* Smooth Typewriter Content */}
           <div className="space-y-4">
-            {shouldShowTypewriter && content && (
+            {(shouldShowTypewriter || hasCompletedTyping) && content && (
               <div className="flex justify-start">
                 <SmoothTypewriter
                   content={content}
-                  isActive={shouldShowTypewriter && isActive}
+                  isActive={shouldShowTypewriter || hasCompletedTyping}
                   onComplete={handleTypingComplete}
-                  speed={95}
+                  speed={80}
                   className="max-w-[90%]"
                   onScroll={handleTypewriterScroll}
                 />
@@ -424,12 +523,22 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
+                onFocus={() => {
+                  if (stopAutoSequence) stopAutoSequence();
+                }}
                 placeholder="Send me a message..."
                 className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (stopAutoSequence) stopAutoSequence();
+                }}
               />
               <button
-                onClick={handleSendMessage}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (stopAutoSequence) stopAutoSequence();
+                  handleSendMessage();
+                }}
                 disabled={isSending}
                 className="p-2 rounded-lg bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
               >
@@ -446,7 +555,10 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
       {/* Resize Handle */}
       {!isWindowMaximized && (
-        <div className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" />
+        <div 
+          className="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" 
+          onMouseDown={handleResizeMouseDown}
+        />
       )}
     </div>
   );

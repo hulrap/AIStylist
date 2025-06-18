@@ -20,7 +20,7 @@ interface Position {
 const WINDOW_APPEAR_DELAY = 200;
 
 // Base window sizes (will be adjusted per window)
-const BASE_WINDOW_WIDTH = 420;
+const BASE_WINDOW_WIDTH = 520;
 const BASE_WINDOW_HEIGHT = 540;
 
 const TITLE_BAR_HEIGHT = 40; // Height of the window title bar
@@ -107,6 +107,14 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isAutoSequenceActive, setIsAutoSequenceActive] = useState(false);
+
+  // Function to stop automatic sequence when user interacts
+  const stopAutoSequence = () => {
+    if (isAutoSequenceActive) {
+      setIsAutoSequenceActive(false);
+      console.log('Auto sequence stopped due to user interaction');
+    }
+  };
 
   useEffect(() => {
     // Only start cascade animation when isReady is true and hasn't initialized yet
@@ -224,28 +232,45 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
         // Add to minimized windows list
         minimizeWindow(id, getLabelForSection(id), id);
         
-        // Then after a short delay, activate the next window
+        // Then after a longer delay, activate the next window
         setTimeout(() => {
-          // Update window states in correct order
-          setWindowStates(prevStates => ({
-            ...prevStates,
-            [nextId]: {
-              ...prevStates[nextId],
+          // Deactivate all windows first
+          setWindowStates(prevStates => {
+            const newStates = { ...prevStates };
+            Object.keys(newStates).forEach(windowId => {
+              if (newStates[windowId as SectionId].isActive) {
+                newStates[windowId as SectionId] = {
+                  ...newStates[windowId as SectionId],
+                  isActive: false
+                };
+              }
+            });
+            
+            // Then activate the next window
+            newStates[nextId] = {
+              ...newStates[nextId],
               isVisible: true,
               isActive: true,
               isMinimized: false,
               transitionState: 'typing'
-            }
-          }));
+            };
+            
+            return newStates;
+          });
 
-          // Bring next window to front
-          bringToFront(nextId);
-        }, 100); // Small delay to ensure proper transition
-      }, 200); // Delay to allow minimization animation to start
+          // Reorder overlay stack manually (without calling bringToFront to avoid state conflicts)
+          setOverlayStack(prev => {
+            const newStack = prev.filter(windowId => windowId !== nextId);
+            return [...newStack, nextId];
+          });
+        }, 500); // Longer delay to ensure proper transition and visibility
+      }, 800); // Longer delay to allow minimization animation to complete
     }
   };
 
   const handleIconClick = (id: SectionId) => {
+    stopAutoSequence(); // Stop automatic sequence on user interaction
+    
     const windowState = getWindowState(id);
     
     if (isOpen(id)) {
@@ -295,6 +320,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   };
 
   const handleMinimize = (id: SectionId) => {
+    stopAutoSequence(); // Stop automatic sequence on user interaction
+    
     const windowState = getWindowState(id);
     if (!windowState?.isMinimized) {
       // Keep the window visible but minimized
@@ -314,6 +341,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   };
 
   const handleMaximize = (id: SectionId) => {
+    stopAutoSequence(); // Stop automatic sequence on user interaction
+    
     const windowState = getWindowState(id);
     if (!windowState?.isMaximized) {
       maximizeWindow(id);
@@ -321,6 +350,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   };
 
   const handleUnmaximize = (id: SectionId) => {
+    stopAutoSequence(); // Stop automatic sequence on user interaction
+    
     const windowState = getWindowState(id);
     if (windowState?.isMaximized) {
       unmaximizeWindow(id);
@@ -328,6 +359,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   };
 
   const handleRestore = (id: SectionId) => {
+    stopAutoSequence(); // Stop automatic sequence on user interaction
+    
     const windowState = getWindowState(id);
     if (windowState?.isMinimized) {
       restoreWindow(id);
@@ -345,6 +378,8 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   };
 
   const handleClose = (id: SectionId) => {
+    stopAutoSequence(); // Stop automatic sequence on user interaction
+    
     closeOverlay(id);
   };
 
@@ -445,11 +480,13 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 isActive={isActive}
                 forceVisible={isVisible}
                 initialPosition={getInitialPosition(id)}
+                initialSize={getInitialSize(id)}
                 isMaximized={isMaximized}
                 onMinimize={() => handleMinimize(id)}
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
                 onTypingComplete={() => handleTypingComplete(id)}
+                stopAutoSequence={stopAutoSequence}
               />
             );
           case 'problem':
@@ -468,6 +505,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
                 onTypingComplete={() => handleTypingComplete(id)}
+                stopAutoSequence={stopAutoSequence}
               />
             );
           case 'first':
@@ -486,6 +524,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
                 onTypingComplete={() => handleTypingComplete(id)}
+                stopAutoSequence={stopAutoSequence}
               />
             );
           case 'experience':
@@ -504,6 +543,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
                 onTypingComplete={() => handleTypingComplete(id)}
+                stopAutoSequence={stopAutoSequence}
               />
             );
           case 'packages':
@@ -522,6 +562,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
                 onTypingComplete={() => handleTypingComplete(id)}
+                stopAutoSequence={stopAutoSequence}
               />
             );
           case 'contact':
@@ -540,6 +581,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
                 onTypingComplete={() => handleTypingComplete(id)}
+                stopAutoSequence={stopAutoSequence}
               />
             );
           case 'imprint':
@@ -558,6 +600,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
                 onMaximize={() => handleMaximize(id)}
                 onUnmaximize={() => handleUnmaximize(id)}
                 onTypingComplete={() => handleTypingComplete(id)}
+                stopAutoSequence={stopAutoSequence}
               />
             );
           default:

@@ -15,6 +15,7 @@ interface CategoryProps {
   onMaximize?: () => void;
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
+  stopAutoSequence?: () => void;
 }
 
 export const Category: React.FC<CategoryProps> = ({
@@ -30,17 +31,15 @@ export const Category: React.FC<CategoryProps> = ({
   onMaximize,
   onUnmaximize,
   onTypingComplete,
+  stopAutoSequence,
 }) => {
   const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
 Not software, not a course.
 A real person who comes to you.
-A Fitness Instructor teaches your body to be strong.
-A Piano Instructor teaches your fingers to make music.
-A Driving Instructor teaches your mind to navigate roads.
-A Cooking Instructor teaches your hands to create meals.
-A Dance Instructor teaches your body to move with rhythm and a Swimming Instructor teaches you to master water.
-An AI Instructor teaches you to master the digital future.
-Not for your company. Personal instruction for YOU.`.trim();
+A Fitness Instructor teaches you how to be fit.
+A Piano Instructor teaches you how to play the piano.
+An AI Instructor teaches you how to master the digital future.
+For you personally.`.trim();
 
   return (
     <TypewriterOverlay
@@ -58,6 +57,7 @@ Not for your company. Personal instruction for YOU.`.trim();
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
+      stopAutoSequence={stopAutoSequence}
     />
   );
 }; 

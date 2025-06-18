@@ -15,6 +15,7 @@ interface ExperienceProps {
   onMaximize?: () => void;
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
+  stopAutoSequence?: () => void;
 }
 
 export const Experience: React.FC<ExperienceProps> = ({
@@ -30,6 +31,7 @@ export const Experience: React.FC<ExperienceProps> = ({
   onMaximize,
   onUnmaximize,
   onTypingComplete,
+  stopAutoSequence,
 }) => {
   const content = `WHAT TO EXPECT:
 I come to your place, we sit on your couch or at your work desk.
@@ -55,6 +57,7 @@ This is personal AI instruction.`.trim();
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
+      stopAutoSequence={stopAutoSequence}
     />
   );
 }; 

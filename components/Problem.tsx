@@ -15,6 +15,7 @@ interface ProblemProps {
   onMaximize?: () => void;
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
+  stopAutoSequence?: () => void;
 }
 
 export const Problem: React.FC<ProblemProps> = ({
@@ -30,6 +31,7 @@ export const Problem: React.FC<ProblemProps> = ({
   onMaximize,
   onUnmaximize,
   onTypingComplete,
+  stopAutoSequence,
 }) => {
   const content = `THE PROBLEM:
 AI is not about making businesses more efficient.
@@ -58,6 +60,7 @@ I do.`.trim();
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
+      stopAutoSequence={stopAutoSequence}
     />
   );
 }; 

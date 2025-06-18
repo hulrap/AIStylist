@@ -15,6 +15,7 @@ interface PackagesProps {
   onMaximize?: () => void;
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
+  stopAutoSequence?: () => void;
 }
 
 export const Packages: React.FC<PackagesProps> = ({
@@ -30,6 +31,7 @@ export const Packages: React.FC<PackagesProps> = ({
   onMaximize,
   onUnmaximize,
   onTypingComplete,
+  stopAutoSequence,
 }) => {
   const content = `THREE WAYS TO TRANSFORM YOUR LIFE:
 
@@ -58,6 +60,7 @@ Ongoing text support, questions answered immediately, your AI instructor for as 
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
+      stopAutoSequence={stopAutoSequence}
     />
   );
 }; 

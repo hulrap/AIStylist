@@ -15,6 +15,7 @@ interface ImprintProps {
   onMaximize?: () => void;
   onUnmaximize?: () => void;
   onTypingComplete?: () => void;
+  stopAutoSequence?: () => void;
 }
 
 export const Imprint: React.FC<ImprintProps> = ({
@@ -30,6 +31,7 @@ export const Imprint: React.FC<ImprintProps> = ({
   onMaximize,
   onUnmaximize,
   onTypingComplete,
+  stopAutoSequence,
 }) => {
   const content = `LEGAL INFORMATION
 
@@ -62,6 +64,7 @@ VAT ID: ATU81854646
       onMaximize={onMaximize}
       onUnmaximize={onUnmaximize}
       onTypingComplete={onTypingComplete}
+      stopAutoSequence={stopAutoSequence}
     />
   );
 }; 

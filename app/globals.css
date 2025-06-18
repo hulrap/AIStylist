@@ -18,10 +18,19 @@
   html, body {
     font-family: 'Inter', 'Poppins', sans-serif;
     color: var(--brand-fg);
-    overflow: hidden;
+    overflow: hidden; /* Keep this for desktop background */
     user-select: none;
     min-height: 100vh;
     overflow-x: hidden;
+  }
+  
+  /* Allow scrolling in window content areas */
+  .window-content-area {
+    user-select: text;
+  }
+  
+  .window-content-area * {
+    user-select: text;
   }
 }
 
@@ -341,6 +350,30 @@
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
   }
+  
+  /* Window-specific scrollbars */
+  .window-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .window-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 3px;
+  }
+  .window-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+  }
+  .window-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  
+  /* Ensure scrollable content areas have proper sizing */
+  .window-content-area {
+    max-height: 100%;
+    overflow-y: auto;
+  }
+  
+
 }
 
 /* === EXTENSIBILITY NOTES === */
@@ -484,6 +517,77 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Window Minimize Animation */
+@keyframes minimize-to-taskbar {
+  0% {
+    transform: scale(1) translateY(0) rotate(0deg);
+    opacity: 1;
+    border-radius: 12px;
+  }
+  25% {
+    transform: scale(0.85) translateY(15px) rotate(1deg);
+    opacity: 0.9;
+    border-radius: 8px;
+  }
+  50% {
+    transform: scale(0.6) translateY(40px) rotate(2deg);
+    opacity: 0.7;
+    border-radius: 6px;
+  }
+  75% {
+    transform: scale(0.3) translateY(calc(100vh - 150px)) rotate(3deg);
+    opacity: 0.5;
+    border-radius: 4px;
+  }
+  100% {
+    transform: scale(0.05) translateY(calc(100vh - 80px)) rotate(5deg);
+    opacity: 0.2;
+    border-radius: 2px;
+  }
+}
+
+.window-minimizing {
+  animation: minimize-to-taskbar 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  pointer-events: none;
+  z-index: 9999 !important; /* Ensure minimizing window appears above all others */
+  filter: blur(0px);
+  animation-fill-mode: forwards;
+}
+
+/* Window Restore Animation */
+@keyframes restore-from-taskbar {
+  0% {
+    transform: scale(0.05) translateY(calc(100vh - 80px)) rotate(5deg);
+    opacity: 0.2;
+    border-radius: 2px;
+  }
+  25% {
+    transform: scale(0.3) translateY(calc(100vh - 150px)) rotate(3deg);
+    opacity: 0.5;
+    border-radius: 4px;
+  }
+  50% {
+    transform: scale(0.6) translateY(40px) rotate(2deg);
+    opacity: 0.7;
+    border-radius: 6px;
+  }
+  75% {
+    transform: scale(0.85) translateY(15px) rotate(1deg);
+    opacity: 0.9;
+    border-radius: 8px;
+  }
+  100% {
+    transform: scale(1) translateY(0) rotate(0deg);
+    opacity: 1;
+    border-radius: 12px;
+  }
+}
+
+.window-restoring {
+  animation: restore-from-taskbar 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  z-index: 9999 !important; /* Ensure restoring window appears above all others */
 }
 
 /* Light Effect */

@@ -40,7 +40,7 @@ export interface OverlayStackContextType {
   overlayStack: SectionId[];
   openOverlay: (id: SectionId) => void;
   closeOverlay: (id: SectionId) => void;
-  bringToFront: (id: SectionId) => void;
+  bringToFront: (id: SectionId, stopAutoSequence?: () => void) => void;
   updatePosition: (id: SectionId, position: Position) => void;
   getPosition: (id: SectionId) => Position | undefined;
   isOpen: (id: SectionId) => boolean;
@@ -238,7 +238,12 @@ export const OverlayStackProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }, 100);
   }, [maximizedWindow]);
 
-  const bringToFront = useCallback((id: SectionId) => {
+  const bringToFront = useCallback((id: SectionId, stopAutoSequence?: () => void) => {
+    // Stop automatic sequence if user is interacting
+    if (stopAutoSequence) {
+      stopAutoSequence();
+    }
+    
     // Deactivate all windows first
     deactivateAllWindows();
     
