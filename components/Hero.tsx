@@ -33,9 +33,9 @@ export const Hero: React.FC<HeroProps> = ({
 }) => {
   const content = `Finally.
 An AI expert who sees you.
-And comes to YOUR place.
+And comes to your place.
 Not your office. Your home.
-With pizza. And beer or wine if you want to.
+With pizza. And coffee, tea, beer,or wine if you want to.
 And zero corporate bs.
 I treat you like a human, not a company.
 Because AI isn't about making businesses more efficient.

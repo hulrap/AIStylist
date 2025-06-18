@@ -32,10 +32,8 @@ export const Contact: React.FC<ContactProps> = ({
   onTypingComplete,
 }) => {
   const content = `READY TO BECOME MORE POWERFUL?
-Send me a message.
-Tell me about your goals.
-Tell me about your dreams.
-Tell me about your life.
+Send me a message in any window.
+Tell me about your goals, tell me about your dreams, tell me about your life.
 I'll get back to you within 24 hours.
 And we'll make YOU more powerful.
 Together.`.trim();

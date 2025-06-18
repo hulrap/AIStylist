@@ -106,6 +106,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
     startWindowTransition
   } = useOverlayStack();
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [isAutoSequenceActive, setIsAutoSequenceActive] = useState(false);
 
   useEffect(() => {
     // Only start cascade animation when isReady is true and hasn't initialized yet
@@ -159,6 +160,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
           // For AI instructor, start typing after window is fully visible
           if (currentIndex === CASCADE_ORDER.length - 1) {
             setTimeout(() => {
+              setIsAutoSequenceActive(true); // Start the automatic typing sequence
               setWindowStates(prev => ({
                 ...prev,
                 [id]: {
@@ -184,8 +186,14 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({ isReady }) => {
   }, [isReady, hasInitialized, updatePosition, setWindowStates]);
 
   const handleTypingComplete = (id: SectionId) => {
-    // Special handling for Contact window - don't minimize, it's the final destination
+    // Only process automatic sequence windows
+    if (!isAutoSequenceActive || !TYPING_SEQUENCE.includes(id)) {
+      return; // Ignore typing completion for manually opened windows or when sequence is not active
+    }
+
+    // Special handling for Contact window - end the automatic sequence
     if (id === 'contact') {
+      setIsAutoSequenceActive(false); // End the automatic typing sequence
       return;
     }
 

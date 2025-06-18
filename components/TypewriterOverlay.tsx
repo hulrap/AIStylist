@@ -76,6 +76,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   
   const overlayRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
 
   const windowState = getWindowState(id);
@@ -307,6 +308,13 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
   const zIndex = stackIndex * 10;
 
+  // Auto-scroll callback for typewriter
+  const handleTypewriterScroll = () => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  };
+
   if (isMinimized) {
     return null;
   }
@@ -370,7 +378,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
 
       {/* Content Area */}
       <div className="flex flex-col h-[calc(100%-2.5rem)]" onClick={handleContentClick}>
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div ref={scrollAreaRef} className="flex-1 p-6 overflow-y-auto">
           {/* Smooth Typewriter Content */}
           <div className="space-y-4">
             {shouldShowTypewriter && content && (
@@ -379,8 +387,9 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                   content={content}
                   isActive={shouldShowTypewriter && isActive}
                   onComplete={handleTypingComplete}
-                  speed={30}
+                  speed={95}
                   className="max-w-[90%]"
+                  onScroll={handleTypewriterScroll}
                 />
               </div>
             )}

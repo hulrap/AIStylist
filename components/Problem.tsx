@@ -39,9 +39,8 @@ They want to optimize your processes.
 They want to make you more productive.
 They want to make you more efficient.
 But they don't want to make you more powerful.
-They don't want to make you more creative.
 They don't want to make you more human.
-I do.`;
+I do.`.trim();
 
   return (
     <TypewriterOverlay

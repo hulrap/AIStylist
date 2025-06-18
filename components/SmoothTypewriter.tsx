@@ -6,6 +6,7 @@ interface SmoothTypewriterProps {
   onComplete?: () => void;
   speed?: number;
   className?: string;
+  onScroll?: () => void;
 }
 
 interface TypedLine {
@@ -18,14 +19,36 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
   content,
   isActive,
   onComplete,
-  speed = 50,
-  className = ''
+  speed = 80, // Optimal speed: 80ms per character (12.5 chars/sec) for readability
+  className = '',
+  onScroll
 }) => {
   const [lines, setLines] = useState<TypedLine[]>([]);
-  const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentLineIndexRef = useRef(0);
   const currentCharIndexRef = useRef(0);
+  const linesRef = useRef<TypedLine[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Keep lines ref in sync with state
+  useEffect(() => {
+    linesRef.current = lines;
+  }, [lines]);
+
+  // Auto-scroll to bottom when new text appears
+  const scrollToBottom = useCallback(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
+    if (onScroll) {
+      onScroll();
+    }
+  }, [onScroll]);
 
   // Split content into lines and initialize typing state
   const initializeLines = useCallback(() => {
@@ -36,60 +59,90 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
       currentText: ''
     }));
     setLines(initialLines);
-    setCurrentLineIndex(0);
+    linesRef.current = initialLines;
+    currentLineIndexRef.current = 0;
     currentCharIndexRef.current = 0;
   }, [content]);
 
   const startTyping = useCallback(() => {
-    if (isTyping || lines.length === 0) return;
+    if (isTyping || linesRef.current.length === 0) return;
     
     setIsTyping(true);
+    currentLineIndexRef.current = 0;
+    currentCharIndexRef.current = 0;
 
     const typeNextCharacter = () => {
-      if (currentLineIndex >= lines.length) {
+      const currentLineIndex = currentLineIndexRef.current;
+      const currentCharIndex = currentCharIndexRef.current;
+      
+      // Check if we've completed all lines
+      if (currentLineIndex >= linesRef.current.length) {
         setIsTyping(false);
         if (onComplete) {
-          setTimeout(onComplete, 500);
+          setTimeout(onComplete, 2000);
         }
         return;
       }
 
-      const currentLine = lines[currentLineIndex];
-      if (!currentLine || currentLine.isComplete) {
-        // Move to next line
-        setCurrentLineIndex(prev => prev + 1);
-        currentCharIndexRef.current = 0;
-        timeoutRef.current = setTimeout(typeNextCharacter, 300); // Pause between lines
+      const currentLine = linesRef.current[currentLineIndex];
+      if (!currentLine) {
+        setIsTyping(false);
         return;
       }
 
-      if (currentCharIndexRef.current < currentLine.text.length) {
-        const newText = currentLine.text.slice(0, currentCharIndexRef.current + 1);
+      // If current line is complete, move to next line
+      if (currentLine.isComplete) {
+        currentLineIndexRef.current++;
+        currentCharIndexRef.current = 0;
+        timeoutRef.current = setTimeout(typeNextCharacter, 1000);
+        return;
+      }
+
+      // Type next character in current line
+      if (currentCharIndex < currentLine.text.length) {
+        const newText = currentLine.text.slice(0, currentCharIndex + 1);
         
-        setLines(prev => prev.map((line, index) => 
-          index === currentLineIndex 
-            ? { ...line, currentText: newText }
-            : line
-        ));
+        setLines(prev => {
+          const newLines = prev.map((line, index) => 
+            index === currentLineIndex 
+              ? { ...line, currentText: newText }
+              : line
+          );
+          linesRef.current = newLines;
+          return newLines;
+        });
         
         currentCharIndexRef.current++;
+        
+        // Auto-scroll to follow typing progress
+        setTimeout(scrollToBottom, 50);
+        
         timeoutRef.current = setTimeout(typeNextCharacter, speed);
       } else {
         // Current line is complete
-        setLines(prev => prev.map((line, index) => 
-          index === currentLineIndex 
-            ? { ...line, isComplete: true }
-            : line
-        ));
+        setLines(prev => {
+          const newLines = prev.map((line, index) => 
+            index === currentLineIndex 
+              ? { ...line, isComplete: true }
+              : line
+          );
+          linesRef.current = newLines;
+          return newLines;
+        });
         
-        setCurrentLineIndex(prev => prev + 1);
+        currentLineIndexRef.current++;
         currentCharIndexRef.current = 0;
-        timeoutRef.current = setTimeout(typeNextCharacter, 500); // Longer pause after line completion
+        
+        // Auto-scroll when line completes
+        setTimeout(scrollToBottom, 100);
+        
+        timeoutRef.current = setTimeout(typeNextCharacter, 1500); // Longer pause after line completion for processing
       }
     };
 
-    typeNextCharacter();
-  }, [lines, currentLineIndex, speed, onComplete, isTyping]);
+    // Start typing
+    timeoutRef.current = setTimeout(typeNextCharacter, 100);
+  }, [speed, onComplete, isTyping]);
 
   // Initialize lines when content changes
   useEffect(() => {
@@ -98,15 +151,14 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
     }
   }, [content, initializeLines]);
 
-  // Start typing when component becomes active or content changes
+  // Start typing when component becomes active
   useEffect(() => {
-    if (isActive && lines.length > 0 && !isTyping) {
-      // Small delay to ensure proper state initialization
+    if (isActive && linesRef.current.length > 0 && !isTyping) {
       setTimeout(() => {
         startTyping();
-      }, 100);
+      }, 200);
     }
-  }, [isActive, lines.length, startTyping, isTyping]);
+  }, [isActive, startTyping, isTyping]);
 
   // Reset when becomes inactive
   useEffect(() => {
@@ -116,9 +168,10 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
         timeoutRef.current = null;
       }
       setIsTyping(false);
-      setCurrentLineIndex(0);
+      currentLineIndexRef.current = 0;
       currentCharIndexRef.current = 0;
       setLines([]);
+      linesRef.current = [];
     }
   }, [isActive]);
 
@@ -138,10 +191,10 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
       timeoutRef.current = null;
     }
     setIsTyping(false);
-    setCurrentLineIndex(0);
+    currentLineIndexRef.current = 0;
     currentCharIndexRef.current = 0;
     initializeLines();
-    setTimeout(() => startTyping(), 100);
+    setTimeout(() => startTyping(), 200);
   }, [startTyping, initializeLines]);
 
   if (lines.length === 0) {
@@ -149,22 +202,31 @@ export const SmoothTypewriter: React.FC<SmoothTypewriterProps> = ({
   }
 
   return (
-    <div className="space-y-3">
+    <div ref={containerRef} className="space-y-3">
       {lines.map((line, index) => {
+        const currentLineIndex = currentLineIndexRef.current;
         const shouldShow = index <= currentLineIndex || line.isComplete;
         const displayText = line.isComplete ? line.text : line.currentText;
         const showCursor = index === currentLineIndex && !line.isComplete && isTyping;
         
-        if (!shouldShow && !displayText) return null;
+        if (!shouldShow) return null;
         
         return (
           <div 
             key={index}
-            className={`bg-white/10 text-white/90 font-mono text-sm leading-relaxed px-4 py-2 rounded-2xl cursor-pointer hover:bg-white/15 transition-colors ${className}`}
+            className={`bg-white/10 text-white/90 font-mono text-sm leading-relaxed px-4 py-2 rounded-2xl cursor-pointer hover:bg-white/15 transition-colors min-h-[2.5rem] flex items-start ${className}`}
+            style={{ 
+              width: 'calc(100vw * 0.3)', // Fixed width relative to viewport width (30% of screen width)
+              maxWidth: '400px', // Maximum width cap for very large screens
+              minWidth: '250px', // Minimum width for very small screens
+              minHeight: '2.5rem'
+            }}
             onClick={handleClick}
           >
-            {displayText}
-            {showCursor && <span className="animate-pulse">|</span>}
+            <div className="w-full break-words min-h-[1.5rem]">
+              {displayText || '\u00A0'} {/* Non-breaking space to maintain height when empty */}
+              {showCursor && <span className="animate-pulse">|</span>}
+            </div>
           </div>
         );
       })}

@@ -32,14 +32,14 @@ export const Category: React.FC<CategoryProps> = ({
   onTypingComplete,
 }) => {
   const content = `YOU ARE LOOKING AT THE FIRST PERSONAL AI INSTRUCTOR.
-Not software. Not a course.
+Not software, not a course.
 A real person who comes to you.
-A Fitness Instructor, teaches your body to be strong.
-A Piano Instructor, teaches your fingers to make music.
-A Driving Instructor, teaches your mind to navigate roads.
-A Cooking Instructor, teaches your hands to create meals.
-A Dance Instructor, teaches your body to move with rhythm and a Swimming Instructor, teaches you to master water.
-An AI Instructor, teaches you to master the digital future.
+A Fitness Instructor teaches your body to be strong.
+A Piano Instructor teaches your fingers to make music.
+A Driving Instructor teaches your mind to navigate roads.
+A Cooking Instructor teaches your hands to create meals.
+A Dance Instructor teaches your body to move with rhythm and a Swimming Instructor teaches you to master water.
+An AI Instructor teaches you to master the digital future.
 Not for your company. Personal instruction for YOU.`.trim();
 
   return (
