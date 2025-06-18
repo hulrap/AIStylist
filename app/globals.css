@@ -713,87 +713,55 @@
 
 /* === MOBILE RESPONSIVE STYLES === */
 @layer utilities {
-  /* Mobile-specific window positioning - layered in viewport */
   @media (max-width: 768px) {
+    /* === MOBILE WINDOW STACKING === */
     .mobile-window-stack {
       position: fixed !important;
       left: 15px !important;
       right: 15px !important;
       width: calc(100vw - 30px) !important;
-      max-width: none !important;
-      height: calc(100vh - 160px) !important; /* Leave more space for icons at bottom */
-      max-height: none !important;
+      height: calc(100vh - 160px) !important;
       border-radius: 12px !important;
-      overflow: visible !important; /* Allow content to be visible */
       background: rgba(255, 255, 255, 0.05) !important;
       backdrop-filter: blur(16px) !important;
       -webkit-backdrop-filter: blur(16px) !important;
       border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      overflow: visible !important;
     }
     
-    /* Stack windows with different z-indexes and slight offsets */
-    .mobile-window-stack[data-stack="0"] {
-      top: 10px !important;
-      z-index: 1000 !important;
-    }
-    
-    .mobile-window-stack[data-stack="1"] {
-      top: 15px !important;
-      z-index: 999 !important;
-    }
-    
-    .mobile-window-stack[data-stack="2"] {
-      top: 20px !important;
-      z-index: 998 !important;
-    }
-    
-    .mobile-window-stack[data-stack="3"] {
-      top: 25px !important;
-      z-index: 997 !important;
-    }
-    
-    .mobile-window-stack[data-stack="4"] {
-      top: 30px !important;
-      z-index: 996 !important;
-    }
-    
-    .mobile-window-stack[data-stack="5"] {
-      top: 35px !important;
-      z-index: 995 !important;
-    }
-    
-    .mobile-window-stack[data-stack="6"] {
-      top: 40px !important;
-      z-index: 994 !important;
+    /* Window stacking positions */
+    .mobile-window-stack[data-stack="0"] { top: 10px !important; z-index: 1000 !important; }
+    .mobile-window-stack[data-stack="1"] { top: 15px !important; z-index: 999 !important; }
+    .mobile-window-stack[data-stack="2"] { top: 20px !important; z-index: 998 !important; }
+    .mobile-window-stack[data-stack="3"] { top: 25px !important; z-index: 997 !important; }
+    .mobile-window-stack[data-stack="4"] { top: 30px !important; z-index: 996 !important; }
+    .mobile-window-stack[data-stack="5"] { top: 35px !important; z-index: 995 !important; }
+    .mobile-window-stack[data-stack="6"] { top: 40px !important; z-index: 994 !important; }
+    .mobile-window-stack.active { top: 10px !important; z-index: 1001 !important; }
+
+    /* === MOBILE WINDOW CONTENT === */
+    .mobile-window-stack .window-content-container {
+      height: calc(100% - 2.5rem) !important;
+      display: flex !important;
+      flex-direction: column !important;
     }
 
-    /* Active window always on top */
-    .mobile-window-stack.active {
-      z-index: 1001 !important;
-      top: 10px !important;
+    .mobile-window-stack .window-content-area {
+      flex: 1 !important;
+      overflow-y: auto !important;
+      padding: 20px !important;
+      display: flex !important;
+      flex-direction: column !important;
     }
 
-    /* Mobile window controls - larger touch targets */
-    .mobile-window-controls button {
-      width: 18px !important;
-      height: 18px !important;
-      font-size: 12px !important;
+    /* === MOBILE WINDOW CONTROLS === */
+    .mobile-window-stack .window-titlebar button {
+      width: 24px !important;
+      height: 24px !important;
+      font-size: 14px !important;
     }
 
-    /* Hide drag functionality on mobile */
-    .window-titlebar {
-      cursor: default !important;
-      -webkit-app-region: none !important;
-      -moz-app-region: none !important;
-      app-region: none !important;
-    }
-
-    /* Hide resize handle on mobile */
-    .resize-handle {
-      display: none !important;
-    }
-
-    /* Mobile desktop icons - centered grid */
+    /* === MOBILE DESKTOP ICONS === */
     .mobile-icon-grid {
       position: fixed !important;
       bottom: 20px !important;
@@ -806,12 +774,10 @@
       background: rgba(0, 0, 0, 0.3) !important;
       backdrop-filter: blur(10px) !important;
       -webkit-backdrop-filter: blur(10px) !important;
-      -moz-backdrop-filter: blur(10px) !important;
       border-radius: 20px !important;
       border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* Mobile icon styling */
     .mobile-desktop-icon {
       width: 100% !important;
       display: flex !important;
@@ -848,63 +814,29 @@
       font-size: 10px !important;
       text-align: center !important;
       line-height: 1.2 !important;
-      max-width: 100% !important;
       word-break: break-word !important;
     }
 
-    /* Hide taskbar on mobile */
-    .taskbar {
-      display: none !important;
+    /* === MOBILE DISABLED FEATURES === */
+    .taskbar { display: none !important; }
+    .mobile-window-tabs { display: none !important; }
+    .resize-handle { display: none !important; }
+    
+    .window-titlebar {
+      cursor: default !important;
+      -webkit-app-region: none !important;
+      -moz-app-region: none !important;
+      app-region: none !important;
     }
 
-    /* Hide mobile window tabs - causing taskbar-like appearance */
-    .mobile-window-tabs {
-      display: none !important;
-    }
-
-    /* Mobile content area fixes */
-    .mobile-window-stack .window-content-area {
-      flex: 1 !important;
-      overflow-y: auto !important;
-      padding: 20px !important;
-      display: flex !important;
-      flex-direction: column !important;
-    }
-
-    .mobile-window-stack .window-content-container {
-      height: calc(100% - 2.5rem) !important;
-      min-height: 0 !important;
-      display: flex !important;
-      flex-direction: column !important;
-    }
-
-    /* Ensure typewriter content is visible on mobile */
-    .mobile-window-stack .space-y-3 {
-      width: 100% !important;
-      max-width: none !important;
-    }
-
-    /* Mobile typewriter bubbles */
-    .mobile-window-stack .bg-white\/10 {
-      max-width: none !important;
-      width: 100% !important;
-    }
-
-    /* Mobile window controls - larger touch targets */
-    .mobile-window-stack .window-titlebar button {
-      width: 24px !important;
-      height: 24px !important;
-      font-size: 14px !important;
-    }
-
-    /* Prevent body scroll on mobile when windows are open */
+    /* === MOBILE BODY SCROLL PREVENTION === */
     .mobile-no-scroll {
       overflow: hidden !important;
       touch-action: none !important;
     }
   }
 
-  /* Tablet adjustments */
+  /* === TABLET ADJUSTMENTS === */
   @media (min-width: 769px) and (max-width: 1024px) {
     .mobile-icon-grid {
       grid-template-columns: repeat(5, 1fr) !important;
