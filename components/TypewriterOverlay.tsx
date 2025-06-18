@@ -276,7 +276,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     <div
       ref={overlayRef}
       className={`fixed backdrop-blur-lg rounded-lg shadow-2xl overflow-hidden transition-all duration-200 group ${
-        isActive ? 'z-[999]' : `z-[${10 + stackIndex}]`
+        isActive ? 'z-[999]' : `z-[${zIndex}]`
       } ${forceVisible || !windowState?.isMinimized ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
       style={{
         left: isWindowMaximized ? 0 : position.x,
@@ -287,7 +287,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
         transition: isDragging ? 'none' : 'all 0.2s ease-out'
       }}
       onMouseMove={handleLocalMouseMove}
-      onMouseDown={handleMouseDown}
     >
       {/* Light Effect */}
       <div 
@@ -301,7 +300,10 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
       <div className="absolute inset-0 bg-white/5 backdrop-blur-md border border-white/10" />
 
       {/* Window Titlebar */}
-      <div className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-white/5 border-b border-white/10">
+      <div 
+        className="window-titlebar relative flex items-center justify-between h-10 px-4 bg-white/5 border-b border-white/10"
+        onMouseDown={handleMouseDown}
+      >
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <button
@@ -363,6 +365,7 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
                 onKeyPress={handleKeyPress}
                 placeholder="Send me a message..."
                 className="flex-1 px-4 py-2 bg-white/10 rounded-lg text-white/90 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                onClick={(e) => e.stopPropagation()}
               />
               <button
                 onClick={handleSendMessage}
