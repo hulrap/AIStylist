@@ -110,6 +110,12 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
     if (e.target instanceof HTMLElement) {
       const isResizeHandle = e.target.closest('.resize-handle');
       const isTitlebar = e.target.closest('.window-titlebar');
+      const isInput = e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea';
+
+      if (isInput) {
+        // Don't initiate dragging for input fields
+        return;
+      }
 
       if (isResizeHandle) {
         setIsResizing(true);
@@ -253,7 +259,6 @@ export const TypewriterOverlay: React.FC<TypewriterOverlayProps> = ({
   };
 
   const handleMinimize = () => {
-    minimizeWindow(id, title, 'window');
     if (onMinimize) onMinimize();
   };
 
